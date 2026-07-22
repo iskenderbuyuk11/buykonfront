@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="../js/favicon.js"></script>
+
+    <title>Admin Panel | Buykon Marketplace</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="../js/site-config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="admin.css?v=10" />
+    <script src="admin-api.js?v=6"></script>
+    <script>
+      BizdeAdminAPI.session().catch(function () {
+        window.location.href = "login.html";
+      });
+    </script>
+  </head>
+  <body>
+    <div class="admin-shell" id="adminShell">
+      <aside class="admin-sidebar" aria-label="Admin naviqasiyası">
+        <div class="brand-block">
+          <a class="brand" href="#dashboard" data-route="dashboard">
+            <span class="brand__mark"><i class="fa-solid fa-shield-halved"></i></span>
+            <span class="brand__text">
+              <strong>Buykon</strong>
+              <small>Admin</small>
+            </span>
+          </a>
+          <button class="icon-btn sidebar-toggle" type="button" id="sidebarToggle" aria-label="Menunu yığ">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+        </div>
+        <nav class="side-nav" id="sideNav"></nav>
+        <div class="sidebar-foot">
+          <p>Moderasiya və marketplace idarəetməsi</p>
+        </div>
+      </aside>
+
+      <div class="admin-main">
+        <header class="topbar">
+          <div class="topbar__left">
+            <button class="icon-btn mobile-menu" type="button" id="mobileMenu" aria-label="Menunu aç">
+              <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="breadcrumb" id="breadcrumb">Dashboard</div>
+          </div>
+
+          <div class="global-search" role="search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input id="globalSearch" type="search" placeholder="Sifariş, mağaza və ya məhsul axtar..." />
+            <kbd>Ctrl K</kbd>
+          </div>
+
+          <div class="topbar__actions">
+            <button class="icon-btn" type="button" id="themeToggle" aria-label="Rejimi dəyiş">
+              <i class="fa-solid fa-moon"></i>
+            </button>
+            <div class="profile">
+              <button class="profile__trigger" type="button" id="profileTrigger" aria-expanded="false">
+                <span class="avatar" id="profileAvatar">AD</span>
+                <span class="profile__meta">
+                  <strong id="profileName">Admin</strong>
+                  <small>Marketplace</small>
+                </span>
+                <i class="fa-solid fa-chevron-down"></i>
+              </button>
+              <div class="profile-menu" id="profileMenu">
+                <a href="#settings" data-route="settings"><i class="fa-solid fa-gear"></i> Ayarlar</a>
+                <a href="#security" data-route="security"><i class="fa-solid fa-clock-rotate-left"></i> Əməliyyat jurnalı</a>
+                <button type="button" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Çıxış</button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main class="workspace" id="workspace" tabindex="-1"></main>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop" hidden>
+      <section class="modal" id="modalPanel" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal__head">
+          <h2 id="modalTitle">Modal</h2>
+          <button class="icon-btn" type="button" id="modalClose" aria-label="Bağla">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal__body" id="modalBody"></div>
+        <div class="modal__foot" id="modalFoot" hidden></div>
+      </section>
+    </div>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+    <script src="../js/wheel-config.js?v=3"></script>
+    <script src="../js/terms-data.js?v=1"></script>
+    <script src="admin.js?v=12"></script>
+  </body>
+</html>

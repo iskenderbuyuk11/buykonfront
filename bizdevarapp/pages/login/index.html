@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script src="../../../js/favicon.js"></script>
+
+    <meta name="theme-color" content="#017fa5" />
+    <title>Giriş | BizdəVar</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="../../../js/site-config.js"></script>
+    <link rel="stylesheet" href="../../css/app.css?v=5" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+  </head>
+  <body class="auth-page" data-root="../../" data-assets="../../../">
+    <main>
+      <section class="auth-card">
+        <img src="../../../images/logo.png" alt="BizdəVar" class="auth-logo" />
+        <h1>Təkrar xoş gəldiniz!</h1>
+        <p class="auth-subtitle">Məlumatlarını daxil et və alış-verişə davam et!</p>
+        <p id="auth-message" class="auth-message" hidden role="alert"></p>
+        <form class="auth-form" id="loginForm">
+          <div class="input-group">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="Email ünvanı" required />
+          </div>
+          <div class="input-group">
+            <label for="login-password">Şifrə</label>
+            <input type="password" id="login-password" placeholder="Şifrə" required />
+          </div>
+          <div class="form-row">
+            <label class="remember-me"><input type="checkbox" /> <span>Məni xatırla</span></label>
+            <a href="#" class="form-link">Şifrəni unutmusan?</a>
+          </div>
+          <button type="submit" class="auth-btn primary-btn">Giriş et</button>
+          <div class="divider"><span>və ya</span></div>
+          <button type="button" class="auth-btn google-btn">Google ilə giriş et</button>
+          <p class="bottom-text">Hesabın yoxdur? <a href="../register/">Qeydiyyat et</a></p>
+        </form>
+      </section>
+    </main>
+    <div id="site-bottom-nav"></div>
+    <script src="../../js/layout.js"></script>
+    <script src="../../../js/api.js"></script>
+    <script src="../../../js/auth.js"></script>
+    <script src="../../js/app.js"></script>
+  </body>
+</html>

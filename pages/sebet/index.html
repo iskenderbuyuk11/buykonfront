@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="../../js/favicon.js"></script>
+
+    <title>Səbət | Buykon.com</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="../../js/site-config.js?v=4"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../../css/main.css?v=4" />
+    <link rel="stylesheet" href="../../css/header.css?v=10" />
+    <link rel="stylesheet" href="../../css/footer.css" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+    <link rel="stylesheet" href="../../css/sebet.css?v=6" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  </head>
+  <body data-root="../../" class="checkout-body">
+    <div id="site-header"></div>
+
+    <main class="checkout-page cart-page">
+      <div class="checkout-page__inner container">
+        <header class="checkout-head">
+          <div class="checkout-head__top">
+            <a href="../../index.html" class="checkout-back">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Alış-verişə davam et</span>
+            </a>
+            <span class="checkout-head__secure">
+              <i class="fa-solid fa-lock"></i>
+              Təhlükəsiz alış-veriş
+            </span>
+          </div>
+          <h1 class="checkout-head__title">
+            Səbətim
+            <span id="cart-count" class="checkout-head__count"></span>
+          </h1>
+          <p class="checkout-head__sub">Məhsullarınızı yoxlayın və ödənişə keçin</p>
+
+          <ol class="checkout-steps" aria-label="Sifariş addımları">
+            <li class="checkout-steps__item is-active">
+              <span class="checkout-steps__dot">1</span>
+              <span class="checkout-steps__label">Səbət</span>
+            </li>
+            <li class="checkout-steps__line" aria-hidden="true"></li>
+            <li class="checkout-steps__item">
+              <span class="checkout-steps__dot">2</span>
+              <span class="checkout-steps__label">Çatdırılma</span>
+            </li>
+            <li class="checkout-steps__line" aria-hidden="true"></li>
+            <li class="checkout-steps__item">
+              <span class="checkout-steps__dot">3</span>
+              <span class="checkout-steps__label">Ödəniş</span>
+            </li>
+          </ol>
+        </header>
+
+        <section class="checkout-layout cart-layout" aria-label="Səbət məzmunu">
+          <div class="checkout-main cart-main">
+            <div id="cart-empty" class="cart-empty" hidden>
+              <div class="cart-empty__icon-wrap">
+                <i class="fa-solid fa-bag-shopping"></i>
+              </div>
+              <h2 class="cart-empty__title">Səbətiniz boşdur</h2>
+              <p class="cart-empty__text">Bəyəndiyiniz məhsulları əlavə edin və buradan sifariş verin.</p>
+              <a href="../../index.html#catalog" class="cart-empty__btn">
+                <i class="fa-solid fa-store"></i>
+                Alış-verişə başla
+              </a>
+            </div>
+
+            <div id="cart-groups" class="cart-groups" aria-live="polite"></div>
+          </div>
+
+          <aside class="checkout-aside cart-aside" aria-label="Ödəniş məlumatı">
+            <div class="summary-card">
+              <form id="promo-form" class="promo-block">
+                <label for="promo-code" class="promo-block__label">
+                  <i class="fa-solid fa-tag"></i>
+                  Endirim kodu
+                </label>
+                <div class="promo-block__row">
+                  <input
+                    type="text"
+                    id="promo-code"
+                    class="promo-block__input"
+                    placeholder="Kodu daxil edin"
+                    autocomplete="off"
+                  />
+                  <button type="submit" class="promo-block__btn">Tətbiq et</button>
+                </div>
+                <p id="promo-message" class="promo-block__message"></p>
+              </form>
+
+              <h2 class="summary-card__title">Səbət xülasəsi</h2>
+              <div class="summary-card__rows">
+                <div class="summary-row">
+                  <span>Aralıq cəm</span>
+                  <strong id="summary-subtotal">0 ₼</strong>
+                </div>
+                <div class="summary-row summary-row--save" id="summary-product-save-row" hidden>
+                  <span>Məhsul endirimi</span>
+                  <strong class="summary-row__discount" id="summary-product-save">0 ₼</strong>
+                </div>
+                <div class="summary-row summary-row--save" id="summary-promo-row" hidden>
+                  <span>Endirim kodu (<span id="summary-promo-rate">0%</span>)</span>
+                  <strong class="summary-row__discount" id="summary-promo-save">0 ₼</strong>
+                </div>
+                <div class="summary-gain" id="summary-gain-row" hidden>
+                  <i class="fa-solid fa-piggy-bank"></i>
+                  <span>Ümumi qazancın</span>
+                  <strong id="summary-gain">0 ₼</strong>
+                </div>
+              </div>
+              <div class="summary-total">
+                <span>Ümumi məbləğ</span>
+                <strong id="summary-total">0 ₼</strong>
+              </div>
+
+              <button id="confirm-cart" type="button" class="pay-btn">
+                <i class="fa-solid fa-arrow-right"></i>
+                Ödənişə keç
+              </button>
+
+              <ul class="trust-list">
+                <li><i class="fa-solid fa-shield-halved"></i> SSL qorunan ödəniş</li>
+                <li><i class="fa-solid fa-truck"></i> Pulsuz çatdırılma</li>
+                <li><i class="fa-solid fa-rotate-left"></i> 14 gün qaytarılma</li>
+              </ul>
+            </div>
+          </aside>
+
+          <section id="recommended" class="recommended" hidden>
+            <div class="recommended__head">
+              <span class="recommended__icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+              <div>
+                <h2 class="recommended__title">Sizin üçün seçdik</h2>
+                <p class="recommended__sub">Səbətinizə əlavə edə biləcəyiniz məhsullar</p>
+              </div>
+            </div>
+            <div id="recommended-list" class="recommended__list"></div>
+          </section>
+        </section>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+    <div id="site-bottom-nav"></div>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/api.js?v=5"></script>
+    <script src="../../js/auth-guard.js"></script>
+    <script src="../../js/favorites-store.js"></script>
+    <script src="../../js/cart-store.js"></script>
+    <script src="../../js/header.js?v=4"></script>
+    <script src="../../js/footer.js"></script>
+    <script src="../../js/sebet.js?v=5"></script>
+  </body>
+</html>

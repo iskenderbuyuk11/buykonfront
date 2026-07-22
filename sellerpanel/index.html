@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/js/favicon.js"></script>
+
+    <title>Satıcı Paneli | Buykon</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="/js/site-config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="/sellerpanel/seller.css" />
+    <script src="/sellerpanel/seller-api.js?v=5"></script>
+    <script>
+      (function () {
+        var parts = (window.location.pathname || "").split("/").filter(Boolean);
+        if (parts.length >= 3 && parts[1] === "sellerpanel" && (parts[2] === "login" || parts[2] === "accept-invite")) {
+          var url = BuykonSellerAPI.storePathUrl(parts[0] + "/sellerpanel/" + parts[2]);
+          if (window.location.search.length > 1) {
+            url += "&" + window.location.search.slice(1);
+          }
+          window.location.replace(url);
+          return;
+        }
+        BuykonSellerAPI.session().catch(function () {
+          window.location.replace(BuykonSellerAPI.loginUrl());
+        });
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="admin-shell seller-shell" id="adminShell">
+      <div class="sp-overlay" id="sidebarOverlay" hidden></div>
+
+      <aside class="admin-sidebar" id="sidebar">
+        <div class="brand-block">
+          <a class="brand" href="#dashboard">
+            <span class="brand__mark"><i class="fa-solid fa-user"></i></span>
+            <span class="brand__text">
+              <strong id="memberName">Satıcı</strong>
+              <small id="memberRole">Vəzifə</small>
+              <small id="storeHead">Mağaza</small>
+            </span>
+          </a>
+          <button class="sp-close" type="button" id="sidebarClose" aria-label="Menunu bağla">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <nav class="side-nav" id="sideNav"></nav>
+
+        <div class="sidebar-card">
+          <span class="sidebar-card__label">Moderasiya</span>
+          <strong><i class="fa-solid fa-shield-halved"></i> Admin təsdiqi</strong>
+          <p>Məhsul əlavə, dəyişiklik və silmə əməliyyatları yoxlanılır.</p>
+        </div>
+      </aside>
+
+      <div class="admin-main">
+        <header class="admin-topbar">
+          <div class="topbar__left">
+            <button class="sp-menu" type="button" id="sidebarOpen" aria-label="Menunu aç">
+              <i class="fa-solid fa-bars"></i>
+            </button>
+            <span class="breadcrumb" id="breadcrumb">Satıcı</span>
+          </div>
+          <div class="topbar__right">
+            <a class="sp-link" href="/buykonbusiness/index.html" title="Buykon Business">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              <span>Sayta qayıt</span>
+            </a>
+            <button class="btn btn--ghost" type="button" id="logoutBtn">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span>Çıxış</span>
+            </button>
+          </div>
+        </header>
+
+        <main class="admin-workspace" id="workspace">
+          <div class="sp-loading">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <span>Yüklənir...</span>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop" hidden>
+      <div class="modal" role="dialog" aria-modal="true">
+        <div class="modal__head">
+          <h2 id="modalTitle"></h2>
+          <button class="modal__close" type="button" data-action="close-modal" aria-label="Bağla">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal__body" id="modalBody"></div>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="toastStack"></div>
+
+    <script src="/sellerpanel/seller.js?v=5"></script>
+  </body>
+</html>

@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script src="../../../js/favicon.js"></script>
+
+    <meta name="theme-color" content="#017fa5" />
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="../../../js/site-config.js"></script>
+    <title>Məhsul | BizdəVar</title>
+    <link rel="stylesheet" href="../../css/app.css?v=5" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+    <link rel="stylesheet" href="../../../css/product.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Aboreto&family=Alumni+Sans+Pinstripe:ital@0;1&family=Archivo+Black&family=Barriecito&family=Bitcount+Grid+Double+Ink:wght@100..900&family=Bungee&family=Cormorant:ital,wght@0,300..700;1,300..700&family=Lexend+Deca:wght@100..900&family=Lexend:wght@100..900&family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&family=Orbitron:wght@400..900&family=Oswald:wght@200..700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Zalando+Sans+Expanded:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+  </head>
+  <body class="app-inner-page" data-root="../../" data-assets="../../../">
+    <div id="site-header"></div>
+    <main class="product-page container">
+      <nav class="product-breadcrumb" aria-label="Breadcrumb">
+        <a href="../../index.html">Ana səhifə</a>
+        <span class="product-breadcrumb__sep" aria-hidden="true">/</span>
+        <a href="../../index.html#catalog">Məhsullar</a>
+        <span class="product-breadcrumb__sep" aria-hidden="true">/</span>
+        <span id="pd-bc-title" class="product-breadcrumb__current">Məhsul</span>
+      </nav>
+
+      <section class="product-hero" aria-label="Məhsul">
+        <div class="product-hero__media">
+          <div class="gallery" id="pd-gallery">
+            <div class="gallery__stage" id="pd-stage">
+              <button
+                class="gallery__arrow gallery__arrow--prev"
+                type="button"
+                aria-label="Əvvəlki şəkil"
+                id="pd-prev"
+              >
+                ‹
+              </button>
+
+              <div class="gallery__img-wrap" id="pd-img-wrap" tabindex="0">
+                <img
+                  id="pd-img"
+                  class="gallery__img"
+                  src="../../../images/products/iphone15.jpg"
+                  alt=""
+                  decoding="async"
+                />
+                <div id="pd-lens" class="gallery__lens" aria-hidden="true"></div>
+                <div id="pd-badge" class="gallery__badge" hidden></div>
+              </div>
+
+              <button
+                class="gallery__arrow gallery__arrow--next"
+                type="button"
+                aria-label="Növbəti şəkil"
+                id="pd-next"
+              >
+                ›
+              </button>
+
+              <button class="gallery__zoom-btn" type="button" id="pd-open" aria-label="Şəkli böyüt">
+                Böyüt
+              </button>
+            </div>
+
+            <div class="gallery__zoom" id="pd-zoom" aria-hidden="true">
+              <div class="gallery__zoom-inner">
+                <img id="pd-zoom-img" alt="" />
+              </div>
+            </div>
+
+            <div class="gallery__thumbs" id="pd-thumbs" aria-label="Şəkillər"></div>
+          </div>
+        </div>
+
+        <aside class="product-hero__details" aria-label="Detallar">
+          <h1 class="pd-title" id="pd-title">Məhsul adı</h1>
+          <div class="pd-sub">
+            <div class="pd-rating" id="pd-rating" aria-label="Populyarlıq">
+              <span class="pd-stars" aria-hidden="true"></span>
+              <span class="pd-rating__text" id="pd-rating-text"></span>
+            </div>
+            <div class="pd-cart-count" id="pd-in-carts"></div>
+          </div>
+
+          <div class="pd-price" aria-label="Qiymət">
+            <div class="pd-price__row">
+              <strong class="pd-price__now" id="pd-price-now">0 ₼</strong>
+              <del class="pd-price__old" id="pd-price-old" hidden>0 ₼</del>
+              <span class="pd-price__disc" id="pd-price-disc" hidden></span>
+            </div>
+            <p class="pd-vat">ƏDV daxil</p>
+          </div>
+
+          <div class="pd-colors" aria-label="Rəng seçimi">
+            <p class="pd-label">Rəng</p>
+            <div class="pd-color-row" id="pd-colors"></div>
+          </div>
+
+          <div class="pd-actions">
+            <button class="pd-btn pd-btn--primary" type="button" id="pd-add-cart">
+              Səbətə əlavə et
+            </button>
+            <button class="pd-btn pd-btn--ghost" type="button" id="pd-fav" aria-pressed="false">
+            </button>
+          </div>
+
+          <div class="pd-seller">
+            <p class="pd-label">Satıcı</p>
+            <div class="seller-card" id="pd-main-seller"></div>
+          </div>
+
+          <div class="pd-other-sellers">
+            <p class="pd-label">Digər satıcılar</p>
+            <div class="seller-list" id="pd-sellers"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="pd-section" aria-label="Xüsusiyyətlər">
+        <button class="pd-accordion" type="button" id="pd-specs-toggle" aria-expanded="false">
+          <span>Məhsulun xüsusiyyətləri</span>
+          <span class="pd-accordion__chev" aria-hidden="true">▾</span>
+        </button>
+        <div class="pd-accordion-panel" id="pd-specs-panel" hidden>
+          <dl class="pd-specs" id="pd-specs"></dl>
+        </div>
+      </section>
+
+      <section class="pd-grid2">
+        <section class="pd-section" aria-label="Rəylər">
+          <div class="pd-section__head">
+            <h2 class="pd-h2">Populyarlıq və rəylər</h2>
+            <div class="pd-mini" id="pd-review-summary"></div>
+          </div>
+
+          <form class="pd-review-form" id="pd-review-form">
+            <label class="pd-label" for="pd-review-stars">Qiymətləndir</label>
+            <select id="pd-review-stars" class="pd-select">
+              <option value="5">5 ulduz</option>
+              <option value="4">4 ulduz</option>
+              <option value="3">3 ulduz</option>
+              <option value="2">2 ulduz</option>
+              <option value="1">1 ulduz</option>
+            </select>
+            <label class="pd-label" for="pd-review-text">Yorum</label>
+            <textarea id="pd-review-text" class="pd-textarea" rows="3" placeholder="Məhsul barədə fikriniz"></textarea>
+            <button class="pd-btn pd-btn--primary" type="submit">Göndər</button>
+          </form>
+
+          <div class="pd-review-list" id="pd-reviews" aria-live="polite"></div>
+        </section>
+
+        <section class="pd-section" aria-label="Suallar">
+          <div class="pd-section__head">
+            <h2 class="pd-h2">Suallar və cavablar</h2>
+            <div class="pd-mini" id="pd-qa-summary"></div>
+          </div>
+
+          <form class="pd-review-form" id="pd-qa-form">
+            <label class="pd-label" for="pd-qa-text">Sual ver</label>
+            <textarea id="pd-qa-text" class="pd-textarea" rows="3" placeholder="Satıcıya sualınız"></textarea>
+            <button class="pd-btn pd-btn--primary" type="submit">Göndər</button>
+          </form>
+
+          <div class="pd-review-list" id="pd-qa" aria-live="polite"></div>
+        </section>
+      </section>
+        <section
+          class="catalog catalog--popular"
+          id="populyar"
+          aria-labelledby="catalog-popular-title"
+        >
+          <div class="catalog__head catalog__head--popular">
+            <h2
+              class="catalog__title catalog__title--fixed"
+              id="catalog-popular-title"
+            >
+              Populyar məhsullar
+            </h2>
+          </div>
+          <div class="products" id="products-popular"></div>
+        </section>
+
+        <section
+          class="catalog catalog--sale"
+          id="endirimli"
+          aria-labelledby="catalog-sale-title"
+        >
+          <div class="catalog__head catalog__head--sale">
+            <h2 class="catalog__title" id="catalog-sale-title">
+              Endirimli məhsullar
+            </h2>
+          </div>
+          <div class="products products--sale" id="products-sale"></div>
+        </section>
+
+
+      <div id="pd-lightbox" class="pd-lightbox" hidden aria-modal="true" role="dialog" aria-label="Şəkil baxışı">
+        <button class="pd-lightbox__backdrop" type="button" id="pd-lightbox-close" aria-label="Bağla"></button>
+        <div class="pd-lightbox__panel" role="document">
+          <button class="pd-lightbox__x" type="button" id="pd-lightbox-x" aria-label="Bağla">×</button>
+          <div class="pd-lightbox__stage">
+            <button class="pd-lightbox__arrow" type="button" id="pd-lightbox-prev" aria-label="Əvvəlki">‹</button>
+            <img id="pd-lightbox-img" alt="" />
+            <button class="pd-lightbox__arrow" type="button" id="pd-lightbox-next" aria-label="Növbəti">›</button>
+          </div>
+          <div class="pd-lightbox__thumbs" id="pd-lightbox-thumbs"></div>
+        </div>
+      </div>
+    </main>
+    <div id="site-bottom-nav"></div>
+        <script src="../../../js/api.js"></script>
+        <script src="../../../js/cart-store.js"></script>
+    <script src="../../../js/favorites-store.js"></script>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/app.js"></script>
+    <script src="../../js/product.js?v=2"></script>
+</body>
+</html>
+

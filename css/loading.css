@@ -1,0 +1,59 @@
+/* PAGE LOADER */
+.page-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+}
+
+/* CENTER BOX */
+.loader-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+/* SPINNER */
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #e5e7eb;
+    border-top: 4px solid #2563eb;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+/* TEXT */
+.loader-text {
+    font-size: 14px;
+    color: #555;
+    font-weight: 600;
+}
+
+/* ANIMATION */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* CONTENT GİZLƏ */
+body.loading #header,
+body.loading main,
+body.loading #footer {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* CONTENT GÖRÜNSÜN */
+body.loaded #header,
+body.loaded main,
+body.loaded #footer {
+    opacity: 1;
+    visibility: visible;
+    transition: 0.3s ease;
+}

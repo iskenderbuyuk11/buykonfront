@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="../../js/favicon.js"></script>
+    <title>Şəxsiyyət təsdiqi | Buykon</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="../../js/site-config.js?v=3"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../../css/main.css" />
+    <link rel="stylesheet" href="../../css/header.css?v=7" />
+    <link rel="stylesheet" href="../../css/footer.css" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+    <link rel="stylesheet" href="../../css/profil.css?v=4" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <style>
+      .kyc-page { max-width: 640px; margin: 32px auto 48px; padding: 0 16px; }
+      .kyc-card {
+        background: var(--surface, #fff);
+        border: 1px solid var(--border, #e8eaed);
+        border-radius: 20px;
+        padding: 28px 24px;
+        box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+      }
+      .kyc-card h1 { margin: 0 0 8px; font-size: 1.5rem; }
+      .kyc-card p { color: #64748b; line-height: 1.6; margin: 0 0 16px; }
+      .kyc-consent {
+        display: flex; gap: 12px; align-items: flex-start;
+        padding: 14px; border-radius: 14px; background: #f8fafc; margin: 20px 0;
+        font-size: 0.9rem; line-height: 1.5;
+      }
+      .kyc-consent input { margin-top: 4px; }
+      .kyc-status {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-radius: 999px; font-size: 0.85rem; font-weight: 600;
+        margin-bottom: 16px;
+      }
+      .kyc-status--approved { background: #ecfdf5; color: #047857; }
+      .kyc-status--pending { background: #fff7ed; color: #c2410c; }
+      .kyc-status--declined { background: #fef2f2; color: #b91c1c; }
+      .kyc-status--default { background: #f1f5f9; color: #475569; }
+      .kyc-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+      .kyc-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 12px 18px; border-radius: 12px; border: none; cursor: pointer;
+        font: inherit; font-weight: 700;
+      }
+      .kyc-btn--primary { background: #ff6b00; color: #fff; }
+      .kyc-btn--primary:disabled { opacity: 0.55; cursor: not-allowed; }
+      .kyc-btn--ghost { background: #f1f5f9; color: #334155; text-decoration: none; }
+      .kyc-err { color: #b91c1c; font-size: 0.9rem; margin-top: 12px; min-height: 1.2em; }
+    </style>
+  </head>
+  <body data-root="../../">
+    <div id="site-header"></div>
+
+    <main class="kyc-page">
+      <div class="kyc-card">
+        <div id="kycStatusBadge" class="kyc-status kyc-status--default" hidden>
+          <i class="fa-solid fa-circle-notch fa-spin" id="kycStatusIcon"></i>
+          <span id="kycStatusText">Yoxlanılır</span>
+        </div>
+        <h1>Şəxsiyyət təsdiqi (KYC)</h1>
+        <p>
+          Hesabınızı təhlükəsiz saxlamaq üçün şəxsiyyətinizi Didit vasitəsilə təsdiqləyin.
+          Proses bir neçə dəqiqə çəkir — sənəd və selfie tələb oluna bilər.
+        </p>
+
+        <label class="kyc-consent">
+          <input type="checkbox" id="kycConsent" />
+          <span>
+            Şəxsiyyət məlumatlarımın <strong>Didit</strong> tərəfindən yoxlanılmasına və
+            nəticənin Buykon hesabıma tətbiq edilməsinə razıyam.
+          </span>
+        </label>
+
+        <div class="kyc-actions">
+          <button type="button" class="kyc-btn kyc-btn--primary" id="kycStartBtn" disabled>
+            <i class="fa-solid fa-id-card"></i>
+            Təsdiqləməyə başla
+          </button>
+          <a href="../profile/" class="kyc-btn kyc-btn--ghost">
+            <i class="fa-solid fa-arrow-left"></i>
+            Profilə qayıt
+          </a>
+        </div>
+        <p class="kyc-err" id="kycError" aria-live="polite"></p>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/api.js?v=8"></script>
+    <script src="../../js/auth-guard.js"></script>
+    <script src="../../js/kyc-verify.js?v=2"></script>
+  </body>
+</html>

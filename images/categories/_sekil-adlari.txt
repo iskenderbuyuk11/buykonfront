@@ -1,0 +1,10 @@
+elektronika.png
+geyim.png
+ev.png
+kosmetika.png
+aksesuar.png
+texnika.png
+notbuk.png
+idman.png
+usaqlar.png
+oyun.png

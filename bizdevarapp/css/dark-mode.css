@@ -1,0 +1,35 @@
+body.dark-mode {
+    --bg: #0f1419;
+    --surface: #1a2332;
+    --text: #e8ecf2;
+    --text-muted: #94a3b8;
+    --border: #2d3a4d;
+    --border-soft: #243044;
+    --accent-soft: rgba(56, 189, 248, 0.12);
+    --mega-accent-soft: rgba(255, 145, 0, 0.15);
+}
+
+body.dark-mode .app-header,
+body.dark-mode .app-bottom-nav {
+    background: rgba(26, 35, 50, 0.95);
+    border-color: #2d3a4d;
+}
+
+body.dark-mode .app-header__icon-btn,
+body.dark-mode .hero-slider__arrow,
+body.dark-mode .hero-slider__dots,
+body.dark-mode .select,
+body.dark-mode .cat-tile,
+body.dark-mode .product-card,
+body.dark-mode .wheel-promo,
+body.dark-mode .why-us,
+body.dark-mode .cat-page-item,
+body.dark-mode .search-form__input {
+    background: #1a2332;
+    border-color: #2d3a4d;
+    color: #e8ecf2;
+}
+
+body.dark-mode .product-card__media { background: #243044; }
+body.dark-mode .why-card { background: #0f1419; }
+body.dark-mode .input-group input { background: #0f1419; color: #e8ecf2; }

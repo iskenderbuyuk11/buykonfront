@@ -1,0 +1,41 @@
+RewriteEngine On
+
+# Mövcud fayl və qovluqlara toxunma
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Köhnə satıcı panel URL — girişə yönləndir
+RewriteRule ^sellerpanel/?$ sellerpanel/login.html [R=302,L]
+RewriteRule ^sellerpanel/index\.html$ sellerpanel/login.html [R=302,L]
+
+# ——— Yeni format: /store?magaza-slug/... ———
+
+# Satıcı girişi: /store?magaza-slug/sellerpanel/login
+RewriteCond %{QUERY_STRING} (^|/)sellerpanel/login/?(&|$) [NC]
+RewriteRule ^store/?$ sellerpanel/login.html [L,QSA]
+
+# İşçi dəvəti: /store?magaza-slug/sellerpanel/accept-invite
+RewriteCond %{QUERY_STRING} (^|/)sellerpanel/accept-invite/?(&|$) [NC]
+RewriteRule ^store/?$ sellerpanel/accept-invite.html [L,QSA]
+
+# Satıcı paneli: /store?magaza-slug/sellerpanel/istifadeci-slug
+RewriteCond %{QUERY_STRING} sellerpanel [NC]
+RewriteCond %{QUERY_STRING} !sellerpanel/(login|accept-invite)/?(&|$) [NC]
+RewriteRule ^store/?$ sellerpanel/index.html [L,QSA]
+
+# Public mağaza: /store?magaza-slug
+RewriteRule ^store/?$ pages/store/index.html [L,QSA]
+
+# KYC verify səhifəsi: /verify və ya /pages/verify
+RewriteRule ^verify/?$ pages/verify/index.html [L]
+RewriteRule ^pages/verify/?$ pages/verify/index.html [L]
+
+# ——— Köhnə path URL-ləri yeni formata yönləndir ———
+
+RewriteRule ^([a-z0-9_-]+)/sellerpanel/login/?$ /store?%1/sellerpanel/login [R=302,L,QNE]
+RewriteRule ^([a-z0-9_-]+)/sellerpanel/accept-invite/?$ /store?%1/sellerpanel/accept-invite [R=302,L,QNE]
+RewriteRule ^([a-z0-9_-]+)/sellerpanel/([a-z0-9_-]+)/?$ /store?%1/sellerpanel/%2 [R=302,L,QNE]
+
+RewriteCond %{REQUEST_URI} !^/(pages|js|css|images|sellerpanel|adminpanel|buykonbusiness|bizdevarapp|scripts|tools|partials|store|verify)(/|$) [NC]
+RewriteRule ^([a-z0-9_-]+)/?$ /store?%1 [R=302,L,QNE]

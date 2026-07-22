@@ -1,0 +1,451 @@
+/* ===== BUYKON ONBOARDING (ölkə + cinsiyyət) — bottom sheet + blur ===== */
+
+.obx-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay, 200000);
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  font-family: "Nunito Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+.obx-backdrop.is-open {
+  opacity: 1;
+}
+
+.obx-card {
+  background: var(--surface, #fff);
+  width: 100%;
+  max-width: 480px;
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -12px 48px rgba(15, 23, 42, 0.22);
+  overflow: hidden;
+  transform: translateY(110%);
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  display: flex;
+  flex-direction: column;
+  max-height: min(92dvh, 720px);
+  font-family: inherit;
+}
+
+.obx-backdrop.is-open .obx-card {
+  transform: translateY(0);
+}
+
+@media (min-width: 721px) {
+  .obx-backdrop {
+    align-items: center;
+    padding: 20px;
+  }
+
+  .obx-card {
+    border-radius: 22px;
+    max-width: 440px;
+    max-height: calc(100dvh - 40px);
+    transform: translateY(28px) scale(0.98);
+  }
+
+  .obx-backdrop.is-open .obx-card {
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Head */
+.obx-head {
+  padding: 22px 24px 14px;
+  text-align: center;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.obx-head__badge {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 10px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ffae00, #ff9100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(255, 145, 0, 0.35);
+}
+
+.obx-head__title {
+  margin: 0 0 4px;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text, #1a1d21);
+  letter-spacing: -0.01em;
+}
+
+.obx-head__sub {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-muted, #5c6370);
+}
+
+.obx-steps {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 0 2px;
+}
+
+.obx-steps__dot {
+  width: 26px;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--border, #e8eaed);
+  transition: background 0.25s;
+}
+
+.obx-steps__dot.is-active {
+  background: #ff9100;
+}
+
+.obx-body {
+  padding: 12px 20px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.obx-step {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+  flex: 1;
+}
+
+.obx-step.is-active {
+  display: flex;
+}
+
+.obx-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 1px solid var(--border, #e8eaed);
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #94a3b8;
+  flex: 0 0 auto;
+}
+
+.obx-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 14.5px;
+  color: var(--text, #1a1d21);
+  outline: none;
+  min-width: 0;
+}
+
+.obx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.obx-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--text, #1a1d21);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.obx-item:hover {
+  border-color: #ffae00;
+  background: #fffaf3;
+}
+
+.obx-item.is-selected {
+  border-color: #ff9100;
+  background: #fff7ed;
+  box-shadow: 0 0 0 3px rgba(255, 145, 0, 0.14);
+}
+
+.obx-item__flag {
+  width: 28px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+.obx-item__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #fff7ed;
+  color: #ff9100;
+  flex-shrink: 0;
+}
+
+.obx-item__name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.obx-item__hint {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted, #5c6370);
+}
+
+.obx-item__check {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1.5px solid #e5e7eb;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  flex-shrink: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.obx-item.is-selected .obx-item__check {
+  background: #ff9100;
+  border-color: #ff9100;
+  color: #fff;
+}
+
+.obx-item--auto.is-detecting {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.obx-genders {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 8px 0 4px;
+}
+
+.obx-gender {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 148px;
+  padding: 20px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 18px;
+  background: #fff;
+  color: var(--text, #1a1d21);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.obx-gender:hover {
+  border-color: #ffae00;
+  background: #fffaf3;
+}
+
+.obx-gender.is-selected {
+  border-color: #ff9100;
+  background: #fff7ed;
+  box-shadow: 0 0 0 3px rgba(255, 145, 0, 0.14);
+}
+
+.obx-gender__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.obx-gender--male .obx-gender__icon {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.obx-gender--female .obx-gender__icon {
+  color: #db2777;
+  background: #fdf2f8;
+}
+
+.obx-gender__check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1.5px solid #e5e7eb;
+  display: grid;
+  place-items: center;
+  color: transparent;
+  background: #fff;
+}
+
+.obx-gender.is-selected .obx-gender__check {
+  background: #ff9100;
+  border-color: #ff9100;
+  color: #fff;
+}
+
+.obx-foot {
+  display: flex;
+  gap: 10px;
+  padding: 12px 20px 10px;
+  border-top: 1px solid #f1f5f9;
+  flex: 0 0 auto;
+}
+
+.obx-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: none;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.obx-btn--primary {
+  background: linear-gradient(135deg, #ffae00, #ff9100);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(255, 145, 0, 0.28);
+}
+
+.obx-btn--primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.obx-btn--ghost {
+  flex: 0 0 auto;
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #e5e7eb;
+}
+
+.obx-btn--ghost:hover {
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.obx-btn--ghost[hidden] {
+  display: none !important;
+}
+
+.obx-skip {
+  padding: 0 20px calc(14px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.obx-skip button {
+  border: none;
+  background: none;
+  color: #94a3b8;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.obx-skip button:hover {
+  color: #64748b;
+}
+
+body.obx-open {
+  overflow: hidden !important;
+}
+
+body.dark-mode .obx-card {
+  background: #0f172a;
+}
+
+body.dark-mode .obx-head__title {
+  color: #f1f5f9;
+}
+
+body.dark-mode .obx-search {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.dark-mode .obx-item,
+body.dark-mode .obx-gender {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+body.dark-mode .obx-item:hover,
+body.dark-mode .obx-gender:hover {
+  background: rgba(255, 145, 0, 0.08);
+}
+
+body.dark-mode .obx-item.is-selected,
+body.dark-mode .obx-gender.is-selected {
+  background: rgba(255, 145, 0, 0.12);
+  border-color: #ff9100;
+}
+
+body.dark-mode .obx-foot {
+  border-top-color: #1f2937;
+}
+
+body.dark-mode .obx-btn--ghost {
+  color: #94a3b8;
+  border-color: #334155;
+}

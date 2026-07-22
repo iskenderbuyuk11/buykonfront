@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script src="../../../js/favicon.js"></script>
+
+    <meta name="theme-color" content="#017fa5" />
+    <title>Səbət | BizdəVar</title>
+    <link rel="stylesheet" href="../../css/app.css?v=5" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+    <link rel="stylesheet" href="../../../css/sebet.css?v=4" />
+  </head>
+  <body class="app-inner-page" data-root="../../" data-assets="../../../">
+    <div id="site-header"></div>
+
+    <main class="cart-page container">
+      <header class="cart-page__head">
+        <h1 class="cart-page__title">Səbətim</h1>
+        <a href="../../index.html" class="cart-page__back">Alış-verişə davam et</a>
+      </header>
+
+      <section class="cart-layout" aria-label="Səbət məzmunu">
+        <div class="cart-items-wrap">
+          <div id="cart-empty" class="cart-empty" hidden>
+            <p class="cart-empty__text">Səbətiniz boşdur, alış-verişə başla.</p>
+            <a href="../../index.html#catalog" class="cart-empty__btn">Alış-verişə başla</a>
+          </div>
+          <ul id="cart-items" class="cart-items" aria-live="polite"></ul>
+        </div>
+
+        <aside class="cart-summary" aria-label="Ödəniş məlumatı">
+          <form id="promo-form" class="promo-form">
+            <label for="promo-code" class="promo-form__label">Promokod</label>
+            <div class="promo-form__row">
+              <input
+                type="text"
+                id="promo-code"
+                class="promo-form__input"
+                placeholder="Promokodu daxil et"
+                autocomplete="off"
+              />
+              <button type="submit" class="promo-form__btn">Əlavə et</button>
+            </div>
+            <p id="promo-message" class="promo-form__message"></p>
+          </form>
+
+          <div class="summary-box">
+            <div class="summary-box__row">
+              <span>Cəm qiymət</span>
+              <strong id="summary-subtotal">0 ₼</strong>
+            </div>
+            <div class="summary-box__row">
+              <span>Endirim</span>
+              <strong id="summary-discount-rate">0%</strong>
+            </div>
+            <div class="summary-box__row">
+              <span>Ümumi endirim (₼)</span>
+              <strong id="summary-discount-amount">0 ₼</strong>
+            </div>
+            <div class="summary-box__row summary-box__row--total">
+              <span>Ümumi məbləğ</span>
+              <strong id="summary-total">0 ₼</strong>
+            </div>
+          </div>
+
+          <button id="confirm-cart" type="button" class="confirm-cart-btn">
+            Səbəti təsdiqlə
+          </button>
+        </aside>
+      </section>
+    </main>
+
+    <div id="site-bottom-nav"></div>
+        <script src="../../../js/cart-store.js"></script>
+    <script src="../../../js/favorites-store.js"></script>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/app.js"></script>
+    <script src="../../../js/sebet.js?v=3"></script>
+</body>
+</html>

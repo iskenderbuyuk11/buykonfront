@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/js/favicon.js"></script>
+    <title>Satıcı Girişi | Buykon</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="/js/site-config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="/sellerpanel/seller.css" />
+    <script src="/sellerpanel/seller-api.js"></script>
+  </head>
+  <body class="login-page">
+    <div class="login-wrap">
+      <section class="login-hero">
+        <div class="login-hero__badge"><i class="fa-solid fa-store"></i> Satıcı mərkəzi</div>
+        <h1>Buykon ilə satışa başlayın</h1>
+        <p>Mağaza kodunuz və şifrənizlə təhlükəsiz giriş edin.</p>
+        <ul class="login-hero__list">
+          <li><i class="fa-solid fa-key"></i> 9 rəqəmli mağaza kodu</li>
+          <li><i class="fa-solid fa-user-shield"></i> Maskalanmış istifadəçi seçimi</li>
+          <li><i class="fa-solid fa-lock"></i> Şəxsi şifrə ilə giriş</li>
+        </ul>
+      </section>
+
+      <form class="login-card" id="loginForm">
+        <div class="login-card__head">
+          <span class="login-card__icon"><i class="fa-solid fa-store"></i></span>
+          <h2>Satıcı girişi</h2>
+          <p id="loginSubtitle">Mağaza kodunu və mağaza şifrəsini daxil edin</p>
+        </div>
+
+        <div class="modal-form" id="stepStore">
+          <div class="field">
+            <label for="storeCode">Mağaza kodu (9 rəqəm) *</label>
+            <div class="field__wrap">
+              <i class="fa-solid fa-hashtag"></i>
+              <input id="storeCode" type="text" inputmode="numeric" maxlength="9" required placeholder="123456789" autocomplete="off" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="storePassword">Mağaza şifrəsi *</label>
+            <div class="field__wrap">
+              <i class="fa-solid fa-lock"></i>
+              <input id="storePassword" type="password" required minlength="6" autocomplete="current-password" />
+            </div>
+          </div>
+          <button class="btn btn--primary btn--block" type="button" id="btnVerifyStore">
+            <i class="fa-solid fa-arrow-right"></i> Davam et
+          </button>
+        </div>
+
+        <div class="modal-form" id="stepMember" hidden>
+          <div class="field">
+            <label>Mağaza</label>
+            <div class="field__wrap"><i class="fa-solid fa-store"></i><input id="storeNameDisplay" type="text" disabled></div>
+          </div>
+          <div class="field">
+            <label for="memberId">Kim olaraq daxil olursunuz?</label>
+            <div class="field__wrap">
+              <i class="fa-solid fa-user"></i>
+              <select id="memberId" required></select>
+            </div>
+          </div>
+          <button class="btn btn--primary btn--block" type="button" id="btnContinueMember">
+            <i class="fa-solid fa-arrow-right"></i> Davam et
+          </button>
+          <button class="btn btn--ghost btn--block" type="button" id="btnBackStore" style="margin-top:8px">Geri</button>
+        </div>
+
+        <div class="modal-form" id="stepPassword" hidden>
+          <div class="field">
+            <label for="memberPassword">Şəxsi şifrəniz *</label>
+            <div class="field__wrap">
+              <i class="fa-solid fa-lock"></i>
+              <input id="memberPassword" type="password" required minlength="6" autocomplete="current-password" />
+            </div>
+          </div>
+          <button class="btn btn--primary btn--block" type="button" id="btnVerifyPassword">
+            <i class="fa-solid fa-unlock"></i> Təsdiqlə
+          </button>
+          <button class="btn btn--ghost btn--block" type="button" id="btnBackMemberFromPass" style="margin-top:8px">Geri</button>
+        </div>
+
+        <div class="modal-form" id="stepSetPassword" hidden>
+          <p class="panel-note" style="margin-bottom:14px"><i class="fa-solid fa-circle-info"></i> İlk giriş — şəxsi şifrənizi təyin edin</p>
+          <div class="field">
+            <label for="newPassword">Yeni şifrə *</label>
+            <div class="field__wrap">
+              <i class="fa-solid fa-lock"></i>
+              <input id="newPassword" type="password" required minlength="6" autocomplete="new-password" />
+            </div>
+          </div>
+          <div class="field">
+            <label for="newPassword2">Şifrə təkrar *</label>
+            <div class="field__wrap">
+              <i class="fa-solid fa-lock"></i>
+              <input id="newPassword2" type="password" required minlength="6" autocomplete="new-password" />
+            </div>
+          </div>
+          <button class="btn btn--primary btn--block" type="button" id="btnSetPassword">
+            <i class="fa-solid fa-check"></i> Şifrəni təyin et
+          </button>
+          <button class="btn btn--ghost btn--block" type="button" id="btnBackMemberFromSet" style="margin-top:8px">Geri</button>
+        </div>
+
+        <p class="login-card__err" id="err"></p>
+        <p class="login-card__foot">
+          Hesabınız yoxdur? <a href="/buykonbusiness/register.html">Mağaza qeydiyyatı</a>
+        </p>
+        <p class="login-card__foot" style="margin-top:8px">
+          <a href="/buykonbusiness/index.html"><i class="fa-solid fa-arrow-left"></i> Buykon Business</a>
+        </p>
+      </form>
+    </div>
+
+    <script>
+      (function () {
+        var storeCodeEl = document.getElementById("storeCode");
+        var storePasswordEl = document.getElementById("storePassword");
+        var memberEl = document.getElementById("memberId");
+        var memberPasswordEl = document.getElementById("memberPassword");
+        var newPasswordEl = document.getElementById("newPassword");
+        var newPassword2El = document.getElementById("newPassword2");
+        var err = document.getElementById("err");
+        var subtitle = document.getElementById("loginSubtitle");
+
+        var steps = {
+          store: document.getElementById("stepStore"),
+          member: document.getElementById("stepMember"),
+          password: document.getElementById("stepPassword"),
+          setPassword: document.getElementById("stepSetPassword"),
+        };
+        var storeNameDisplay = document.getElementById("storeNameDisplay");
+
+        var savedStoreCode = "";
+        var members = [];
+
+        function showStep(step) {
+          Object.keys(steps).forEach(function (k) {
+            steps[k].hidden = k !== step;
+          });
+          err.textContent = "";
+        }
+
+        function selectedMember() {
+          var id = memberEl.value;
+          for (var i = 0; i < members.length; i++) {
+            if (String(members[i].id) === String(id)) return members[i];
+          }
+          return null;
+        }
+
+        function handleAuthResult(data) {
+          if (data.logged_in || data.redirect_path) {
+            var target = BuykonSellerAPI.normalizePanelPath(data.redirect_path);
+            if (!target && data.store_slug && data.member_slug) {
+              target = BuykonSellerAPI.sellerPanelUrl(data.store_slug, data.member_slug);
+            }
+            window.location.href = target || BuykonSellerAPI.loginUrl(data.store_slug);
+            return;
+          }
+          err.textContent = "Giriş tamamlanmadı";
+        }
+
+        function normalizeStoreCode(raw) {
+          return String(raw || "").replace(/\D/g, "").slice(0, 9);
+        }
+
+        storeCodeEl.addEventListener("input", function () {
+          var pos = storeCodeEl.selectionStart;
+          var cleaned = normalizeStoreCode(storeCodeEl.value);
+          if (storeCodeEl.value !== cleaned) {
+            storeCodeEl.value = cleaned;
+            try { storeCodeEl.setSelectionRange(pos, pos); } catch (e) {}
+          }
+        });
+
+        document.getElementById("btnVerifyStore").addEventListener("click", function () {
+          err.textContent = "";
+          var code = normalizeStoreCode(storeCodeEl.value);
+          storeCodeEl.value = code;
+          if (code.length !== 9) {
+            err.textContent = "9 rəqəmli mağaza kodu daxil edin (indicə " + code.length + " rəqəm)";
+            return;
+          }
+          BuykonSellerAPI.verifyStore(code, storePasswordEl.value)
+            .then(function (data) {
+              savedStoreCode = code;
+              members = data.members || [];
+              storeNameDisplay.value = data.store_name || "Mağaza";
+              memberEl.innerHTML = members.map(function (m) {
+                return '<option value="' + m.id + '">' + (m.masked_name || m.name) + " — " + (m.label || m.role) + "</option>";
+              }).join("");
+              subtitle.textContent = "Öz adınızı seçin";
+              showStep("member");
+            })
+            .catch(function (x) { err.textContent = x.message || "Mağaza tapılmadı"; });
+        });
+
+        document.getElementById("btnContinueMember").addEventListener("click", function () {
+          err.textContent = "";
+          var m = selectedMember();
+          if (!m) {
+            err.textContent = "İstifadəçi seçin";
+            return;
+          }
+          if (m.needs_password_setup) {
+            subtitle.textContent = "İlk giriş — şəxsi şifrə təyin edin";
+            showStep("setPassword");
+          } else {
+            subtitle.textContent = "Şəxsi şifrənizi daxil edin";
+            showStep("password");
+          }
+        });
+
+        document.getElementById("btnVerifyPassword").addEventListener("click", function () {
+          err.textContent = "";
+          BuykonSellerAPI.verifyMember(savedStoreCode, memberEl.value, memberPasswordEl.value)
+            .then(handleAuthResult)
+            .catch(function (x) { err.textContent = x.message || "Şifrə yanlışdır"; });
+        });
+
+        document.getElementById("btnSetPassword").addEventListener("click", function () {
+          err.textContent = "";
+          var p1 = newPasswordEl.value;
+          var p2 = newPassword2El.value;
+          if (p1.length < 6) {
+            err.textContent = "Şifrə ən azı 6 simvol olmalıdır";
+            return;
+          }
+          if (p1 !== p2) {
+            err.textContent = "Şifrələr uyğun gəlmir";
+            return;
+          }
+          BuykonSellerAPI.setMemberPassword(savedStoreCode, memberEl.value, p1, p2)
+            .then(handleAuthResult)
+            .catch(function (x) { err.textContent = x.message || "Şifrə təyin edilmədi"; });
+        });
+
+        document.getElementById("btnBackStore").addEventListener("click", function () {
+          subtitle.textContent = "Mağaza kodunu və mağaza şifrəsini daxil edin";
+          showStep("store");
+        });
+        document.getElementById("btnBackMemberFromPass").addEventListener("click", function () {
+          subtitle.textContent = "Öz adınızı seçin";
+          showStep("member");
+        });
+        document.getElementById("btnBackMemberFromSet").addEventListener("click", function () {
+          subtitle.textContent = "Öz adınızı seçin";
+          showStep("member");
+        });
+
+        document.getElementById("loginForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+        });
+      })();
+    </script>
+  </body>
+</html>

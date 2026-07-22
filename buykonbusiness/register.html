@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="../js/favicon.js"></script>
+
+    <title>Mağaza qeydiyyatı | Buykon Business</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="../js/site-config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="styles.css?v=2" />
+    <script src="../sellerpanel/seller-api.js"></script>
+  </head>
+  <body class="register-page">
+    <div class="register-shell">
+      <div class="register-top">
+        <a class="brand" href="index.html">
+          <span class="brand__mark"><i class="fa-solid fa-briefcase"></i></span>
+          <span>Buykon Business</span>
+        </a>
+        <a class="btn btn--ghost" href="../sellerpanel/login.html">Artıq hesabım var</a>
+      </div>
+
+      <div class="register-card" id="stepType">
+        <h1>Mağaza qeydiyyatı</h1>
+        <p>Satıcı növünü seçin və məlumatlarınızı daxil edin. Təsdiqdən sonra satıcı panelinə daxil ola bilərsiniz.</p>
+        <div class="type-grid">
+          <button type="button" class="type-card" data-type="voensiz">
+            <i class="fa-solid fa-user"></i>
+            <strong>VOEN-siz satıcı</strong>
+            <span>Fərdi və kiçik online satış üçün</span>
+          </button>
+          <button type="button" class="type-card" data-type="voenli">
+            <i class="fa-solid fa-building"></i>
+            <strong>VOEN-li satıcı</strong>
+            <span>Rəsmi qeydiyyatlı biznes və şirkətlər üçün</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="register-card" id="stepForm" hidden>
+        <h1>Hesab məlumatları</h1>
+        <p id="typeLabel">VOEN-siz qeydiyyat</p>
+        <form id="regForm">
+          <div class="form-grid">
+            <div class="field field--full">
+              <label for="email">Email *</label>
+              <input id="email" type="email" required placeholder="satici@example.com" autocomplete="email" />
+            </div>
+            <div class="field">
+              <label for="password">Şifrə *</label>
+              <input id="password" type="password" required minlength="6" autocomplete="new-password" />
+            </div>
+            <div class="field">
+              <label for="password2">Şifrə təkrar *</label>
+              <input id="password2" type="password" required minlength="6" autocomplete="new-password" />
+            </div>
+            <div class="field">
+              <label for="phone">Telefon</label>
+              <input id="phone" type="tel" placeholder="+994 50 000 00 00" />
+            </div>
+            <div class="field">
+              <label for="ownerName">Sahib adı</label>
+              <input id="ownerName" type="text" placeholder="Ad" />
+            </div>
+            <div class="field">
+              <label for="ownerSurname">Sahib soyadı</label>
+              <input id="ownerSurname" type="text" placeholder="Soyad" />
+            </div>
+            <div class="field field--full">
+              <label for="storeName">Mağaza adı <small style="color:var(--soft)">(boş buraxsanız avtomatik verilir)</small></label>
+              <input id="storeName" type="text" placeholder="Məs: TechShop Baku" />
+            </div>
+            <div class="field" id="voenField" hidden>
+              <label for="voen">VÖEN *</label>
+              <input id="voen" type="text" inputmode="numeric" placeholder="1234567890" />
+            </div>
+            <div class="field">
+              <label for="category">Kateqoriya</label>
+              <select id="category">
+                <option value="Elektronika">Elektronika</option>
+                <option value="Geyim">Geyim</option>
+                <option value="Ev və yaşam">Ev və yaşam</option>
+                <option value="Kosmetika">Kosmetika</option>
+                <option value="Digər">Digər</option>
+              </select>
+            </div>
+          </div>
+          <p class="form-error" id="formError" hidden></p>
+          <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
+            <button class="btn btn--ghost" type="button" id="backBtn">Geri</button>
+            <button class="btn btn--primary" type="submit" id="submitBtn"><i class="fa-solid fa-paper-plane"></i> Qeydiyyatı tamamla</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="register-card form-success" id="stepSuccess" hidden>
+        <i class="fa-solid fa-circle-check"></i>
+        <h1>Qeydiyyat qəbul edildi</h1>
+        <p>Mağazanız admin təsdiqi üçün göndərildi. Təsdiq olunduqdan sonra email ünvanınıza mağaza kodunuz göndəriləcək.</p>
+        <div class="store-code-box" id="storeCodeBox">
+          <p><i class="fa-solid fa-envelope"></i> Təsdiq emaili gəldikdən sonra aşağıdakı linkdən giriş edin.</p>
+        </div>
+        <a class="btn btn--primary" href="../sellerpanel/login.html" style="margin-top:20px" id="goLoginBtn">Satıcı girişinə keç</a>
+      </div>
+    </div>
+    <script src="register.js"></script>
+  </body>
+</html>

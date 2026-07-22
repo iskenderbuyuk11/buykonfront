@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="../../js/favicon.js"></script>
+
+    <title>Sifarişlərim | Buykon.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../../css/main.css" />
+    <link rel="stylesheet" href="../../css/header.css?v=7" />
+    <link rel="stylesheet" href="../../css/footer.css" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../css/sifarislerim.css?v=2" />
+  </head>
+  <body data-root="../../" data-orders-page="list" class="checkout-body orders-body">
+    <div id="site-header"></div>
+
+    <main class="orders-page">
+      <div class="orders-page__inner container">
+        <header class="orders-head">
+          <div class="orders-head__top">
+            <a href="../profile/" class="checkout-back">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Profil</span>
+            </a>
+            <span class="checkout-head__secure">
+              <i class="fa-solid fa-location-dot"></i>
+              Canlı izləmə
+            </span>
+          </div>
+          <div class="orders-head__main">
+            <div>
+              <h1 class="orders-head__title">Sifarişlərim</h1>
+              <p class="orders-head__sub">Bütün sifarişlərinizi buradan izləyin</p>
+            </div>
+            <span class="orders-head__count" id="orders-count" hidden></span>
+          </div>
+        </header>
+
+        <div id="orders-empty" class="orders-empty" hidden>
+          <div class="orders-empty__icon"><i class="fa-solid fa-box-open"></i></div>
+          <h2>Hələ sifarişiniz yoxdur</h2>
+          <p>Alış-verişə başlayın və sifarişləriniz burada görünəcək.</p>
+          <a href="../../index.html#catalog" class="orders-empty__btn">
+            <i class="fa-solid fa-store"></i>
+            Məhsullara bax
+          </a>
+        </div>
+
+        <ul class="orders-list" id="orders-list" aria-label="Sifarişlər siyahısı"></ul>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+    <div id="site-bottom-nav"></div>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/auth-guard.js"></script>
+    <script src="../../js/orders-store.js"></script>
+    <script src="../../js/cart-store.js"></script>
+    <script src="../../js/header.js"></script>
+    <script src="../../js/footer.js"></script>
+    <script src="../../js/sifarislerim.js?v=2"></script>
+  </body>
+</html>

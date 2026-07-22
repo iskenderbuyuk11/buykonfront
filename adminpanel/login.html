@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="../js/favicon.js"></script>
+    <title>Admin Giriş | Buykon</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="../js/site-config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="admin-login.css?v=3" />
+</head>
+<body class="admin-login-body">
+    <div class="admin-login-wrap">
+        <div class="admin-login-card">
+            <div class="admin-login-brand">
+                <div class="admin-login-brand__icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <h1>Buykon Admin</h1>
+            </div>
+
+            <div class="admin-steps" aria-hidden="true">
+                <span class="admin-step-icon is-active" id="stepIcon1"><i class="fa-solid fa-envelope"></i></span>
+                <span class="admin-step-line" id="line1"></span>
+                <span class="admin-step-icon" id="stepIcon2"><i class="fa-solid fa-lock"></i></span>
+                <span class="admin-step-line" id="line2"></span>
+                <span class="admin-step-icon" id="stepIcon3"><i class="fa-solid fa-shield-check"></i></span>
+                <span class="admin-step-line" id="line3"></span>
+                <span class="admin-step-icon" id="stepIcon4"><i class="fa-solid fa-key"></i></span>
+            </div>
+
+            <p class="admin-error" id="adminError" hidden></p>
+
+            <div class="admin-step-panel" id="step1">
+                <div class="admin-field">
+                    <i class="fa-solid fa-envelope admin-field__icon"></i>
+                    <input type="email" id="email" autocomplete="email" placeholder="Email" required />
+                </div>
+                <button type="button" class="admin-btn admin-btn--primary" id="btnEmail">
+                    Davam et <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <div class="admin-step-panel" id="step2" hidden>
+                <div class="admin-field" id="passwordGroup">
+                    <i class="fa-solid fa-lock admin-field__icon"></i>
+                    <input type="password" id="password" autocomplete="current-password" placeholder="Şifrə" />
+                </div>
+                <button type="button" class="admin-btn admin-btn--primary" id="btnOtp">
+                    <i class="fa-solid fa-paper-plane"></i> Göndər
+                </button>
+                <button type="button" class="admin-btn admin-btn--ghost" id="btnBack2">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+            </div>
+
+            <div class="admin-step-panel" id="step3" hidden>
+                <div class="admin-field">
+                    <i class="fa-solid fa-shield-check admin-field__icon"></i>
+                    <input type="text" id="otp" class="admin-otp-input" inputmode="numeric" maxlength="6" pattern="[0-9]*" placeholder="000000" autocomplete="one-time-code" />
+                </div>
+                <button type="button" class="admin-btn admin-btn--primary" id="btnVerify">
+                    Təsdiqlə <i class="fa-solid fa-check"></i>
+                </button>
+                <div class="admin-step-actions">
+                    <button type="button" class="admin-btn admin-btn--ghost" id="btnResend">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button type="button" class="admin-btn admin-btn--ghost" id="btnBack3">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-step-panel" id="step4" hidden>
+                <div class="admin-field">
+                    <i class="fa-solid fa-key admin-field__icon"></i>
+                    <input type="password" id="newPassword" autocomplete="new-password" minlength="8" placeholder="Yeni şifrə" />
+                </div>
+                <div class="admin-field">
+                    <i class="fa-solid fa-key admin-field__icon"></i>
+                    <input type="password" id="newPassword2" autocomplete="new-password" minlength="8" placeholder="Təkrar" />
+                </div>
+                <button type="button" class="admin-btn admin-btn--primary" id="btnSetPass">
+                    Daxil ol <i class="fa-solid fa-right-to-bracket"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin-api.js?v=2"></script>
+    <script src="admin-login.js?v=3"></script>
+</body>
+</html>

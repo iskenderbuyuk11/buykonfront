@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script src="../../../js/favicon.js"></script>
+
+    <meta name="theme-color" content="#017fa5" />
+    <title>Qeydiyyat | BizdəVar</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="../../../js/site-config.js"></script>
+    <link rel="stylesheet" href="../../css/app.css?v=5" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+  </head>
+  <body class="auth-page" data-root="../../" data-assets="../../../">
+    <main>
+      <section class="auth-card">
+        <img src="../../../images/logo.png" alt="BizdəVar" class="auth-logo" />
+        <h1>Qeydiyyat</h1>
+        <p class="auth-subtitle">Yeni hesab yaradın və alış-verişə başlayın!</p>
+        <p id="auth-message" class="auth-message" hidden role="alert"></p>
+        <form class="auth-form" id="registerForm">
+          <div class="input-group">
+            <label for="reg-name">Ad, Soyad</label>
+            <input type="text" id="reg-name" placeholder="Adınız" required />
+          </div>
+          <div class="input-group">
+            <label for="reg-email">Email</label>
+            <input type="email" id="reg-email" placeholder="Email ünvanı" required />
+          </div>
+          <div class="input-group">
+            <label for="reg-phone">Telefon</label>
+            <div class="flag-row">
+              <img class="flag" src="../../../images/aze.svg" alt="" />
+              <input type="tel" id="reg-phone" placeholder="+994 XX XXX XX XX" required />
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="reg-password">Şifrə</label>
+            <input type="password" id="reg-password" placeholder="Şifrə" required />
+          </div>
+          <div class="input-group">
+            <label for="reg-password-confirm">Şifrə təkrarı</label>
+            <input type="password" id="reg-password-confirm" placeholder="Şifrəni yenidən daxil et" required />
+          </div>
+          <label class="remember-me"><input type="checkbox" required /> <span>Şərtləri qəbul edirəm</span></label>
+          <button type="submit" class="auth-btn primary-btn">Qeydiyyat et</button>
+          <div class="divider"><span>və ya</span></div>
+          <button type="button" class="auth-btn google-btn">Google ilə qeydiyyat</button>
+          <p class="bottom-text">Hesabın var? <a href="../login/">Giriş et</a></p>
+        </form>
+      </section>
+    </main>
+    <div id="site-bottom-nav"></div>
+    <script src="../../js/layout.js"></script>
+    <script src="../../../js/api.js"></script>
+    <script src="../../../js/auth.js"></script>
+    <script src="../../js/app.js"></script>
+  </body>
+</html>

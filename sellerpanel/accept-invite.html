@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="/js/favicon.js"></script>
+    <title>Dəvət Qəbulu | Buykon</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="/js/site-config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="/sellerpanel/seller.css" />
+    <script src="/sellerpanel/seller-api.js"></script>
+  </head>
+  <body class="login-page">
+    <div class="login-wrap" style="grid-template-columns:1fr;max-width:480px;margin:0 auto;">
+      <form class="login-card" id="inviteForm">
+        <div class="login-card__head">
+          <span class="login-card__icon"><i class="fa-solid fa-user-plus"></i></span>
+          <h2>İşçi dəvətini qəbul et</h2>
+          <p id="inviteSubtitle">Adınızı və şifrənizi təyin edin</p>
+        </div>
+        <div class="modal-form">
+          <div class="field"><label for="name">Adınız</label><input id="name" type="text" required placeholder="Ad Soyad"></div>
+          <div class="field"><label for="password">Şifrə</label><input id="password" type="password" required minlength="6"></div>
+          <div class="field"><label for="password2">Şifrə təkrar</label><input id="password2" type="password" required minlength="6"></div>
+        </div>
+        <button class="btn btn--primary btn--block" type="submit" id="submitBtn"><i class="fa-solid fa-check"></i> Qəbul et</button>
+        <p class="login-card__err" id="err"></p>
+        <p class="login-card__foot"><a href="/sellerpanel/login.html">Giriş səhifəsinə keç</a></p>
+      </form>
+    </div>
+    <script>
+      (function () {
+        function readInviteToken() {
+          var params = new URLSearchParams(window.location.search);
+          var token = params.get("token") || params.get("t") || "";
+          if (!token && window.location.hash) {
+            var hash = window.location.hash.replace(/^#/, "");
+            if (hash.indexOf("=") >= 0) {
+              token = new URLSearchParams(hash).get("token") || new URLSearchParams(hash).get("t") || "";
+            } else if (/^[a-f0-9]{32}$/i.test(hash)) {
+              token = hash;
+            }
+          }
+          if (!token) {
+            var parts = (window.location.pathname || "").split("/").filter(Boolean);
+            var last = parts[parts.length - 1] || "";
+            if (last && last !== "accept-invite.html" && last !== "accept-invite" && /^[a-f0-9]{32}$/i.test(last)) {
+              token = last;
+            }
+          }
+          token = String(token || "").trim();
+          if (token) {
+            try { sessionStorage.setItem("buykon_invite_token", token); } catch (e) {}
+          } else {
+            try { token = sessionStorage.getItem("buykon_invite_token") || ""; } catch (e) {}
+          }
+          return token;
+        }
+
+        var token = readInviteToken();
+        var err = document.getElementById("err");
+        var subtitle = document.getElementById("inviteSubtitle");
+        var submitBtn = document.getElementById("submitBtn");
+        var nameEl = document.getElementById("name");
+
+        if (!token) {
+          err.textContent = "Dəvət linki etibarsızdır — linkdə token yoxdur";
+          if (submitBtn) submitBtn.disabled = true;
+        } else {
+          BuykonSellerAPI.invitePreview(token)
+            .then(function (data) {
+              if (data.name && nameEl && !nameEl.value) nameEl.value = data.name;
+              subtitle.textContent = (data.store_name || "Mağaza") + " dəvətini qəbul edirsiniz";
+            })
+            .catch(function (x) {
+              err.textContent = x.message || "Dəvət linki etibarsızdır və ya vaxtı bitib";
+              if (submitBtn) submitBtn.disabled = true;
+            });
+        }
+
+        document.getElementById("inviteForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+          if (!token) {
+            err.textContent = "Dəvət linki etibarsızdır";
+            return;
+          }
+          var p1 = document.getElementById("password").value;
+          var p2 = document.getElementById("password2").value;
+          if (p1.length < 6) {
+            err.textContent = "Şifrə ən azı 6 simvol olmalıdır";
+            return;
+          }
+          if (p1 !== p2) {
+            err.textContent = "Şifrələr uyğun gəlmir";
+            return;
+          }
+          err.textContent = "";
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Göndərilir...';
+          }
+          BuykonSellerAPI.acceptInvite({ token: token, password: p1, name: nameEl.value.trim() })
+            .then(function () {
+              try { sessionStorage.removeItem("buykon_invite_token"); } catch (e) {}
+              var queryPath = BuykonSellerAPI.parseStoreQueryPath ? BuykonSellerAPI.parseStoreQueryPath() : "";
+              var storeSlug = queryPath ? String(queryPath).split("/")[0] : "";
+              window.location.href = BuykonSellerAPI.loginUrl(storeSlug || undefined);
+            })
+            .catch(function (x) {
+              err.textContent = x.message || "Xəta";
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Qəbul et';
+              }
+            });
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="../../js/favicon.js"></script>
+
+    <title>Məhsul | Buykon.com</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="../../js/site-config.js?v=4"></script>
+    <link rel="stylesheet" href="../../css/main.css?v=6" />
+    <link rel="stylesheet" href="../../css/header.css?v=7" />
+    <link rel="stylesheet" href="../../css/footer.css" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+    <link rel="stylesheet" href="../../css/product.css?v=13" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Nunito+Sans:opsz,wght@6..12,400..900&display=swap" rel="stylesheet">
+  </head>
+  <body class="page-product" data-root="../../">
+    <div id="site-header"></div>
+    <main class="product-page container">
+      <nav class="product-breadcrumb" aria-label="Breadcrumb">
+        <a href="../../index.html">Ana səhifə</a>
+        <span class="product-breadcrumb__sep" aria-hidden="true">/</span>
+        <a href="../../index.html#catalog">Məhsullar</a>
+        <span class="product-breadcrumb__sep" aria-hidden="true">/</span>
+        <span id="pd-bc-title" class="product-breadcrumb__current">Məhsul</span>
+      </nav>
+
+      <section class="product-hero" aria-label="Məhsul">
+        <div class="product-hero__media">
+          <div class="gallery" id="pd-gallery">
+            <div class="gallery__thumbs-col">
+              <button
+                type="button"
+                class="gallery__thumbs-nav gallery__thumbs-nav--up"
+                id="pd-thumbs-up"
+                aria-label="Yuxarı"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
+              </button>
+              <div class="gallery__thumbs" id="pd-thumbs" aria-label="Şəkillər"></div>
+              <button
+                type="button"
+                class="gallery__thumbs-nav gallery__thumbs-nav--down"
+                id="pd-thumbs-down"
+                aria-label="Aşağı"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+            </div>
+
+            <div class="gallery__stage" id="pd-stage">
+              <button
+                class="gallery__arrow gallery__arrow--prev"
+                type="button"
+                aria-label="Əvvəlki şəkil"
+                id="pd-prev"
+              >
+                ‹
+              </button>
+
+              <div class="gallery__img-wrap" id="pd-img-wrap" tabindex="0">
+                <img
+                  id="pd-img"
+                  class="gallery__img"
+                  src="../../images/products/iphone15.jpg"
+                  alt=""
+                  decoding="async"
+                />
+                <div id="pd-lens" class="gallery__lens" aria-hidden="true">
+                  <svg class="gallery__lens-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
+                  </svg>
+                </div>
+                <div id="pd-badge" class="gallery__badge" hidden></div>
+              </div>
+
+              <button
+                class="gallery__arrow gallery__arrow--next"
+                type="button"
+                aria-label="Növbəti şəkil"
+                id="pd-next"
+              >
+                ›
+              </button>
+
+              <button class="gallery__zoom-btn" type="button" id="pd-open" aria-label="Şəkli böyüt" title="Böyüt">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="gallery__zoom" id="pd-zoom" aria-hidden="true">
+              <div class="gallery__zoom-inner" id="pd-zoom-inner"></div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="product-hero__details" aria-label="Detallar">
+          <a class="pd-cat-chip" id="pd-cat-chip" href="../../index.html#catalog" hidden></a>
+          <h1 class="pd-title" id="pd-title">Məhsul adı</h1>
+
+          <div class="pd-meta-row">
+            <div class="pd-rating" id="pd-rating" aria-label="Reytinq">
+              <span class="pd-stars" aria-hidden="true"></span>
+              <span class="pd-rating__text" id="pd-rating-text"></span>
+            </div>
+            <div class="pd-sold" id="pd-sold" hidden></div>
+          </div>
+
+          <div class="pd-status-row">
+            <div class="pd-availability" id="pd-availability" aria-live="polite"></div>
+            <span class="pd-model" id="pd-model" hidden></span>
+          </div>
+
+          <div class="pd-price" aria-label="Qiymət">
+            <div class="pd-price__top">
+              <del class="pd-price__old" id="pd-price-old" hidden>0 ₼</del>
+              <span class="pd-price__disc" id="pd-price-disc" hidden></span>
+            </div>
+            <div class="pd-price__row">
+              <strong class="pd-price__now" id="pd-price-now">0 ₼</strong>
+            </div>
+            <p class="pd-vat">ƏDV daxil</p>
+          </div>
+
+          <div class="pd-qty" id="pd-qty-wrap">
+            <span class="pd-label pd-qty__label">Say</span>
+            <div class="pd-qty__control">
+              <button type="button" class="pd-qty__btn" id="pd-qty-dec" aria-label="Azalt">−</button>
+              <input type="text" class="pd-qty__input" id="pd-qty-input" value="1" inputmode="numeric" aria-label="Say" />
+              <button type="button" class="pd-qty__btn" id="pd-qty-inc" aria-label="Artır">+</button>
+            </div>
+          </div>
+
+          <div class="pd-actions">
+            <button class="pd-btn pd-btn--primary" type="button" id="pd-add-cart">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              <span>Səbətə əlavə et</span>
+            </button>
+            <button class="pd-btn pd-btn--ghost" type="button" id="pd-fav" aria-pressed="false">
+            </button>
+          </div>
+
+          <div class="pd-seller">
+            <p class="pd-label">Satıcı</p>
+            <div class="seller-card" id="pd-main-seller"></div>
+          </div>
+        </aside>
+      </section>
+
+      <div class="pd-tab-zone" id="pd-tab-zone">
+        <nav class="pd-tab-nav" id="pd-tab-nav" aria-label="Məhsul bölmələri">
+          <button type="button" class="pd-tab-nav__btn is-active" data-pd-tab="specs" aria-selected="true">Xüsusiyyətlər</button>
+          <button type="button" class="pd-tab-nav__btn" data-pd-tab="reviews" aria-selected="false">Rəylər və reytinqlər</button>
+          <button type="button" class="pd-tab-nav__btn" data-pd-tab="qa" aria-selected="false">Suallar</button>
+        </nav>
+
+        <section class="pd-block pd-details-block pd-tab-panel is-active" data-pd-panel="specs" aria-labelledby="pd-details-title">
+          <h2 class="pd-block__title" id="pd-details-title">Məhsulun xüsusiyyətləri</h2>
+          <div class="pd-details">
+            <div class="pd-details__info">
+              <div class="pd-details__preview">
+                <img id="pd-details-thumb" src="../../images/products/iphone15.jpg" alt="" />
+              </div>
+              <div class="pd-details__desc">
+                <h3 class="pd-details__subtitle">Məhsul təsviri</h3>
+                <div class="pd-details__text" id="pd-description"></div>
+                <button type="button" class="pd-details__more" id="pd-desc-toggle" aria-expanded="false">
+                  Daha çox göstər <span aria-hidden="true">▾</span>
+                </button>
+              </div>
+              <div class="pd-details__extra">
+                <h3 class="pd-details__subtitle">Əlavə məlumat</h3>
+                <ul class="pd-details__bullets" id="pd-extra-info"></ul>
+              </div>
+            </div>
+            <div class="pd-details__gallery" id="pd-detail-images" aria-label="Məhsul şəkilləri"></div>
+            <h3 class="pd-details__subtitle pd-details__subtitle--specs">Texniki xüsusiyyətlər</h3>
+            <dl class="pd-specs-grid" id="pd-specs"></dl>
+          </div>
+        </section>
+
+        <section class="pd-block pd-reviews-block pd-tab-panel" data-pd-panel="reviews" aria-labelledby="pd-reviews-title" hidden>
+          <h2 class="pd-block__title" id="pd-reviews-title">Məhsul rəyləri</h2>
+          <div class="pd-reviews-shell">
+            <div class="pd-reviews-summary" id="pd-review-summary-panel" aria-label="Rəy xülasəsi"></div>
+            <div class="pd-review-cards" id="pd-reviews" aria-live="polite"></div>
+            <button class="pd-show-all" type="button" id="pd-open-reviews">Bütün rəyləri göstər <span aria-hidden="true">›</span></button>
+          </div>
+        </section>
+
+        <section class="pd-block pd-qa-block pd-tab-panel" data-pd-panel="qa" aria-labelledby="pd-qa-title" hidden>
+          <h2 class="pd-block__title" id="pd-qa-title">Məhsul haqqında sual-cavab</h2>
+          <div class="pd-qa-chips" aria-label="Sual mövzuları">
+            <button type="button" class="is-active">Hamısı <span id="pd-qa-summary">0</span></button>
+            <button type="button">Uyğunluq</button>
+            <button type="button">Zəmanət</button>
+            <button type="button">Çatdırılma</button>
+          </div>
+          <div class="pd-qa-list" id="pd-qa" aria-live="polite"></div>
+          <button class="pd-show-all" type="button" id="pd-open-qa">Bütün sualları göstər <span aria-hidden="true">›</span></button>
+        </section>
+      </div>
+
+      <section class="pd-block" aria-labelledby="pd-seller-products-title">
+        <h2 class="pd-block__title" id="pd-seller-products-title">Satıcının satdığı məhsullar</h2>
+        <div class="pd-products-row">
+          <div class="products products--carousel" id="pd-seller-products" aria-label="Satıcının məhsulları"></div>
+          <button type="button" class="pd-products-row__nav" data-carousel-next="pd-seller-products" aria-label="Növbəti">›</button>
+        </div>
+      </section>
+      <section class="pd-block" aria-labelledby="pd-similar-title">
+        <h2 class="pd-block__title" id="pd-similar-title">Oxşar məhsullar</h2>
+        <div class="pd-products-row">
+          <div class="products products--carousel" id="pd-similar" aria-label="Oxşar məhsullar"></div>
+          <button type="button" class="pd-products-row__nav" data-carousel-next="pd-similar" aria-label="Növbəti">›</button>
+        </div>
+      </section>
+
+      <section class="pd-block" aria-labelledby="pd-all-title">
+        <h2 class="pd-block__title" id="pd-all-title">Bütün məhsullar</h2>
+        <div class="products" id="pd-all-products" aria-label="Bütün məhsullar"></div>
+      </section>
+
+
+      <div id="pd-lightbox" class="pd-lightbox" hidden aria-modal="true" role="dialog" aria-label="Şəkil baxışı">
+        <div class="pd-lightbox__shell" role="document">
+          <header class="pd-lightbox__header">
+            <p class="pd-lightbox__title" id="pd-lightbox-title"></p>
+            <button class="pd-lightbox__x" type="button" id="pd-lightbox-x" aria-label="Bağla">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+                <path d="M18 6 6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </header>
+          <div class="pd-lightbox__stage">
+            <button class="pd-lightbox__arrow pd-lightbox__arrow--prev" type="button" id="pd-lightbox-prev" aria-label="Əvvəlki">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <img id="pd-lightbox-img" class="pd-lightbox__img" alt="" />
+            <button class="pd-lightbox__arrow pd-lightbox__arrow--next" type="button" id="pd-lightbox-next" aria-label="Növbəti">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+          <div class="pd-lightbox__thumbs" id="pd-lightbox-thumbs" hidden></div>
+          <button class="pd-lightbox__backdrop" type="button" id="pd-lightbox-close" tabindex="-1" aria-hidden="true"></button>
+        </div>
+      </div>
+
+      <div id="pd-reviews-modal" class="pd-panel-modal" hidden aria-modal="true" role="dialog" aria-labelledby="pd-reviews-modal-title">
+        <button class="pd-panel-modal__backdrop" type="button" data-pd-modal-close aria-label="Bağla"></button>
+        <div class="pd-panel-modal__panel" role="document">
+          <aside class="pd-panel-modal__side">
+            <button class="pd-panel-modal__back" type="button" data-pd-modal-close aria-label="Geri">‹</button>
+            <div class="pd-panel-product" id="pd-review-product-card"></div>
+            <div class="pd-panel-seller" id="pd-review-seller-card"></div>
+            <div class="pd-panel-filters">
+              <button type="button">Mövzu</button>
+              <button type="button">Puan</button>
+              <button type="button">Fotoşəkilli rəylər</button>
+              <button type="button">Bu satıcıdan alanlar</button>
+            </div>
+          </aside>
+          <section class="pd-panel-modal__main">
+            <div class="pd-panel-modal__head">
+              <div>
+                <h2 id="pd-reviews-modal-title">Bütün rəylər</h2>
+                <div class="pd-panel-rating" id="pd-review-panel-rating"></div>
+                <p class="pd-panel-mini" id="pd-review-access-note"></p>
+              </div>
+              <div class="pd-panel-modal__actions">
+                <button class="pd-btn pd-btn--primary pd-btn--compact" type="button" id="pd-open-review-panel">Rəy yaz</button>
+                <button class="pd-panel-modal__x" type="button" data-pd-modal-close aria-label="Bağla">×</button>
+              </div>
+            </div>
+            <div class="pd-panel-search">
+              <input id="pd-review-search" type="search" placeholder="Rəylərdə axtar" />
+              <button type="button" aria-label="Axtar">⌕</button>
+            </div>
+            <div class="pd-review-panel-list" id="pd-review-panel-list"></div>
+          </section>
+        </div>
+      </div>
+
+      <div id="pd-review-popup" class="pd-question-popup" hidden aria-modal="true" role="dialog" aria-labelledby="pd-review-popup-title">
+        <button class="pd-question-popup__backdrop" type="button" data-pd-review-close aria-label="Bağla"></button>
+        <form class="pd-question-popup__panel pd-review-form" id="pd-review-form" role="document">
+          <div class="pd-question-popup__head">
+            <div>
+              <h2 id="pd-review-popup-title">Məhsula rəy yaz</h2>
+              <p>Rəy və reytinq yalnız məhsul sizə çatdırıldıqdan sonra göndərilə bilər.</p>
+            </div>
+            <button class="pd-panel-modal__x" type="button" data-pd-review-close aria-label="Bağla">×</button>
+          </div>
+          <label class="pd-label" for="pd-review-stars">Qiymətləndir</label>
+          <select id="pd-review-stars" class="pd-select">
+            <option value="5">5 ulduz</option>
+            <option value="4">4 ulduz</option>
+            <option value="3">3 ulduz</option>
+            <option value="2">2 ulduz</option>
+            <option value="1">1 ulduz</option>
+          </select>
+          <label class="pd-label" for="pd-review-text">Rəyiniz</label>
+          <textarea id="pd-review-text" class="pd-textarea" rows="5" maxlength="700" placeholder="Məhsul barədə fikrinizi yazın"></textarea>
+          <label class="pd-question-terms">
+            <input type="checkbox" id="pd-review-terms" />
+            <span>
+              <a href="../istifade-sertleri/" target="_blank" rel="noopener">İstifadəçi şərtlərini</a>
+              oxudum və qəbul edirəm.
+            </span>
+          </label>
+          <button class="pd-btn pd-btn--primary" type="submit" id="pd-review-submit" disabled>Rəyi göndər</button>
+        </form>
+      </div>
+
+      <div id="pd-qa-modal" class="pd-panel-modal" hidden aria-modal="true" role="dialog" aria-labelledby="pd-qa-modal-title">
+        <button class="pd-panel-modal__backdrop" type="button" data-pd-modal-close aria-label="Bağla"></button>
+        <div class="pd-panel-modal__panel" role="document">
+          <aside class="pd-panel-modal__side">
+            <button class="pd-panel-modal__back" type="button" data-pd-modal-close aria-label="Geri">‹</button>
+            <div class="pd-panel-product" id="pd-qa-product-card"></div>
+            <div class="pd-panel-seller" id="pd-qa-seller-card"></div>
+            <div class="pd-panel-filters" id="pd-qa-panel-chips">
+              <button type="button" class="is-active">Hamısı</button>
+              <button type="button">Uyğunluq</button>
+              <button type="button">Zəmanət</button>
+              <button type="button">Çatdırılma</button>
+            </div>
+          </aside>
+          <section class="pd-panel-modal__main">
+            <div class="pd-panel-modal__head">
+              <div>
+                <h2 id="pd-qa-modal-title">Bütün məhsul sualları</h2>
+                <p class="pd-panel-mini">Məhsul haqqında verilən suallar və satıcı cavabları</p>
+              </div>
+              <div class="pd-panel-modal__actions">
+                <button class="pd-btn pd-btn--primary pd-btn--compact" type="button" id="pd-open-question-panel">Satıcıya sual ver</button>
+                <button class="pd-panel-modal__x" type="button" data-pd-modal-close aria-label="Bağla">×</button>
+              </div>
+            </div>
+            <div class="pd-panel-search">
+              <input id="pd-qa-search" type="search" placeholder="Sual daxilində axtar" />
+              <button type="button" aria-label="Axtar">⌕</button>
+            </div>
+            <div class="pd-qa-panel-list" id="pd-qa-panel-list"></div>
+          </section>
+        </div>
+      </div>
+
+      <div id="pd-question-popup" class="pd-question-popup" hidden aria-modal="true" role="dialog" aria-labelledby="pd-question-popup-title">
+        <button class="pd-question-popup__backdrop" type="button" data-pd-question-close aria-label="Bağla"></button>
+        <form class="pd-question-popup__panel" id="pd-qa-form" role="document">
+          <div class="pd-question-popup__head">
+            <div>
+              <h2 id="pd-question-popup-title">Satıcıya sual ver</h2>
+              <p>Məhsul haqqında sualınızı yazın, satıcı cavablandıranda burada görünəcək.</p>
+            </div>
+            <button class="pd-panel-modal__x" type="button" data-pd-question-close aria-label="Bağla">×</button>
+          </div>
+          <label class="pd-label" for="pd-qa-text">Sualınız</label>
+          <textarea id="pd-qa-text" class="pd-textarea" rows="5" maxlength="500" placeholder="Məsələn: Bu məhsul hansı modellərlə uyğundur?"></textarea>
+          <label class="pd-question-terms">
+            <input type="checkbox" id="pd-qa-terms" />
+            <span>
+              <a href="../istifade-sertleri/" target="_blank" rel="noopener">İstifadəçi şərtlərini</a>
+              oxudum və qəbul edirəm.
+            </span>
+          </label>
+          <button class="pd-btn pd-btn--primary" type="submit" id="pd-qa-submit" disabled>Sualı göndər</button>
+        </form>
+      </div>
+    </main>
+    <div id="site-footer"></div>
+    <div id="site-bottom-nav"></div>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/api.js?v=3"></script>
+    <script src="../../js/favorites-store.js"></script>
+    <script src="../../js/cart-store.js"></script>
+    <script src="../../js/header.js?v=2"></script>
+    <script src="../../js/footer.js"></script>
+    <script src="../../js/product.js?v=20"></script>
+  </body>
+</html>
+

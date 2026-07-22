@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script src="../../../js/favicon.js"></script>
+
+    <meta name="theme-color" content="#017fa5" />
+    <title>Sifarişin təsdiqi | BizdəVar</title>
+    <link rel="stylesheet" href="../../css/app.css?v=5" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+    <link rel="stylesheet" href="../../../css/sifaris.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  </head>
+  <body class="app-inner-page" data-root="../../" data-assets="../../../">
+    <div id="site-header"></div>
+
+    <main class="order-page container">
+      <header class="order-page__head">
+        <h1 class="order-page__title">Sifarişin təsdiqi</h1>
+        <a href="../sebet/" class="order-page__back">← Səbətə qayıt</a>
+      </header>
+
+      <div id="order-success" class="order-success" hidden>
+        <div class="order-success__icon" aria-hidden="true">✓</div>
+        <h2>Sifarişiniz qəbul edildi!</h2>
+        <p>Sifariş nömrəniz: <strong id="order-success-id"></strong></p>
+        <a href="../../index.html">Ana səhifəyə qayıt</a>
+      </div>
+
+      <div id="order-form" class="order-layout">
+        <div class="order-main">
+          <section class="order-panel" aria-label="Sifariş məhsulları">
+            <h2 class="order-panel__title">Sifariş məzmunu</h2>
+            <ul id="order-items" class="order-items"></ul>
+          </section>
+
+          <section class="order-panel" aria-label="Çatdırılma üsulu">
+            <h2 class="order-panel__title">Çatdırılma üsulu</h2>
+            <div class="delivery-options">
+              <label class="delivery-option">
+                <input type="radio" name="delivery" value="cargo" />
+                <span class="delivery-option__text">
+                  <strong>Kargo mənteqəsindən al</strong>
+                  <span>Seçdiyiniz kargo şirkətinin ən yaxın məntəqəsindən götürün.</span>
+                </span>
+              </label>
+              <label class="delivery-option">
+                <input type="radio" name="delivery" value="courier" />
+                <span class="delivery-option__text">
+                  <strong>Kuryer ilə çatdırılma</strong>
+                  <span>Sifariş birbaşa qeyd etdiyiniz ünvana çatdırılır.</span>
+                </span>
+              </label>
+            </div>
+
+            <div id="cargo-panel" class="delivery-detail" hidden>
+              <h3 class="delivery-detail__title">Hansı kargo şirkətinə etibar edirsiniz?</h3>
+              <div class="cargo-companies">
+                <button type="button" class="cargo-company" data-company="kargo-1">Kargo 1</button>
+                <button type="button" class="cargo-company" data-company="kargo-2">Kargo 2</button>
+                <button type="button" class="cargo-company" data-company="kargo-3">Kargo 3</button>
+              </div>
+              <div id="cargo-map-wrap" class="cargo-map-wrap" hidden>
+                <div id="cargo-map" aria-label="Kargo məntəqələri xəritəsi"></div>
+                <ul id="cargo-points" class="cargo-points"></ul>
+              </div>
+            </div>
+
+            <div id="courier-panel" class="delivery-detail" hidden>
+              <h3 class="delivery-detail__title">Çatdırılma ünvanı</h3>
+              <button type="button" id="find-address-btn" class="find-address-btn">📍 Ünvanımı tap</button>
+              <form id="courier-form" class="courier-form" style="margin-top: 14px">
+                <label>
+                  Ünvan
+                  <textarea id="courier-address" rows="2" placeholder="Küçə, şəhər" required></textarea>
+                </label>
+                <div class="courier-form__row">
+                  <label>
+                    Bina
+                    <input type="text" id="courier-building" placeholder="Məs: 12A" required />
+                  </label>
+                  <label>
+                    Mənzil
+                    <input type="text" id="courier-apartment" placeholder="Məs: 45" required />
+                  </label>
+                </div>
+                <label>
+                  <span>Binanın yanındakı obyekt <span class="optional">(istəyə görə)</span></span>
+                  <input type="text" id="courier-landmark" placeholder="Məs: 24 saat market" />
+                </label>
+                <label>
+                  <span>Qeyd <span class="optional">(istəyə görə)</span></span>
+                  <textarea id="courier-note" rows="2" placeholder="Məs: Zəng edin, qapı zəngi işləmir"></textarea>
+                </label>
+              </form>
+            </div>
+          </section>
+        </div>
+
+        <aside class="order-summary-side" aria-label="Ödəniş xülasəsi">
+          <div class="order-summary-side__row">
+            <span>Cəm qiymət</span>
+            <strong id="order-subtotal">0 ₼</strong>
+          </div>
+          <div class="order-summary-side__row">
+            <span>Endirim</span>
+            <strong id="order-discount">0 ₼</strong>
+          </div>
+          <div class="order-summary-side__row order-summary-side__row--total">
+            <span>Ümumi</span>
+            <strong id="order-total">0 ₼</strong>
+          </div>
+          <button type="button" id="submit-order" class="submit-order-btn">Sifarişi təsdiqlə</button>
+        </aside>
+      </div>
+    </main>
+
+    <div id="site-bottom-nav"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+        <script src="../../../js/cart-store.js"></script>
+    <script src="../../../js/favorites-store.js"></script>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/app.js"></script>
+    <script src="../../../js/sifaris.js"></script>
+</body>
+</html>

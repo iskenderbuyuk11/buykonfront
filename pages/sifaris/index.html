@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="../../js/favicon.js"></script>
+
+    <title>Sifarişin təsdiqi | Buykon.com</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../../css/main.css" />
+    <link rel="stylesheet" href="../../css/header.css?v=7" />
+    <link rel="stylesheet" href="../../css/footer.css" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+    <link rel="stylesheet" href="../../css/sifaris.css?v=2" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  </head>
+  <body data-root="../../" class="checkout-body">
+    <div id="site-header"></div>
+
+    <main class="checkout-page">
+      <div class="checkout-page__inner container">
+        <header class="checkout-head">
+          <div class="checkout-head__top">
+            <a href="../sebet/" class="checkout-back">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Səbətə qayıt</span>
+            </a>
+            <span class="checkout-head__secure">
+              <i class="fa-solid fa-lock"></i>
+              Təhlükəsiz ödəniş
+            </span>
+          </div>
+          <h1 class="checkout-head__title">Sifarişi tamamla</h1>
+          <p class="checkout-head__sub">Çatdırılma üsulunu seçin və sifarişinizi təsdiqləyin</p>
+
+          <ol class="checkout-steps" aria-label="Sifariş addımları">
+            <li class="checkout-steps__item is-done">
+              <span class="checkout-steps__dot"><i class="fa-solid fa-check"></i></span>
+              <span class="checkout-steps__label">Səbət</span>
+            </li>
+            <li class="checkout-steps__line" aria-hidden="true"></li>
+            <li class="checkout-steps__item is-active">
+              <span class="checkout-steps__dot">2</span>
+              <span class="checkout-steps__label">Çatdırılma</span>
+            </li>
+            <li class="checkout-steps__line" aria-hidden="true"></li>
+            <li class="checkout-steps__item">
+              <span class="checkout-steps__dot">3</span>
+              <span class="checkout-steps__label">Ödəniş</span>
+            </li>
+          </ol>
+        </header>
+
+        <div id="order-success" class="checkout-success" hidden>
+          <div class="checkout-success__card">
+            <div class="checkout-success__anim" id="order-success-anim" aria-hidden="true">
+              <div class="checkout-success__ring">
+                <div class="checkout-success__check">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M20 6L9 17l-5-5"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <h2>Sifarişiniz qəbul edildi!</h2>
+            <p class="checkout-success__msg">Tezliklə sizinlə əlaqə saxlanılacaq. Sifarişiniz hazırlanır.</p>
+            <p class="checkout-success__id">Sifariş nömrəsi: <strong id="order-success-id"></strong></p>
+            <div class="checkout-success__actions">
+              <a href="../profile/#sifarisler" class="checkout-success__primary" id="order-track-link">
+                <i class="fa-solid fa-location-dot"></i>
+                Sifarişi izlə
+              </a>
+              <a href="../../index.html" class="checkout-success__secondary">Ana səhifəyə qayıt</a>
+            </div>
+          </div>
+        </div>
+
+        <div id="order-form" class="checkout-layout">
+          <div class="checkout-main">
+            <section class="checkout-card checkout-card--cart" aria-label="Səbətdəki məhsullar">
+              <button type="button" class="checkout-cart-head" id="order-cart-toggle" aria-expanded="true">
+                <span class="checkout-cart-head__left">
+                  <span class="checkout-cart-head__icon"><i class="fa-solid fa-bag-shopping"></i></span>
+                  <span class="checkout-cart-head__text">
+                    <strong id="order-cart-label">Səbətimdəki məhsullar</strong>
+                    <small>Məhsul siyahısına baxın</small>
+                  </span>
+                </span>
+                <span class="checkout-cart-head__right">
+                  <span class="checkout-cart-head__thumbs" id="order-cart-thumbs" aria-hidden="true"></span>
+                  <i class="fa-solid fa-chevron-down checkout-cart-head__chev" aria-hidden="true"></i>
+                </span>
+              </button>
+              <ul id="order-items" class="checkout-items"></ul>
+            </section>
+
+            <section class="checkout-card" aria-label="Çatdırılma üsulu">
+              <div class="checkout-card__head">
+                <span class="checkout-card__icon checkout-card__icon--delivery"><i class="fa-solid fa-truck"></i></span>
+                <div>
+                  <h2 class="checkout-card__title">Çatdırılma üsulu</h2>
+                  <p class="checkout-card__desc">Sizin üçün ən rahat variantı seçin</p>
+                </div>
+              </div>
+
+              <div class="delivery-grid">
+                <label class="delivery-card">
+                  <input type="radio" name="delivery" value="courier" />
+                  <span class="delivery-card__inner">
+                    <span class="delivery-card__ico delivery-card__ico--courier"><i class="fa-solid fa-motorcycle"></i></span>
+                    <span class="delivery-card__body">
+                      <strong>Kuryer</strong>
+                      <span>Ünvana birbaşa çatdırılma</span>
+                    </span>
+                    <span class="delivery-card__tick"><i class="fa-solid fa-check"></i></span>
+                  </span>
+                </label>
+                <label class="delivery-card">
+                  <input type="radio" name="delivery" value="pickup" checked />
+                  <span class="delivery-card__inner">
+                    <span class="delivery-card__ico delivery-card__ico--pickup"><i class="fa-solid fa-store"></i></span>
+                    <span class="delivery-card__body">
+                      <strong>Gəl al məntəqəsi</strong>
+                      <span>Seçdiyiniz məntəqədən götürün</span>
+                    </span>
+                    <span class="delivery-card__tick"><i class="fa-solid fa-check"></i></span>
+                  </span>
+                </label>
+                <label class="delivery-card">
+                  <input type="radio" name="delivery" value="post" />
+                  <span class="delivery-card__inner">
+                    <span class="delivery-card__ico delivery-card__ico--post"><i class="fa-solid fa-envelope"></i></span>
+                    <span class="delivery-card__body">
+                      <strong>Poçt</strong>
+                      <span>Azərpoçt məntəqəsinə çatdırılma</span>
+                    </span>
+                    <span class="delivery-card__tick"><i class="fa-solid fa-check"></i></span>
+                  </span>
+                </label>
+              </div>
+
+              <div id="pickup-panel" class="delivery-panel">
+                <h3 class="delivery-panel__title">Gəl al məntəqəsi</h3>
+                <div class="cargo-tabs">
+                  <button type="button" class="cargo-tab" data-company="kargo-1">Birmarket</button>
+                  <button type="button" class="cargo-tab" data-company="kargo-2">Azərpoçt</button>
+                  <button type="button" class="cargo-tab" data-company="kargo-3">Kargo Express</button>
+                </div>
+                <div id="cargo-map-wrap" class="cargo-map-block" hidden>
+                  <div id="cargo-map" aria-label="Məntəqələr xəritəsi"></div>
+                  <ul id="cargo-points" class="cargo-list"></ul>
+                </div>
+                <div class="info-cards">
+                  <div class="info-card">
+                    <i class="fa-solid fa-comment-sms"></i>
+                    <p>Məntəqəyə çatdıqda SMS ilə kod göndərilir. 3 gün ərzində təhvil ala bilərsiniz.</p>
+                  </div>
+                  <div class="info-card">
+                    <i class="fa-solid fa-id-card"></i>
+                    <p>Təhvil almaq üçün FIN kodunuzu göstərmək kifayətdir.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div id="courier-panel" class="delivery-panel" hidden>
+                <h3 class="delivery-panel__title">Çatdırılma ünvanı</h3>
+                <button type="button" id="find-address-btn" class="geo-btn">
+                  <i class="fa-solid fa-location-crosshairs"></i>
+                  Ünvanımı tap
+                </button>
+                <form id="courier-form" class="checkout-form">
+                  <label class="checkout-field">
+                    <span>Ünvan</span>
+                    <textarea id="courier-address" rows="2" placeholder="Küçə, şəhər"></textarea>
+                  </label>
+                  <div class="checkout-form__row">
+                    <label class="checkout-field">
+                      <span>Bina</span>
+                      <input type="text" id="courier-building" placeholder="Məs: 12A" />
+                    </label>
+                    <label class="checkout-field">
+                      <span>Mənzil</span>
+                      <input type="text" id="courier-apartment" placeholder="Məs: 45" />
+                    </label>
+                  </div>
+                  <label class="checkout-field">
+                    <span>Binanın yanındakı obyekt <em>(istəyə görə)</em></span>
+                    <input type="text" id="courier-landmark" placeholder="Məs: 24 saat market" />
+                  </label>
+                  <label class="checkout-field">
+                    <span>Qeyd <em>(istəyə görə)</em></span>
+                    <textarea id="courier-note" rows="2" placeholder="Məs: Zəng edin"></textarea>
+                  </label>
+                </form>
+              </div>
+
+              <div id="post-panel" class="delivery-panel" hidden>
+                <h3 class="delivery-panel__title">Poçt ünvanı</h3>
+                <form class="checkout-form" id="post-form">
+                  <label class="checkout-field">
+                    <span>Şəhər / Rayon</span>
+                    <input type="text" id="post-city" placeholder="Məs: Bakı, Yasamal" required />
+                  </label>
+                  <label class="checkout-field">
+                    <span>Poçt məntəqəsi</span>
+                    <select id="post-office" class="checkout-select">
+                      <option value="">Seçin</option>
+                      <option value="azp-1">Azərpoçt — Nizami filialı</option>
+                      <option value="azp-2">Azərpoçt — 28 May</option>
+                      <option value="azp-3">Azərpoçt — Gənclik</option>
+                      <option value="azp-4">Azərpoçt — Sumqayıt</option>
+                    </select>
+                  </label>
+                  <label class="checkout-field">
+                    <span>Alıcının adı soyadı</span>
+                    <input type="text" id="post-recipient" placeholder="Ad Soyad" required />
+                  </label>
+                  <label class="checkout-field">
+                    <span>Əlaqə nömrəsi</span>
+                    <input type="tel" id="post-phone" placeholder="+994 XX XXX XX XX" required />
+                  </label>
+                </form>
+              </div>
+            </section>
+          </div>
+
+          <aside class="checkout-aside">
+            <div class="summary-card" aria-label="Sifariş xülasəsi">
+              <h2 class="summary-card__title">Sifariş xülasəsi</h2>
+              <div class="summary-card__rows">
+                <div class="summary-row">
+                  <span>Aralıq cəm</span>
+                  <strong id="order-subtotal">0 ₼</strong>
+                </div>
+                <div class="summary-row" id="order-discount-row" hidden>
+                  <span>Endirim</span>
+                  <strong class="summary-row__discount" id="order-discount">0 ₼</strong>
+                </div>
+                <div class="summary-row">
+                  <span>Çatdırılma</span>
+                  <span class="summary-ship">
+                    <del>3,99 ₼</del>
+                    <span class="summary-ship__free">Pulsuz</span>
+                  </span>
+                </div>
+              </div>
+              <div class="summary-total">
+                <span>Ümumi</span>
+                <strong id="order-total">0 ₼</strong>
+              </div>
+              <button type="button" id="submit-order" class="pay-btn" disabled>
+                <i class="fa-solid fa-credit-card"></i>
+                Ödəniş et
+              </button>
+              <ul class="trust-list">
+                <li><i class="fa-solid fa-shield-halved"></i> SSL qorunan ödəniş</li>
+                <li><i class="fa-solid fa-rotate-left"></i> 14 gün qaytarılma</li>
+                <li><i class="fa-solid fa-headset"></i> 7/24 dəstək</li>
+              </ul>
+            </div>
+
+            <div class="terms-card">
+              <label class="terms-check">
+                <input type="checkbox" id="order-terms-check" />
+                <span class="terms-check__box"></span>
+                <span class="terms-check__text">Məlumat və Satış Müqaviləsini oxudum və təsdiq edirəm. Məhsul göndərildikdən sonra müqavilənin icrasından imtina edə bilməyəcəyimi qəbul edirəm.</span>
+              </label>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <div id="payment-modal" class="pay-modal" hidden aria-modal="true" role="dialog" aria-labelledby="payment-modal-title">
+      <div class="pay-modal__backdrop" data-payment-close></div>
+      <div class="pay-modal__panel">
+        <button type="button" class="pay-modal__close" data-payment-close aria-label="Bağla">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="pay-modal__brand">
+          <span class="pay-modal__logo">e</span>
+          <span class="pay-modal__name">point</span>
+        </div>
+        <h2 class="pay-modal__title" id="payment-modal-title">Ödəniş portalına yönləndirilirsiniz</h2>
+        <p class="pay-modal__desc">ePoint ilə təhlükəsiz ödəniş. Kart məlumatlarınız növbəti addımda daxil edilir.</p>
+        <div class="pay-modal__loader" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <p class="pay-modal__secure"><i class="fa-solid fa-lock"></i> SSL ilə qorunan əlaqə</p>
+        <button type="button" class="pay-modal__confirm" id="payment-confirm-btn">Ödənişi tamamla</button>
+        <p class="pay-modal__hint">Sifariş backend-ə göndəriləcək</p>
+      </div>
+    </div>
+
+    <div id="site-footer"></div>
+    <div id="site-bottom-nav"></div>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/auth-guard.js"></script>
+    <script src="../../js/orders-store.js"></script>
+    <script src="../../js/cart-store.js"></script>
+    <script src="../../js/header.js"></script>
+    <script src="../../js/footer.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="../../js/sifaris.js"></script>
+  </body>
+</html>

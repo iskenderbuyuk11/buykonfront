@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script src="../../../js/favicon.js"></script>
+
+    <meta name="theme-color" content="#017fa5" />
+    <title>Profil | BizdəVar</title>
+    <link rel="stylesheet" href="../../css/app.css?v=5" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="../../../css/profil.css" />
+  </head>
+  <body class="app-inner-page" data-root="../../" data-assets="../../../">
+    <div id="site-header"></div>
+
+    <main class="profil-page container">
+      <header class="profil-page__head">
+        <div class="profil-page__user" id="profil-user-head">
+          <span class="profil-page__avatar" id="profil-avatar" aria-hidden="true">?</span>
+          <div>
+            <h1 class="profil-page__title">Hesabım</h1>
+            <p class="profil-page__subtitle" id="profil-head-email">—</p>
+          </div>
+        </div>
+        <a href="../../index.html" class="profil-page__back">Ana səhifə</a>
+      </header>
+
+      <div class="profil-layout">
+        <aside class="profil-nav" aria-label="Profil menyusu">
+          <nav class="profil-nav__list" id="profil-nav">
+            <div class="profil-nav__group">
+              <button
+                type="button"
+                class="profil-nav__item is-active"
+                data-panel="unvan"
+                aria-current="page"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin-icon lucide-map-pin"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+                Ünvanım
+              </button>
+            </div>
+
+            <div class="profil-nav__group">
+              <span class="profil-nav__label">Sifarişlərim</span>
+              <button type="button" class="profil-nav__item" data-panel="sifarisler">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-handbag-icon lucide-handbag"><path d="M2.048 18.566A2 2 0 0 0 4 21h16a2 2 0 0 0 1.952-2.434l-2-9A2 2 0 0 0 18 8H6a2 2 0 0 0-1.952 1.566z"/><path d="M8 11V6a4 4 0 0 1 8 0v5"/></svg>
+                Bütün sifarişlər
+              </button>
+              <button type="button" class="profil-nav__item" data-panel="bildirisler">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-icon lucide-bell"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+                Bildirişlər
+              </button>
+              <button type="button" class="profil-nav__item" data-panel="reyler">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-icon lucide-message-circle"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>
+                Rəylər
+              </button>
+            </div>
+
+            <div class="profil-nav__group">
+              <span class="profil-nav__label">Kampaniyalar</span>
+              <button type="button" class="profil-nav__item" data-panel="promokod">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ticket-percent-icon lucide-ticket-percent"><path d="M2 9a3 3 0 1 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 1 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M9 9h.01"/><path d="m15 9-6 6"/><path d="M15 15h.01"/></svg>
+                Promokodlarım
+              </button>
+              <button type="button" class="profil-nav__item" data-panel="devet">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share2-icon lucide-share-2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+                Dostunu dəvət et
+              </button>
+              <button type="button" class="profil-nav__item" data-panel="magazalar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-check-icon lucide-user-round-check"><path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/></svg>
+                Dostunu Dəvət Et
+              </button>
+              <button type="button" class="profil-nav__item" data-panel="kuponlar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-percent-icon lucide-square-percent"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="m15 9-6 6"/><path d="M9 9h.01"/><path d="M15 15h.01"/></svg>
+                Endirim kuponlarım
+              </button>
+            </div>
+
+            <div class="profil-nav__group">
+              <span class="profil-nav__label">Hesabım</span>
+              <button type="button" class="profil-nav__item" data-panel="melumat">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-user-round-icon lucide-circle-user-round"><path d="M17.925 20.056a6 6 0 0 0-11.851.001"/><circle cx="12" cy="11" r="4"/><circle cx="12" cy="12" r="10"/></svg>
+                İstifadəçi məlumatları
+              </button>
+              <button type="button" class="profil-nav__item" data-panel="odenis">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card-icon lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                Ödəniş
+              </button>
+              <button type="button" class="profil-nav__item" data-panel="tehlukesizlik">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shield-cog-corner-icon lucide-shield-cog-corner"><path d="M11 22c-3.806-1.45-7-3.966-7-9V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1v4"/><path d="M14.923 16.547 14 16.164"/><path d="m14.923 18.843-.923.383"/><path d="M16.547 14.923 16.164 14"/><path d="m16.547 20.467-.383.924"/><path d="m18.843 14.923.383-.923"/><path d="m19.225 21.391-.382-.924"/><path d="m20.467 16.547.923-.383"/><path d="m20.467 18.843.923.383"/><circle cx="17.695" cy="17.695" r="3"/></svg>
+                Təhlükəsizlik
+              </button>
+              <button type="button" class="profil-nav__item" data-panel="bildiris-tercih">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-bell-icon lucide-bell"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+                Bildirişlər
+              </button>
+            </div>
+
+            <div class="profil-nav__group">
+              <span class="profil-nav__label">Kömək var</span>
+              <a href="/help/" class="profil-nav__item profil-nav__item--link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-question-mark-icon lucide-circle-question-mark"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                Kömək
+              </a>
+              <button type="button" class="profil-nav__item" data-panel="faq">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-question-mark-icon lucide-message-circle-question-mark"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                FAQ
+              </button>
+              <button type="button" class="profil-nav__item" data-panel="asistant">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#017fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle-icon lucide-message-circle"><path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719"/></svg>
+                Asistant Var
+              </button>
+            </div>
+          </nav>
+        </aside>
+
+        <div class="profil-content">
+          <!-- Ünvan -->
+          <section class="profil-panel is-active" id="panel-unvan" data-panel-id="unvan">
+            <h2 class="profil-panel__title">Ünvanım</h2>
+            <p class="profil-panel__lead">
+              Çatdırılma ünvanını xəritədən seçin və ya əlavə edin.
+            </p>
+            <div class="profil-card">
+              <div id="profil-map" class="profil-map" role="application" aria-label="Ünvan xəritəsi"></div>
+              <p class="profil-map__hint">Xəritədə ünvanınızı işarələyin</p>
+              <form class="profil-form" id="form-unvan">
+                <div class="profil-form__row">
+                  <label class="profil-field">
+                    <span class="profil-field__label">Ünvan adı</span>
+                    <input type="text" name="label" placeholder="Məs: Ev, İş" />
+                  </label>
+                  <label class="profil-field">
+                    <span class="profil-field__label">Tam ünvan</span>
+                    <input type="text" name="address" id="profil-address-input" placeholder="Küçə, bina, mənzil" required />
+                  </label>
+                </div>
+                <input type="hidden" name="lat" id="profil-lat" />
+                <input type="hidden" name="lng" id="profil-lng" />
+                <button type="submit" class="profil-btn profil-btn--primary">Ünvanı saxla</button>
+              </form>
+            </div>
+            <ul class="profil-address-list" id="profil-address-list" aria-label="Saxlanılmış ünvanlar"></ul>
+          </section>
+
+          <!-- Sifarişlər -->
+          <section class="profil-panel" id="panel-sifarisler" data-panel-id="sifarisler" hidden>
+            <h2 class="profil-panel__title">Bütün sifarişlər</h2>
+            <div class="profil-list" id="profil-orders-list"></div>
+          </section>
+
+          <section class="profil-panel" id="panel-bildirisler" data-panel-id="bildirisler" hidden>
+            <h2 class="profil-panel__title">Bildirişlər</h2>
+            <div class="profil-list" id="profil-notif-list"></div>
+          </section>
+
+          <section class="profil-panel" id="panel-reyler" data-panel-id="reyler" hidden>
+            <h2 class="profil-panel__title">Rəylər</h2>
+            <div class="profil-list" id="profil-reviews-list"></div>
+          </section>
+
+          <!-- Kampaniyalar -->
+          <section class="profil-panel" id="panel-promokod" data-panel-id="promokod" hidden>
+            <h2 class="profil-panel__title">Promokodlarım</h2>
+            <div class="profil-coupon-grid" id="profil-promo-list"></div>
+          </section>
+
+          <section class="profil-panel" id="panel-devet" data-panel-id="devet" hidden>
+            <h2 class="profil-panel__title">Dostunu dəvət et</h2>
+            <div class="profil-card profil-card--accent">
+              <p class="profil-panel__lead">Dostunuz qeydiyyatdan keçəndə hər ikiniz 10 ₼ bonus qazanın.</p>
+              <div class="profil-invite">
+                <input type="text" class="profil-invite__code" id="profil-invite-code" readonly value="BIZDEVAR-USER" />
+                <button type="button" class="profil-btn profil-btn--primary" id="profil-invite-copy">Kodu kopyala</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="profil-panel" id="panel-magazalar" data-panel-id="magazalar" hidden>
+            <h2 class="profil-panel__title">İzlədiyim mağazalar</h2>
+            <div class="profil-shop-grid" id="profil-shops-list"></div>
+          </section>
+
+          <section class="profil-panel" id="panel-kuponlar" data-panel-id="kuponlar" hidden>
+            <h2 class="profil-panel__title">Kuponlarım</h2>
+            <div class="profil-coupon-grid" id="profil-coupon-list"></div>
+          </section>
+
+          <!-- Hesab -->
+          <section class="profil-panel" id="panel-melumat" data-panel-id="melumat" hidden>
+            <h2 class="profil-panel__title">İstifadəçi məlumatları</h2>
+            <form class="profil-card profil-form" id="form-melumat">
+              <div class="profil-form__row profil-form__row--2">
+                <label class="profil-field">
+                  <span class="profil-field__label">Ad</span>
+                  <input type="text" name="firstName" id="profil-first-name" required />
+                </label>
+                <label class="profil-field">
+                  <span class="profil-field__label">Soyad</span>
+                  <input type="text" name="lastName" id="profil-last-name" required />
+                </label>
+              </div>
+              <label class="profil-field">
+                <span class="profil-field__label">Email</span>
+                <input type="email" name="email" id="profil-email" required />
+              </label>
+              <label class="profil-field">
+                <span class="profil-field__label">Telefon nömrəsi</span>
+                <input type="tel" name="phone" id="profil-phone" placeholder="+994 XX XXX XX XX" required />
+              </label>
+              <button type="submit" class="profil-btn profil-btn--primary">Dəyişiklikləri saxla</button>
+            </form>
+          </section>
+
+          <section class="profil-panel" id="panel-odenis" data-panel-id="odenis" hidden>
+            <h2 class="profil-panel__title">Ödəniş</h2>
+            <p class="profil-panel__lead">Saxlanılmış ödəniş kartlarınız</p>
+            <div class="profil-cards" id="profil-payment-cards"></div>
+            <button type="button" class="profil-btn profil-btn--outline" id="profil-add-card">
+              + Yeni kart əlavə et
+            </button>
+          </section>
+
+          <section class="profil-panel" id="panel-tehlukesizlik" data-panel-id="tehlukesizlik" hidden>
+            <h2 class="profil-panel__title">Təhlükəsizlik</h2>
+            <form class="profil-card profil-form" id="form-password">
+              <label class="profil-field">
+                <span class="profil-field__label">Köhnə şifrə</span>
+                <input type="password" name="oldPassword" autocomplete="current-password" required />
+              </label>
+              <label class="profil-field">
+                <span class="profil-field__label">Yeni şifrə</span>
+                <input type="password" name="newPassword" autocomplete="new-password" minlength="8" required />
+              </label>
+              <label class="profil-field">
+                <span class="profil-field__label">Yeni şifrə (təkrar)</span>
+                <input type="password" name="confirmPassword" autocomplete="new-password" minlength="8" required />
+              </label>
+              <button type="submit" class="profil-btn profil-btn--primary">Şifrəni yenilə</button>
+            </form>
+          </section>
+
+          <section class="profil-panel" id="panel-bildiris-tercih" data-panel-id="bildiris-tercih" hidden>
+            <h2 class="profil-panel__title">Bildirişlər</h2>
+            <p class="profil-panel__lead">Hansı kanallardan bildiriş almaq istəyirsiniz?</p>
+            <div class="profil-card profil-toggles" id="profil-notif-prefs">
+              <label class="profil-toggle">
+                <span class="profil-toggle__text">
+                  <strong>Email bildirişləri</strong>
+                  <small>Sifariş və kampaniya xəbərləri</small>
+                </span>
+                <input type="checkbox" name="emailNotif" checked />
+                <span class="profil-toggle__track" aria-hidden="true"></span>
+              </label>
+              <label class="profil-toggle">
+                <span class="profil-toggle__text">
+                  <strong>Telefon (SMS)</strong>
+                  <small>Çatdırılma və təsdiq mesajları</small>
+                </span>
+                <input type="checkbox" name="smsNotif" checked />
+                <span class="profil-toggle__track" aria-hidden="true"></span>
+              </label>
+              <label class="profil-toggle">
+                <span class="profil-toggle__text">
+                  <strong>WhatsApp</strong>
+                  <small>Sürətli status yeniləmələri</small>
+                </span>
+                <input type="checkbox" name="whatsappNotif" />
+                <span class="profil-toggle__track" aria-hidden="true"></span>
+              </label>
+            </div>
+          </section>
+
+          <!-- FAQ -->
+          <section class="profil-panel" id="panel-faq" data-panel-id="faq" hidden>
+            <h2 class="profil-panel__title">Tez-tez verilən suallar</h2>
+            <div class="profil-faq" id="profil-faq-list"></div>
+          </section>
+
+          <!-- Asistant Var -->
+          <section class="profil-panel" id="panel-asistant" data-panel-id="asistant" hidden>
+            <div class="asistant-var">
+              <div class="asistant-var__glow" aria-hidden="true"></div>
+              <div class="asistant-var__inner">
+                <span class="asistant-var__badge">Canlı dəstək</span>
+                <h2 class="asistant-var__title">Asistant Var</h2>
+                <p class="asistant-var__text">
+                  Sualınız var? Bizim AI köməkçimiz 7/24 cavab verir — sifariş,
+                  ödəniş və çatdırılma barədə dərhal dəstək.
+                </p>
+                <div class="asistant-var__chat" id="asistant-chat">
+                  <div class="asistant-var__msg asistant-var__msg--bot">
+                    Salam! Mən Asistant Var-am. Sizə necə kömək edə bilərəm?
+                  </div>
+                </div>
+                <form class="asistant-var__form" id="asistant-form">
+                  <input
+                    type="text"
+                    class="asistant-var__input"
+                    id="asistant-input"
+                    placeholder="Mesajınızı yazın..."
+                    autocomplete="off"
+                  />
+                  <button type="submit" class="asistant-var__send" aria-label="Göndər">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+                    </svg>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="profil-toast" id="profil-toast" role="status" aria-live="polite" hidden></div>
+    </main>
+
+    <div id="site-bottom-nav"></div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+        <script src="../../../js/cart-store.js"></script>
+    <script src="../../../js/favorites-store.js"></script>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/app.js"></script>
+    <script src="../../../js/profil.js"></script>
+</body>
+</html>

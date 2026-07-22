@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="../../js/favicon.js"></script>
+
+    <title>Status test | Sifarişlər | BizdəVar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../../css/main.css" />
+    <link rel="stylesheet" href="../../css/header.css?v=7" />
+    <link rel="stylesheet" href="../../css/footer.css" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link rel="stylesheet" href="../../css/sifarislerim.css?v=2" />
+  </head>
+  <body data-root="../../" data-orders-page="test" class="checkout-body orders-body">
+    <div id="site-header"></div>
+
+    <main class="orders-page orders-test-page">
+      <div class="orders-page__inner container">
+        <header class="orders-head">
+          <div class="orders-head__top">
+            <a href="./" class="checkout-back">
+              <i class="fa-solid fa-arrow-left"></i>
+              <span>Sifarişlərim</span>
+            </a>
+            <span class="checkout-head__secure checkout-head__secure--dev">
+              <i class="fa-solid fa-flask"></i>
+              Test rejimi
+            </span>
+          </div>
+          <div>
+            <h1 class="orders-head__title">Status test paneli</h1>
+            <p class="orders-head__sub">Sifariş statuslarını və animasiyaları buradan sınaya bilərsiniz</p>
+          </div>
+        </header>
+
+        <div class="orders-test__layout">
+          <aside class="od-card orders-test__panel">
+            <div class="od-card__head">
+              <span class="od-card__icon"><i class="fa-solid fa-sliders"></i></span>
+              <h2 class="od-card__title">Test idarəetmə</h2>
+            </div>
+            <label class="orders-test__field">
+              <span>Sifariş seçin</span>
+              <select id="test-order-select" class="orders-test__select"></select>
+            </label>
+            <p class="orders-test__label">Status təyin et</p>
+            <div class="orders-test__statuses" id="test-status-buttons"></div>
+            <button type="button" class="orders-test__reset" id="test-reset-demo">
+              <i class="fa-solid fa-rotate-left"></i>
+              Demo sifarişləri bərpa et
+            </button>
+            <a href="#" class="orders-test__open-detail" id="test-open-detail">
+              Detallı səhifəni aç <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </aside>
+
+          <section class="orders-test__preview" aria-label="Animasiya önizləməsi">
+            <div class="od-hero od-hero--test">
+              <div class="od-hero__scene" id="test-scene" data-status="placed">
+                <div class="od-anim od-anim--placed" aria-hidden="true">
+                  <div class="od-anim-placed__ring"></div>
+                  <div class="od-anim-placed__doc"><i class="fa-solid fa-clipboard-list"></i></div>
+                </div>
+                <div class="od-anim od-anim--packing" aria-hidden="true">
+                  <div class="od-anim-box">
+                    <div class="od-anim-box__lid"></div>
+                    <div class="od-anim-box__item"><i class="fa-solid fa-mobile-screen"></i></div>
+                    <div class="od-anim-box__body"></div>
+                  </div>
+                </div>
+                <div class="od-anim od-anim--cargo" aria-hidden="true">
+                  <div class="od-anim-truck">
+                    <span class="od-anim-truck__cab"><i class="fa-solid fa-truck"></i></span>
+                    <span class="od-anim-truck__road"></span>
+                  </div>
+                </div>
+                <div class="od-anim od-anim--delivering" aria-hidden="true">
+                  <div class="od-anim-route">
+                    <span class="od-anim-route__pkg"><i class="fa-solid fa-box"></i></span>
+                    <span class="od-anim-route__dots"><i></i><i></i><i></i></span>
+                    <span class="od-anim-route__home"><i class="fa-solid fa-house"></i></span>
+                  </div>
+                </div>
+                <div class="od-anim od-anim--delivered" aria-hidden="true">
+                  <div class="od-anim-done">
+                    <span class="od-anim-done__check"><i class="fa-solid fa-check"></i></span>
+                    <span class="od-anim-done__spark od-anim-done__spark--1"></span>
+                    <span class="od-anim-done__spark od-anim-done__spark--2"></span>
+                    <span class="od-anim-done__spark od-anim-done__spark--3"></span>
+                  </div>
+                </div>
+                <div class="od-anim od-anim--cancelled" aria-hidden="true">
+                  <div class="od-anim-cancel">
+                    <span class="od-anim-cancel__box"><i class="fa-solid fa-box"></i></span>
+                    <span class="od-anim-cancel__x"><i class="fa-solid fa-xmark"></i></span>
+                  </div>
+                </div>
+              </div>
+              <p class="od-hero__status" id="test-status-label">Sifariş verildi</p>
+            </div>
+            <div class="od-card">
+              <ol class="order-timeline order-timeline--compact" id="test-timeline"></ol>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+    <div id="site-bottom-nav"></div>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/api.js"></script>
+    <script src="../../js/auth-guard.js"></script>
+    <script src="../../js/orders-store.js"></script>
+    <script src="../../js/cart-store.js"></script>
+    <script src="../../js/header.js"></script>
+    <script src="../../js/footer.js"></script>
+    <script src="../../js/sifarislerim.js?v=2"></script>
+  </body>
+</html>

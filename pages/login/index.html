@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function () {
+        var h = location.hostname;
+        if (h !== "localhost" && h !== "127.0.0.1") {
+          window.BIZDEVAR_API_BASE = "https://api.buykon.com/api";
+        }
+      })();
+    </script>
+    <script src="../../js/favicon.js"></script>
+
+    <title>Giriş et | Buykon.com</title>
+    <meta name="bizdevar-api" content="https://api.buykon.com/api" />
+    <script src="../../js/site-config.js?v=3"></script>
+    <!-- Google Cloud Console-dan aldığın OAuth Client ID-ni bura yaz -->
+    <meta name="google-client-id" content="1049420869484-89qvsir9m5g6rsbso973paccdel74kgq.apps.googleusercontent.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../../css/main.css" />
+    <link rel="stylesheet" href="../../css/header.css?v=7" />
+    <link rel="stylesheet" href="../../css/footer.css" />
+    <link rel="stylesheet" href="../../css/dark-mode.css" />
+    <link rel="stylesheet" href="../../css/auth.css" />
+  </head>
+  <body class="auth-page" data-root="../../">
+    <div class="auth-overlay"></div>
+    <main class="auth-wrapper">
+      <section class="auth-card">
+        <div class="auth-top">
+          <img src="../../images/logo.png" alt="BizdəVar Logo" class="auth-logo" />
+          <h1>Təkrar xoş gəldiniz!</h1>
+          <p class="auth-subtitle">Səni təkrar görməyimiz bizi sevindirdi, məlumatlarını daxil et və alış-verişə davam et!</p>
+        </div>
+        <p id="auth-message" class="auth-message" hidden role="alert"></p>
+        <form class="auth-form" id="loginForm">
+          <div class="input-group">
+            <label for="login-email">Email</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+              <input type="email" id="login-email" placeholder="Email ünvanını daxil et" required autocomplete="email" />
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="login-password">Şifrə</label>
+            <div class="input-wrap">
+              <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <input type="password" id="login-password" placeholder="Şifrəni daxil et" required autocomplete="current-password" />
+              <button type="button" class="pw-toggle" data-pw-toggle="login-password" aria-label="Şifrəni göstər">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="form-row">
+            <label class="remember-me"><input type="checkbox" /><span>Məni xatırla</span></label>
+            <a href="#" class="form-link">Şifrəni unutmusan?</a>
+          </div>
+          <button type="submit" class="auth-btn primary-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/></svg>
+            <span>Giriş et</span>
+          </button>
+          <div class="divider"><span>və ya</span></div>
+          <div class="google-area">
+            <div class="google-render" id="googleBtn"></div>
+            <button type="button" class="auth-btn google-btn" id="googleFallback">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.2-7.9l-6.5 5C9.6 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C39.9 36.7 44 31 44 24c0-1.3-.1-2.3-.4-3.5z"/></svg>
+            <span>Google ilə giriş et</span>
+          </button>
+          </div>
+          <p class="bottom-text">Hesabın yoxdur? <a href="../register/">Qeydiyyat et</a></p>
+        </form>
+      </section>
+    </main>
+    <div id="site-footer"></div>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="../../js/layout.js"></script>
+    <script src="../../js/api.js?v=5"></script>
+    <script src="../../js/auth-guard.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/google-auth.js"></script>
+    <script src="../../js/header.js"></script>
+    <script src="../../js/footer.js"></script>
+  </body>
+</html>

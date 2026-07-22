@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="az">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script src="../js/favicon.js"></script>
+
+    <meta name="theme-color" content="#017fa5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>BizdəVar</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="css/app.css?v=5" />
+    <link rel="stylesheet" href="../css/wheel.css" />
+    <link rel="stylesheet" href="css/dark-mode.css" />
+  </head>
+  <body data-root="" data-assets="../">
+    <div id="site-header"></div>
+
+    <main class="main container">
+      <section class="app-section" aria-label="Kampaniya slayderi">
+        <div class="hero-slider" id="heroSlider">
+          <div class="hero-slider__viewport">
+            <div class="hero-slider__track">
+              <article class="hero-slider__slide is-active" aria-hidden="false">
+                <img class="hero-slider__image" src="../images/banner-image.png" alt="Yay kampaniyası" fetchpriority="high" />
+              </article>
+              <article class="hero-slider__slide" aria-hidden="true">
+                <img class="hero-slider__image" src="../images/auth-bg.jpg" alt="Pulsuz çatdırılma" loading="lazy" />
+              </article>
+              <article class="hero-slider__slide" aria-hidden="true">
+                <img class="hero-slider__image" src="../images/products/iphone15.jpg" alt="Yeni məhsullar" loading="lazy" />
+              </article>
+            </div>
+          </div>
+          <div class="hero-slider__controls">
+            <button type="button" class="hero-slider__arrow hero-slider__arrow--prev" aria-label="Əvvəlki">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="hero-slider__dots" aria-label="Slayd seçimi"></div>
+            <button type="button" class="hero-slider__arrow hero-slider__arrow--next" aria-label="Növbəti">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="app-section" id="populyar" aria-labelledby="popular-title">
+        <div class="section-head">
+          <h2 class="section-title" id="popular-title">Populyar məhsullar</h2>
+        </div>
+        <div class="products" id="products-popular"></div>
+      </section>
+
+      <section class="app-section" id="kateqoriya-vitrini" aria-labelledby="cats-title">
+        <div class="section-head">
+          <h2 class="section-title" id="cats-title">Kateqoriyalar</h2>
+          <a href="pages/categories/" class="section-link">Hamısı</a>
+        </div>
+        <div class="cat-showcase__grid">
+          <a href="#catalog" class="cat-tile" data-cat="elektronika"><span class="cat-tile__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></span><span class="cat-tile__label">Elektronika</span></a>
+          <a href="#catalog" class="cat-tile" data-cat="geyim"><span class="cat-tile__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20.38 3.46L16 2 12 5 8 2 3.62 3.46 2 7l4 2v11h12V9l4-2-2-3.54z"/></svg></span><span class="cat-tile__label">Geyim</span></a>
+          <a href="#catalog" class="cat-tile" data-cat="ev"><span class="cat-tile__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg></span><span class="cat-tile__label">Ev &amp; yaşam</span></a>
+          <a href="#catalog" class="cat-tile" data-cat="kosmetika"><span class="cat-tile__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 3a6 6 0 0 0 6 6c0 2.2-1.2 4.1-3 5.2V21H9v-6.8C7.2 13.1 6 11.2 6 9a6 6 0 0 0 6-6z"/></svg></span><span class="cat-tile__label">Kosmetika</span></a>
+          <a href="#catalog" class="cat-tile" data-cat="aksesuar"><span class="cat-tile__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="7"/></svg></span><span class="cat-tile__label">Aksesuarlar</span></a>
+          <a href="#catalog" class="cat-tile" data-cat="texnika"><span class="cat-tile__icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="5" width="20" height="14" rx="2"/></svg></span><span class="cat-tile__label">Texnika</span></a>
+        </div>
+      </section>
+
+      <section class="app-section" id="endirimli" aria-labelledby="sale-title">
+        <div class="section-head">
+          <h2 class="section-title" id="sale-title">Endirimli məhsullar</h2>
+        </div>
+        <div class="products" id="products-sale"></div>
+      </section>
+
+      <section class="app-section wheel-promo" id="bonus-kart" aria-labelledby="wheel-title">
+        <div class="wheel-promo__inner">
+          <div class="wheel-promo__visual">
+            <div id="wheelPreviewMount" aria-hidden="true"></div>
+          </div>
+          <div class="wheel-promo__content">
+            <span class="wheel-promo__kicker">Həftəlik mükafat</span>
+            <h2 class="wheel-promo__title" id="wheel-title">Hər həftə çarxını fırlat və qazan!</h2>
+            <div class="wheel-promo__terms">
+              <p class="wheel-promo__terms-title">Şərtlər:</p>
+              <ul>
+                <li>20 ₼ keçən məhsul sifariş ver</li>
+                <li>Ən az 3 məhsulu bəyən və sevimlilərə əlavə et</li>
+                <li>Mağaza və ya müştəri haqqında rəy yaz</li>
+              </ul>
+            </div>
+            <button type="button" class="wheel-promo__btn" id="wheelOpenBtn">Çarxı fırlat</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="app-section" id="catalog" aria-labelledby="catalog-title">
+        <div class="section-head">
+          <h2 class="section-title" id="catalog-title">Bütün məhsullar</h2>
+          <div class="catalog__sort">
+            <label for="sort">Sırala</label>
+            <select id="sort" class="select">
+              <option value="popular">Populyar</option>
+              <option value="price-asc">Qiymət ↑</option>
+              <option value="price-desc">Qiymət ↓</option>
+            </select>
+          </div>
+        </div>
+        <div class="products" id="products"></div>
+      </section>
+
+      <section class="app-section why-us" id="niye-biz" aria-labelledby="why-title">
+        <p class="why-us__badge">✦ Niyə biz?</p>
+        <h2 class="why-us__title" id="why-title">Güvən və <span class="why-us__title-accent">şəffaflıq</span></h2>
+        <p class="why-us__lead">Seçilmiş məhsullar, aydın qiymətlər və hər addımda dəstək.</p>
+        <div class="why-us__cards">
+          <article class="why-card">
+            <div class="why-card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <h3 class="why-card__title">Sürətli çatdırılma</h3>
+            <p class="why-card__text">Bakı üzrə çevik çatdırılma seçimləri.</p>
+          </article>
+          <article class="why-card">
+            <div class="why-card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <h3 class="why-card__title">Təhlükəsiz ödəniş</h3>
+            <p class="why-card__text">Ödəniş məlumatlarınız qorunur.</p>
+          </article>
+          <article class="why-card">
+            <div class="why-card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+            <h3 class="why-card__title">Sərfəli qiymət</h3>
+            <p class="why-card__text">Kampaniya və endirimlərlə əlverişli təkliflər.</p>
+          </article>
+          <article class="why-card">
+            <div class="why-card__icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+            <h3 class="why-card__title">Müştəri dəstəyi</h3>
+            <p class="why-card__text">Suallarınız üçün komandamız yanınızdadır.</p>
+          </article>
+        </div>
+        <div class="why-us__stats">
+          <div class="why-stat"><span class="why-stat__value">45K+</span><span class="why-stat__label">Məmnun alıcı</span></div>
+          <div class="why-stat"><span class="why-stat__value">98%</span><span class="why-stat__label">Məmnuniyyət</span></div>
+          <div class="why-stat"><span class="why-stat__value">24/7</span><span class="why-stat__label">Dəstək</span></div>
+          <div class="why-stat"><span class="why-stat__value">15+</span><span class="why-stat__label">il təcrübə</span></div>
+        </div>
+      </section>
+    </main>
+
+    <div id="site-bottom-nav"></div>
+
+    <div class="wheel-modal" id="wheelModal" hidden aria-modal="true" role="dialog" aria-labelledby="wheelModalTitle">
+      <div class="wheel-modal__backdrop"></div>
+      <div class="wheel-modal__panel">
+        <button type="button" class="wheel-modal__close" id="wheelModalClose" aria-label="Bağla">×</button>
+        <div class="wheel-modal__body" id="wheelModalBody">
+          <h2 class="wheel-modal__title" id="wheelModalTitle">Çarxı fırlat!</h2>
+          <p class="wheel-modal__sub">Test rejimi — şərtlər yoxlanılmır</p>
+          <div class="wheel-modal__stage" id="wheelModalStage">
+            <div id="wheelModalMount"></div>
+          </div>
+          <button type="button" class="wheel-modal__spin-btn" id="wheelSpinBtn">Fırlat</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="wheel-prize-overlay" id="wheelPrizeOverlay" hidden aria-modal="true" role="dialog" aria-labelledby="wheelPrizeTitle">
+      <div class="wheel-prize-overlay__confetti" id="wheelConfetti" aria-hidden="true"></div>
+      <div class="wheel-prize-overlay__panel">
+        <p class="wheel-prize-overlay__kicker">Təbriklər!</p>
+        <h2 class="wheel-prize-overlay__title" id="wheelPrizeTitle">Mükafatınız</h2>
+        <div class="gift-box" id="giftBox">
+          <div class="gift-box__sparkles" aria-hidden="true"></div>
+          <div class="gift-box__bow" aria-hidden="true"></div>
+          <div class="gift-box__lid"></div>
+          <div class="gift-box__body"></div>
+          <div class="gift-box__shine" aria-hidden="true"></div>
+          <div class="gift-box__prize" id="giftPrizeText"></div>
+        </div>
+        <button type="button" class="wheel-prize-overlay__btn" id="wheelPrizeClose">Mükafatı götür</button>
+      </div>
+    </div>
+
+    <script src="../js/cart-store.js"></script>
+    <script src="../js/favorites-store.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="js/layout.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/home.js?v=3"></script>
+    <script src="js/home-slider.js"></script>
+    <script src="../js/wheel.js"></script>
+  </body>
+</html>

@@ -1,0 +1,109 @@
+BUYKON — FRONTEND (HOSTING) + BACKEND (SERVER) BİRLƏŞDİRMƏ
+============================================================
+
+Arxitektura:
+  Frontend (hosting):  https://buykon.com
+  Backend (server):    https://api.buykon.com  →  JAR port 8080
+
+═══════════════════════════════════════════════════════════
+A) HOSTİNGƏ YÜKLƏNƏCƏK FAYLLAR (frontend)
+═══════════════════════════════════════════════════════════
+
+buykon.com hosting-ə bütün layihə qovluğunu yükləyin (backend/ istisna):
+
+  index.html
+  css/
+  js/          ← site-config.js, api.js (YENİLƏNMİŞ)
+  images/
+  pages/
+  sellerpanel/
+  adminpanel/
+  buykonbusiness/
+  bizdevarapp/
+  partials/
+  favicon.ico
+
+Vacib JS fayllar:
+  js/site-config.js     → production API: https://api.buykon.com/api
+  js/api.js
+  adminpanel/admin-api.js
+  sellerpanel/seller-api.js
+
+═══════════════════════════════════════════════════════════
+B) BACKEND SERVER (/root/)
+═══════════════════════════════════════════════════════════
+
+Fayllar:
+  bizdevar-backend.jar
+  application.yml        ← backend/deploy/application.yml
+  start.sh
+
+application.yml işə salır:
+  java -jar bizdevar-backend.jar --spring.config.location=file:/root/application.yml
+
+═══════════════════════════════════════════════════════════
+C) DNS
+═══════════════════════════════════════════════════════════
+
+  buykon.com      → hosting IP
+  www.buykon.com  → hosting IP
+  api.buykon.com  → backend server IP  (A record)
+
+═══════════════════════════════════════════════════════════
+D) NGINX (backend serverde)
+═══════════════════════════════════════════════════════════
+
+backend/deploy/nginx-api.conf faylını istifadə edin:
+
+  sudo cp nginx-api.conf /etc/nginx/sites-available/api.buykon.com
+  sudo ln -sf /etc/nginx/sites-available/api.buykon.com /etc/nginx/sites-enabled/
+  sudo certbot --nginx -d api.buykon.com
+  sudo nginx -t && sudo systemctl reload nginx
+
+═══════════════════════════════════════════════════════════
+E) GOOGLE OAUTH (Google Cloud Console)
+═══════════════════════════════════════════════════════════
+
+Authorized JavaScript origins:
+  https://buykon.com
+  https://www.buykon.com
+
+Authorized redirect URIs (lazım olsa):
+  https://buykon.com/pages/login/
+
+═══════════════════════════════════════════════════════════
+F) YOXLAMA
+═══════════════════════════════════════════════════════════
+
+  curl https://api.buykon.com/api/health
+  curl -X POST https://api.buykon.com/api/auth/admin/check-email -H "Content-Type: application/json" -d "{\"email\":\"isgenderpasayev@gmail.com\"}"
+  Brauzer: https://buykon.com — məhsullar yüklənməlidir
+  Admin: https://buykon.com/adminpanel/login.html
+
+═══════════════════════════════════════════════════════════
+G) ADMIN GİRİŞ (yeni JAR deploy-dan sonra)
+═══════════════════════════════════════════════════════════
+
+Yeni JAR avtomatik admins + admin_otps cedvellerini yaradir.
+Əgər 500 xetasi gorsenirse serverde:
+
+  mysql -u buykon -p buykondb < admin-tables.sql
+  ./stop.sh && ./start.sh
+
+SMTP ile email gondermek (application.yml):
+  spring.mail.host: mail.spacemail.com (veya hosting SMTP)
+  spring.mail.port: 587
+  spring.mail.username: buykon@buykon.com
+  spring.mail.password: ***
+  bizdevar.mail.from: buykon@buykon.com   # SMTP username ile eyni olmalidir
+  bizdevar.mail.dev-log-otp: false        # OTP kodu loga yazilmasin
+
+İlk giriş: email → OTP → şifrə təyin et
+Sonrakı: email + şifrə → OTP → panel
+
+═══════════════════════════════════════════════════════════
+API ünvanını dəyişmək
+═══════════════════════════════════════════════════════════
+
+Yalnız js/site-config.js faylında PROD_API dəyişin:
+  var PROD_API = "https://api.buykon.com/api";
