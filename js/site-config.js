@@ -106,26 +106,16 @@
   }
 
   /**
-   * Google Gemini Vision açarı (şəkillə axtarış)
-   * Prioritet: window.BUYKON_GEMINI_API_KEY → meta[name=buykon-gemini-key] → localStorage
+   * Şəkillə axtarış endpoint (Gemini açarı server .env-də qalır)
    */
-  function resolveGeminiKey() {
-    if (global.BUYKON_GEMINI_API_KEY) {
-      return String(global.BUYKON_GEMINI_API_KEY).trim();
+  function resolveVisualSearchUrl() {
+    var root = "";
+    if (global.document && global.document.body) {
+      var attr = global.document.body.getAttribute("data-root");
+      if (attr != null) root = String(attr);
     }
-    var meta =
-      global.document &&
-      global.document.querySelector('meta[name="buykon-gemini-key"]');
-    if (meta && meta.getAttribute("content")) {
-      return String(meta.getAttribute("content") || "").trim();
-    }
-    try {
-      var ls = global.localStorage && global.localStorage.getItem("buykon_gemini_key");
-      if (ls) return String(ls).trim();
-    } catch (e) {
-      /* ignore */
-    }
-    return "";
+    if (root && root.slice(-1) !== "/" && root !== "") root += "/";
+    return root + "api/visual-search.php";
   }
 
   global.BizdevarSiteConfig = {
@@ -138,7 +128,7 @@
     productSlugify: productSlugify,
     productSlug: productSlug,
     productPageUrl: productPageUrl,
-    resolveGeminiKey: resolveGeminiKey,
+    resolveVisualSearchUrl: resolveVisualSearchUrl,
   };
 
   global.BIZDEVAR_API_BASE = resolveApiBase();

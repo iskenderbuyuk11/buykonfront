@@ -505,14 +505,6 @@
       "</div>";
   }
 
-  function getGeminiKey() {
-    var cfg = window.BizdevarSiteConfig;
-    if (cfg && typeof cfg.resolveGeminiKey === "function") {
-      return cfg.resolveGeminiKey();
-    }
-    return "";
-  }
-
   function azFold(s) {
     var map = {
       ə: "e",
@@ -633,20 +625,6 @@
     });
   }
 
-  function parseVisionJson(text) {
-    var raw = String(text || "").trim();
-    var fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
-    if (fence) raw = fence[1].trim();
-    var start = raw.indexOf("{");
-    var end = raw.lastIndexOf("}");
-    if (start === -1 || end === -1) return null;
-    try {
-      return JSON.parse(raw.slice(start, end + 1));
-    } catch (e) {
-      return null;
-    }
-  }
-
   function buildCatalogDigest(products) {
     var max = Math.min(products.length, 90);
     var lines = [];
@@ -723,137 +701,50 @@
     return hits >= 1;
   }
 
+  function getVisualSearchUrl() {
+    var cfg = window.BizdevarSiteConfig;
+    if (cfg && typeof cfg.resolveVisualSearchUrl === "function") {
+      return cfg.resolveVisualSearchUrl();
+    }
+    return getRoot() + "api/visual-search.php";
+  }
+
   function analyzeImageWithGemini(base64, mime, products) {
-    var key = getGeminiKey();
-    if (!key) {
-      return Promise.reject(new Error("NO_GEMINI_KEY"));
-    }
-
     var catalog = buildCatalogDigest(products || []);
-    var prompt =
-      "You help Buykon (Azerbaijani marketplace) visual search.\n" +
-      "STEP 1: Identify the MAIN product in the photo (name, brand, type).\n" +
-      "STEP 2: From OUR CATALOG, select ONLY products that are the SAME or TRULY SIMILAR type.\n" +
-      "STEP 3: Also select catalog products that are typically NEEDED FOR / USED WITH that product (parts, accessories, complements).\n" +
-      "CRITICAL RULES:\n" +
-      "- If catalog has nothing similar, return matched_ids: [] and catalog_match: false. DO NOT invent unrelated matches.\n" +
-      "- Never pick bathroom faucets for a phone, clothing, food, etc.\n" +
-      "- Prefer exact model/brand when visible.\n" +
-      "Return ONLY valid JSON:\n" +
-      "{\n" +
-      '  "product_name": "what is in the photo",\n' +
-      '  "brand": "",\n' +
-      '  "category": "ev-yasam|elektronika|geyim|kosmetika|aksesuar|usaq|idman|supermarket|other",\n' +
-      '  "type": "short type e.g. kran, dus, elbow, smartphone",\n' +
-      '  "keywords": ["specific az+en words"],\n' +
-      '  "search_queries": ["2-3 short queries"],\n' +
-      '  "catalog_match": true,\n' +
-      '  "matched_ids": [same/similar catalog ids, best first],\n' +
-      '  "needed_ids": [complementary catalog ids for use with the photographed item]\n' +
-      "}\n" +
-      "CATALOG (id | name | category | brand):\n" +
-      (catalog || "(empty)");
+    var url = getVisualSearchUrl();
 
-    // 2.0 / 1.5 modellər 2026-da bağlanıb — cari Flash modellər
-    var models = [
-      "gemini-3.6-flash",
-      "gemini-3.5-flash",
-      "gemini-flash-latest",
-      "gemini-3.1-flash-lite",
-      "gemini-2.5-flash",
-    ];
-
-    var lastError = "AI cavab vermədi";
-
-    function extractText(data) {
-      var c = data && data.candidates && data.candidates[0];
-      if (!c) {
-        var block =
-          data &&
-          data.promptFeedback &&
-          data.promptFeedback.blockReason;
-        if (block) return { error: "Şəkil bloklandı: " + block };
-        return { error: "Boş AI cavabı" };
-      }
-      if (c.finishReason && c.finishReason !== "STOP" && c.finishReason !== "MAX_TOKENS") {
-        // SAFETY və s. — yenə də mətn ola bilər
-      }
-      var parts =
-        c.content && c.content.parts
-          ? c.content.parts
-          : [];
-      var text = parts
-        .map(function (p) {
-          return p.text || "";
-        })
-        .join("\n")
-        .trim();
-      if (!text) return { error: "AI mətn qaytarmadı (" + (c.finishReason || "?") + ")" };
-      return { text: text };
-    }
-
-    function callModel(model, useJsonMime) {
-      var url =
-        "https://generativelanguage.googleapis.com/v1beta/models/" +
-        model +
-        ":generateContent?key=" +
-        encodeURIComponent(key);
-      var gen = { temperature: 0.1, maxOutputTokens: 1024 };
-      if (useJsonMime) gen.responseMimeType = "application/json";
-
-      return fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                {
-                  inline_data: {
-                    mime_type: mime || "image/jpeg",
-                    data: base64,
-                  },
-                },
-                { text: prompt },
-              ],
-            },
-          ],
-          generationConfig: gen,
-        }),
-      }).then(function (res) {
-        return res.json().then(function (data) {
-          if (!res.ok) {
-            var msg =
-              (data && data.error && data.error.message) ||
-              "Gemini xətası (" + res.status + ")";
-            throw new Error(msg);
-          }
-          var extracted = extractText(data);
-          if (extracted.error) throw new Error(extracted.error);
-          var parsed = parseVisionJson(extracted.text);
-          if (!parsed) throw new Error("AI JSON oxunmadı");
-          return parsed;
-        });
+    return fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image_base64: base64,
+        mime: mime || "image/jpeg",
+        catalog: catalog,
+      }),
+    }).then(function (res) {
+      return res.json().then(function (data) {
+        if (!res.ok || !data || !data.ok) {
+          var msg =
+            (data && data.error) ||
+            "AI xətası (" + res.status + ")";
+          throw new Error(msg);
+        }
+        if (!data.analysis) throw new Error("AI cavabı oxunmadı");
+        return data.analysis;
       });
-    }
-
-    function tryModels(idx) {
-      if (idx >= models.length) {
-        return Promise.reject(new Error(lastError));
+    }).catch(function (err) {
+      var msg = (err && err.message) || "";
+      if (
+        msg.indexOf("Failed to fetch") !== -1 ||
+        msg.indexOf("NetworkError") !== -1 ||
+        msg.indexOf("Load failed") !== -1
+      ) {
+        throw new Error(
+          "AI serverə çatılmadı. XAMPP-də PHP işləyirmi və api/visual-search.php mövcuddurmu?"
+        );
       }
-      return callModel(models[idx], true)
-        .catch(function (err1) {
-          lastError = (err1 && err1.message) || lastError;
-          return callModel(models[idx], false);
-        })
-        .catch(function (err2) {
-          lastError = (err2 && err2.message) || lastError;
-          return tryModels(idx + 1);
-        });
-    }
-
-    return tryModels(0);
+      throw err;
+    });
   }
 
   function analysisToTokens(analysis) {
@@ -1128,9 +1019,9 @@
             '<div class="search-popup__empty-icon" aria-hidden="true">🔑</div>' +
             "<p><strong>AI axtarış üçün Google açarı lazımdır</strong></p>" +
             '<p class="search-popup__empty-hint">' +
-            '1) <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — pulsuz açar götürün<br/>' +
-            "2) Brauzer konsolunda (F12 → Console):<br/><code>localStorage.setItem('buykon_gemini_key','AIza...')</code><br/>" +
-            "və ya <code>index.html</code>-də <code>buykon-gemini-key</code> meta-ya yapışdırın → səhifəni yeniləyin." +
+            '1) <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — açar götürün<br/>' +
+            "2) Layihə kökündə <code>.env</code> faylına yazın:<br/><code>GEMINI_API_KEY=AIza...</code><br/>" +
+            "3) XAMPP Apache-ni yenidən başladın / səhifəni yeniləyin." +
             "</p>" +
             '<button type="button" class="search-visual__retry" data-camera-retry>Yenidən çək</button>' +
             "</div></div>";

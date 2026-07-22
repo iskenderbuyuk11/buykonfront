@@ -725,7 +725,7 @@
       return;
     }
     var s = document.createElement("script");
-    s.src = getLayoutRoot() + "js/search-ui.js?v=6";
+    s.src = getLayoutRoot() + "js/search-ui.js?v=7";
     s.onload = function () {
       if (done) done();
     };

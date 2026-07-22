@@ -37,5 +37,5 @@ RewriteRule ^([a-z0-9_-]+)/sellerpanel/login/?$ /store?%1/sellerpanel/login [R=3
 RewriteRule ^([a-z0-9_-]+)/sellerpanel/accept-invite/?$ /store?%1/sellerpanel/accept-invite [R=302,L,QNE]
 RewriteRule ^([a-z0-9_-]+)/sellerpanel/([a-z0-9_-]+)/?$ /store?%1/sellerpanel/%2 [R=302,L,QNE]
 
-RewriteCond %{REQUEST_URI} !^/(pages|js|css|images|sellerpanel|adminpanel|buykonbusiness|bizdevarapp|scripts|tools|partials|store|verify)(/|$) [NC]
+RewriteCond %{REQUEST_URI} !^/(pages|js|css|images|api|sellerpanel|adminpanel|buykonbusiness|bizdevarapp|scripts|tools|partials|store|verify)(/|$) [NC]
 RewriteRule ^([a-z0-9_-]+)/?$ /store?%1 [R=302,L,QNE]
