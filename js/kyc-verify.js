@@ -12,6 +12,25 @@
     if (errEl) errEl.textContent = msg || "";
   }
 
+  function getRoot() {
+    if (window.BizdevarLayout && typeof BizdevarLayout.getRoot === "function") {
+      return BizdevarLayout.getRoot();
+    }
+    var body = document.body;
+    var attr = body && body.getAttribute("data-root");
+    if (attr != null) return attr;
+    // pages/verify/ → ../../
+    return "../../";
+  }
+
+  function kycSessionUrl() {
+    var cfg = window.BizdevarSiteConfig;
+    if (cfg && typeof cfg.resolveKycSessionUrl === "function") {
+      return cfg.resolveKycSessionUrl();
+    }
+    return getRoot() + "api/kyc-session.php";
+  }
+
   function statusClass(status) {
     if (status === "approved") return "kyc-status--approved";
     if (status === "declined" || status === "kyc_expired") return "kyc-status--declined";
@@ -56,7 +75,7 @@
     }
     if (startBtn) {
       var locked = status === "approved" || status === "pending_review";
-      startBtn.disabled = !consent.checked || locked;
+      startBtn.disabled = !consent || !consent.checked || locked;
       if (status === "approved") {
         startBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Artıq təsdiqlənib';
       } else if (status === "pending_review") {
@@ -68,22 +87,72 @@
   }
 
   function guardLogin() {
-    if (!window.BizdevarAuthGuard || !window.BizdevarAuthGuard.requireAuth) return Promise.resolve();
+    if (!window.BizdevarAuthGuard || !window.BizdevarAuthGuard.requireAuth) {
+      return Promise.resolve();
+    }
     return window.BizdevarAuthGuard.requireAuth();
   }
 
+  function vendorDataFromSession() {
+    try {
+      var s = window.BizdevarAPI && BizdevarAPI.session;
+      if (s && s.user && (s.user.id || s.user.email)) {
+        return String(s.user.id || s.user.email);
+      }
+    } catch (e) {}
+    return "";
+  }
+
+  function createDiditSession() {
+    var host = (location.hostname || "").toLowerCase();
+    var isLocal = host === "localhost" || host === "127.0.0.1";
+
+    function fromPhp() {
+      return fetch(kycSessionUrl(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vendor_data: vendorDataFromSession() }),
+      }).then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok || !data || !data.ok) {
+            var err = new Error((data && data.error) || "Sessiya açılmadı");
+            err.code = data && data.error;
+            err.status = res.status;
+            throw err;
+          }
+          return data;
+        });
+      });
+    }
+
+    // Lokal XAMPP → PHP .env proxy; production → Java API
+    if (!isLocal && window.BizdevarAPI && typeof BizdevarAPI.kycCreateSession === "function") {
+      return BizdevarAPI.kycCreateSession()
+        .then(function (session) {
+          if (!session || !session.url) throw new Error("Sessiya URL-i alınmadı");
+          return { ok: true, url: session.url, session_id: session.session_id };
+        })
+        .catch(function () {
+          return fromPhp();
+        });
+    }
+    return fromPhp();
+  }
+
   function loadStatus() {
-    if (!window.BizdevarAPI || !BizdevarAPI.kycStatus) return Promise.resolve();
+    if (!window.BizdevarAPI || !BizdevarAPI.kycStatus) {
+      renderStatus({ status: "not_started" });
+      return Promise.resolve();
+    }
     return BizdevarAPI.kycStatus()
       .then(function (data) {
         renderStatus(data && data.kyc);
       })
       .catch(function (err) {
-        if (err && err.status === 404) {
-          setError("KYC API tapılmadı — backend yenilənməyib.");
-        } else if (err && err.status === 401) {
+        if (err && err.status === 401) {
           setError("Giriş tələb olunur.");
         }
+        // Lokal Didit proxy ilə işləyə bilərik — status API olmasa belə
         renderStatus({ status: "not_started" });
       });
   }
@@ -103,21 +172,26 @@
       }
       setError("");
       startBtn.disabled = true;
-      startBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Hazırlanır...';
+      startBtn.innerHTML =
+        '<i class="fa-solid fa-circle-notch fa-spin"></i> Hazırlanır...';
 
-      BizdevarAPI.kycCreateSession()
+      createDiditSession()
         .then(function (session) {
           if (!session || !session.url) throw new Error("Sessiya URL-i alınmadı");
           window.location.href = session.url;
         })
         .catch(function (err) {
+          var code = (err && err.code) || "";
           var msg = (err && err.message) || "Təsdiq sessiyası başladılmadı";
-          if (err && err.status === 401) {
-            msg = "Giriş tələb olunur — əvvəlcə hesabınıza daxil olun.";
-          } else if (err && err.status === 404) {
-            msg = "KYC API tapılmadı — backend deploy edilməyib.";
-          } else if (err && err.status === 500) {
-            msg = "Server xətası — DIDIT_API_KEY serverdə düzgün deyil.";
+          if (code === "NO_DIDIT_KEY" || msg === "NO_DIDIT_KEY") {
+            msg =
+              "DIDIT_API_KEY .env faylında yoxdur və ya səhvdir.";
+          } else if (
+            msg.indexOf("Failed to fetch") !== -1 ||
+            msg.indexOf("NetworkError") !== -1
+          ) {
+            msg =
+              "KYC serverə çatılmadı. XAMPP Apache işləyirmi və api/kyc-session.php mövcuddurmu?";
           }
           setError(msg);
         })
