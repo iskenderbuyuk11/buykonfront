@@ -190,8 +190,9 @@ body.search-popup-open {
 
 /* Fullscreen visual camera / detect UI */
 .search-popup.search-popup--viz {
-    padding: 0;
+    padding: 0 !important;
     align-items: stretch;
+    justify-content: stretch;
 }
 
 .search-popup.search-popup--viz .search-popup__backdrop {
@@ -201,15 +202,21 @@ body.search-popup-open {
 }
 
 .search-popup.search-popup--viz .search-popup__panel {
-    max-width: none;
-    max-height: none;
-    width: 100%;
-    height: 100%;
-    border-radius: 0;
-    border: none;
-    background: #0a0a0a;
-    box-shadow: none;
-    animation: none;
+    position: absolute !important;
+    inset: 0 !important;
+    max-width: none !important;
+    max-height: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+    background: #000 !important;
+    box-shadow: none !important;
+    animation: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
 }
 
 .search-popup.search-popup--viz .search-popup__head,
@@ -219,21 +226,25 @@ body.search-popup-open {
 }
 
 .search-popup.search-popup--viz .search-popup__body {
-    flex: 1;
-    height: 100%;
-    padding: 0;
-    overflow: hidden;
-    max-height: none;
+    position: relative !important;
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 0 !important;
+    overflow: hidden !important;
 }
 
 .vizcam {
-    position: relative;
-    display: flex;
-    flex-direction: column;
+    position: absolute;
+    inset: 0;
+    width: 100%;
     height: 100%;
-    min-height: 100dvh;
-    background: #050505;
+    min-height: 100%;
+    background: #000;
     color: #fff;
+    overflow: hidden;
 }
 
 .vizcam__top {
@@ -241,13 +252,18 @@ body.search-popup-open {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 3;
+    z-index: 5;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
     padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
     background: linear-gradient(180deg, rgba(0,0,0,.72), transparent);
+    pointer-events: none;
+}
+
+.vizcam__top > * {
+    pointer-events: auto;
 }
 
 .vizcam__title-wrap {
@@ -293,31 +309,43 @@ body.search-popup-open {
 }
 
 .vizcam__stage {
-    position: relative;
-    flex: 1;
-    min-height: 0;
+    position: absolute;
+    inset: 0;
+    z-index: 1;
     background: #000;
+    overflow: hidden;
 }
 
 .vizcam__video {
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none;
+    max-height: none;
     object-fit: cover;
-    display: block;
+    object-position: center;
+    display: block !important;
     background: #000;
+    z-index: 1;
+    /* iOS/Safari bəzən video-nu gizlədir */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .vizcam__video.is-front {
-    transform: scaleX(-1);
+    transform: scaleX(-1) translateZ(0);
+    -webkit-transform: scaleX(-1) translateZ(0);
 }
 
 .vizcam__frame {
     pointer-events: none;
     position: absolute;
     inset: 18% 14%;
+    z-index: 2;
     border: 1.5px solid rgba(255, 174, 0, 0.55);
     border-radius: 22px;
-    box-shadow: 0 0 0 999px rgba(0,0,0,.18);
+    box-shadow: inset 0 0 0 1px rgba(255,174,0,.15);
 }
 
 .vizcam__frame::before,
@@ -348,6 +376,7 @@ body.search-popup-open {
 .vizcam__fallback {
     position: absolute;
     inset: 0;
+    z-index: 4;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -357,6 +386,10 @@ body.search-popup-open {
     text-align: center;
     background: #111;
     color: #e2e8f0;
+}
+
+.vizcam__fallback[hidden] {
+    display: none !important;
 }
 
 .vizcam__fallback-btn {
@@ -381,13 +414,18 @@ body.search-popup-open {
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 3;
+    z-index: 5;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 10px;
     padding: 18px 20px calc(22px + env(safe-area-inset-bottom));
     background: linear-gradient(0deg, rgba(0,0,0,.82), transparent);
+    pointer-events: none;
+}
+
+.vizcam__bottom > * {
+    pointer-events: auto;
 }
 
 .vizcam__side-btn {

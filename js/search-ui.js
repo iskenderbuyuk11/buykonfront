@@ -343,15 +343,55 @@
     var video = document.getElementById("search-camera-video");
     cameraStream = stream;
     if (!video) return;
+
+    video.removeAttribute("hidden");
+    video.style.display = "block";
+    video.style.visibility = "visible";
+    video.style.opacity = "1";
     video.setAttribute("playsinline", "true");
     video.setAttribute("webkit-playsinline", "true");
+    video.setAttribute("autoplay", "true");
+    video.playsInline = true;
     video.muted = true;
-    video.srcObject = stream;
+    video.autoplay = true;
     video.classList.toggle("is-front", cameraFacing === "user");
-    var playPromise = video.play();
-    if (playPromise && typeof playPromise.catch === "function") {
-      playPromise.catch(function () {});
+
+    // Əvvəlki stream-i təmizlə
+    try {
+      if (video.srcObject && video.srcObject !== stream) {
+        video.srcObject.getTracks().forEach(function (t) {
+          try {
+            t.stop();
+          } catch (e) {}
+        });
+      }
+    } catch (e) {}
+
+    video.srcObject = stream;
+
+    function tryPlay() {
+      var p = video.play();
+      if (p && typeof p.then === "function") {
+        return p.catch(function () {
+          // user gesture lazım ola bilər — yenidən cəhd
+          return video.play().catch(function () {});
+        });
+      }
+      return Promise.resolve();
     }
+
+    if (video.readyState >= 2) {
+      tryPlay();
+    } else {
+      video.onloadedmetadata = function () {
+        video.onloadedmetadata = null;
+        tryPlay();
+      };
+      // bəzi brauzerlərdə metadata hadisəsi gecikir
+      setTimeout(tryPlay, 120);
+      setTimeout(tryPlay, 400);
+    }
+
     syncTorchButton();
   }
 
@@ -360,6 +400,7 @@
     var video = document.getElementById("search-camera-video");
     var status = document.getElementById("search-camera-status");
     if (status) status.textContent = "Kamera açılır...";
+
     if (cameraStream) {
       cameraStream.getTracks().forEach(function (t) {
         try {
@@ -369,14 +410,18 @@
       cameraStream = null;
     }
     cameraTorchOn = false;
+
     return requestCameraStream(cameraFacing)
       .then(function (stream) {
         if (fallback) fallback.setAttribute("hidden", "");
-        if (video) video.removeAttribute("hidden");
+        if (video) {
+          video.removeAttribute("hidden");
+          video.style.display = "block";
+        }
         attachCameraStream(stream);
         if (status) status.textContent = "Məhsulu kadra salın";
       })
-      .catch(function () {
+      .catch(function (err) {
         if (video) video.setAttribute("hidden", "");
         if (fallback) fallback.removeAttribute("hidden");
         if (status) {
@@ -432,6 +477,7 @@
     setVizMode(true);
     cameraTorchOn = false;
 
+    // Layout otursun, sonra stream bağla (hündürlük 0 probleminin qarşısı)
     body.innerHTML =
       '<div class="vizcam">' +
       '<div class="vizcam__top">' +
@@ -499,7 +545,12 @@
       });
     }
 
-    startLiveCamera();
+    // Panel tam ekran hündürlüyünü alsın, sonra kameranı bağla
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        startLiveCamera();
+      });
+    });
   }
 
   function cropThumbFromPreview(previewUrl, bbox) {
