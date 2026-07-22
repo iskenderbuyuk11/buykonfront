@@ -112,11 +112,26 @@ $prompt =
     "- No text overlays, no watermarks, no extra products.\n" .
     "- Output a single high-quality fashion photo.";
 
-$models = [
-    'gemini-3.1-flash-image',
-    'gemini-3.1-flash-image-preview',
-    'gemini-2.5-flash-image',
-];
+// Şəkil generasiyası (Nano Banana) — free tier-də limit: 0; billing lazımdır.
+// Ən ucuzdan başla: lite → main. Köhnə 2.5-preview-image free_tier=0 verir.
+$envModel = buykon_env('GEMINI_TRYON_MODEL');
+$models = array_values(array_filter(array_unique(array_merge(
+    $envModel !== '' ? [$envModel] : [],
+    [
+        'gemini-3.1-flash-lite-image',
+        'gemini-3.1-flash-image',
+    ]
+))));
+
+function tryon_is_quota_error(string $msg): bool
+{
+    $m = strtolower($msg);
+    return str_contains($m, 'quota')
+        || str_contains($m, 'rate limit')
+        || str_contains($m, 'resource_exhausted')
+        || str_contains($m, 'limit: 0')
+        || str_contains($m, 'free_tier');
+}
 
 function tryon_call_gemini(string $apiKey, string $model, string $prompt, string $base64, string $mime): array
 {
@@ -194,6 +209,7 @@ function tryon_call_gemini(string $apiKey, string $model, string $prompt, string
 
 $lastError = 'AI şəkil yarada bilmədi';
 $result = null;
+$quotaHit = false;
 foreach ($models as $model) {
     $attempt = tryon_call_gemini($apiKey, $model, $prompt, $imageBase64, $mime);
     if (!empty($attempt['ok'])) {
@@ -201,9 +217,22 @@ foreach ($models as $model) {
         break;
     }
     $lastError = (string) ($attempt['error'] ?? $lastError);
+    if (tryon_is_quota_error($lastError)) {
+        $quotaHit = true;
+        // Digər image modelləri də eyni free_tier=0 ola bilər — tez çıx
+        continue;
+    }
 }
 
 if (!$result) {
+    if ($quotaHit) {
+        buykon_json_fail(
+            429,
+            'TRYON_QUOTA: Gemini şəkil AI pulsuz planda yoxdur (limit: 0). ' .
+            'Google AI Studio → Billing aktivləşdirin, sonra yenidən yoxlayın. ' .
+            'https://aistudio.google.com/plan'
+        );
+    }
     buykon_json_fail(502, $lastError);
 }
 

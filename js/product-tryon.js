@@ -242,6 +242,9 @@
         var msg = (e && e.message) || "Xəta baş verdi";
         if (msg === "NO_GEMINI_KEY" || (e && e.code) === "NO_GEMINI_KEY") {
           msg = "AI üçün GEMINI_API_KEY .env faylında lazımdır.";
+        } else if (/TRYON_QUOTA|quota|limit:\s*0|free_tier/i.test(msg)) {
+          msg =
+            "Gemini şəkil AI pulsuz planda bağlıdır (kvota 0). Google AI Studio-da Billing aktivləşdirin, sonra yenidən yoxlayın.";
         }
         if (err) err.textContent = msg;
       })
