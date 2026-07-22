@@ -32,6 +32,9 @@
   var lastFocus = null;
   var cameraStream = null;
   var visualToken = 0;
+  var cameraFacing = "environment";
+  var cameraTorchOn = false;
+  var lastDetectState = null;
 
   function getRoot() {
     if (window.BizdevarLayout && typeof BizdevarLayout.getRoot === "function") {
@@ -227,7 +230,14 @@
     window.location.href = productHref(p);
   }
 
+  function setVizMode(on) {
+    if (!overlay) return;
+    if (on) overlay.classList.add("search-popup--viz");
+    else overlay.classList.remove("search-popup--viz");
+  }
+
   function stopCamera() {
+    cameraTorchOn = false;
     if (cameraStream) {
       cameraStream.getTracks().forEach(function (t) {
         try {
@@ -242,128 +252,418 @@
     if (video) video.srcObject = null;
   }
 
+  function getVideoTrack() {
+    if (!cameraStream) return null;
+    var tracks = cameraStream.getVideoTracks();
+    return tracks && tracks[0] ? tracks[0] : null;
+  }
+
+  function syncTorchButton() {
+    var btn = document.getElementById("search-camera-flash");
+    if (!btn) return;
+    var track = getVideoTrack();
+    var caps =
+      track && typeof track.getCapabilities === "function"
+        ? track.getCapabilities()
+        : null;
+    var supported = !!(caps && caps.torch) && cameraFacing === "environment";
+    btn.disabled = !supported;
+    btn.classList.toggle("is-on", !!cameraTorchOn && supported);
+    btn.setAttribute("aria-pressed", cameraTorchOn && supported ? "true" : "false");
+    btn.title = supported
+      ? cameraTorchOn
+        ? "Flaşı söndür"
+        : "Flaşı yandır"
+      : "Flaş bu kamerada yoxdur";
+  }
+
+  function setTorch(on) {
+    var track = getVideoTrack();
+    if (!track || typeof track.applyConstraints !== "function") {
+      cameraTorchOn = false;
+      syncTorchButton();
+      return Promise.resolve();
+    }
+    var caps =
+      typeof track.getCapabilities === "function" ? track.getCapabilities() : {};
+    if (!caps.torch) {
+      cameraTorchOn = false;
+      syncTorchButton();
+      return Promise.resolve();
+    }
+    return track
+      .applyConstraints({ advanced: [{ torch: !!on }] })
+      .then(function () {
+        cameraTorchOn = !!on;
+        syncTorchButton();
+      })
+      .catch(function () {
+        cameraTorchOn = false;
+        syncTorchButton();
+      });
+  }
+
+  function requestCameraStream(facing) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      return Promise.reject(new Error("NO_MEDIA"));
+    }
+    var attempts = [
+      {
+        audio: false,
+        video: {
+          facingMode: { exact: facing },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+      },
+      {
+        audio: false,
+        video: {
+          facingMode: { ideal: facing },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      },
+      { audio: false, video: { facingMode: facing } },
+      { audio: false, video: true },
+    ];
+
+    function next(i) {
+      if (i >= attempts.length) {
+        return Promise.reject(new Error("CAMERA_DENIED"));
+      }
+      return navigator.mediaDevices.getUserMedia(attempts[i]).catch(function () {
+        return next(i + 1);
+      });
+    }
+    return next(0);
+  }
+
+  function attachCameraStream(stream) {
+    var video = document.getElementById("search-camera-video");
+    cameraStream = stream;
+    if (!video) return;
+    video.setAttribute("playsinline", "true");
+    video.setAttribute("webkit-playsinline", "true");
+    video.muted = true;
+    video.srcObject = stream;
+    video.classList.toggle("is-front", cameraFacing === "user");
+    var playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === "function") {
+      playPromise.catch(function () {});
+    }
+    syncTorchButton();
+  }
+
+  function startLiveCamera() {
+    var fallback = document.getElementById("search-camera-fallback");
+    var video = document.getElementById("search-camera-video");
+    var status = document.getElementById("search-camera-status");
+    if (status) status.textContent = "Kamera açılır...";
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(function (t) {
+        try {
+          t.stop();
+        } catch (e) {}
+      });
+      cameraStream = null;
+    }
+    cameraTorchOn = false;
+    return requestCameraStream(cameraFacing)
+      .then(function (stream) {
+        if (fallback) fallback.setAttribute("hidden", "");
+        if (video) video.removeAttribute("hidden");
+        attachCameraStream(stream);
+        if (status) status.textContent = "Məhsulu kadra salın";
+      })
+      .catch(function () {
+        if (video) video.setAttribute("hidden", "");
+        if (fallback) fallback.removeAttribute("hidden");
+        if (status) {
+          status.textContent =
+            "Kamera açıla bilmədi — qalereyadan seçin və ya icazə verin";
+        }
+        syncTorchButton();
+      });
+  }
+
+  function openGalleryPicker() {
+    var fileInput = document.getElementById("search-popup-file");
+    if (!fileInput) return;
+    fileInput.removeAttribute("capture");
+    fileInput.value = "";
+    fileInput.click();
+  }
+
+  function captureFromVideo() {
+    var video = document.getElementById("search-camera-video");
+    if (!video || !cameraStream || !video.videoWidth) {
+      openGalleryPicker();
+      return;
+    }
+    var canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    var ctx = canvas.getContext("2d");
+    if (cameraFacing === "user") {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(video, 0, 0);
+    canvas.toBlob(
+      function (blob) {
+        if (!blob) {
+          openGalleryPicker();
+          return;
+        }
+        stopCamera();
+        processVisualSearch(blob);
+      },
+      "image/jpeg",
+      0.92
+    );
+  }
+
   function renderCameraSheet() {
     var body = document.getElementById("search-popup-body");
     var foot = document.getElementById("search-popup-foot");
     if (!body) return;
     if (foot) foot.setAttribute("hidden", "");
+    setVizMode(true);
+    cameraTorchOn = false;
 
     body.innerHTML =
-      '<div class="search-camera">' +
-      '<div class="search-camera__head">' +
-      "<strong>Şəkillə axtar</strong>" +
-      '<button type="button" class="search-camera__back" data-camera-back>Geri</button>' +
-      "</div>" +
-      '<div class="search-camera__stage">' +
-      '<video id="search-camera-video" class="search-camera__video" playsinline muted autoplay></video>' +
-      '<div class="search-camera__fallback" id="search-camera-fallback" hidden>' +
-      "<p>Kamera açıla bilmədi. Qalereyadan şəkil seçin və ya yenidən cəhd edin.</p>" +
-      "</div>" +
-      "</div>" +
-      '<div class="search-camera__actions">' +
-      '<button type="button" class="search-camera__shot" id="search-camera-shot" aria-label="Şəkil çək">' +
-      '<span class="search-camera__shot-ring"></span>' +
+      '<div class="vizcam">' +
+      '<div class="vizcam__top">' +
+      '<button type="button" class="vizcam__icon-btn" data-camera-back aria-label="Bağla">' +
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
       "</button>" +
-      '<button type="button" class="search-camera__gallery" id="search-camera-gallery">' +
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>' +
-      " Qalereya" +
+      '<div class="vizcam__title-wrap">' +
+      '<p class="vizcam__title">Şəkillə axtar</p>' +
+      '<p class="vizcam__sub" id="search-camera-status">Kamera açılır...</p>' +
+      "</div>" +
+      '<button type="button" class="vizcam__icon-btn" id="search-camera-flash" aria-label="Flaş" aria-pressed="false">' +
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h8l-1 8 10-12h-8l1-8z"/></svg>' +
       "</button>" +
       "</div>" +
-      '<p class="search-camera__hint">Məhsulu yaxşı işıqda, tam görsənəcək şəkildə çəkin</p>' +
+      '<div class="vizcam__stage">' +
+      '<video id="search-camera-video" class="vizcam__video" playsinline webkit-playsinline muted autoplay></video>' +
+      '<div class="vizcam__frame" aria-hidden="true"></div>' +
+      '<div class="vizcam__fallback" id="search-camera-fallback" hidden>' +
+      "<p>Kamera açıla bilmədi</p>" +
+      '<button type="button" class="vizcam__fallback-btn" id="search-camera-retry">Yenidən cəhd et</button>' +
+      '<button type="button" class="vizcam__fallback-btn vizcam__fallback-btn--ghost" id="search-camera-fallback-gallery">Qalereyadan seç</button>' +
+      "</div>" +
+      "</div>" +
+      '<div class="vizcam__bottom">' +
+      '<button type="button" class="vizcam__side-btn" id="search-camera-gallery" aria-label="Qalereya">' +
+      '<span class="vizcam__side-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>' +
+      "<span>Qalereya</span>" +
+      "</button>" +
+      '<button type="button" class="vizcam__shutter" id="search-camera-shot" aria-label="Şəkil çək">' +
+      '<span class="vizcam__shutter-ring"></span>' +
+      "</button>" +
+      '<button type="button" class="vizcam__side-btn" id="search-camera-flip" aria-label="Kameranı dəyiş">' +
+      '<span class="vizcam__side-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 3h5v5"/><path d="M8 21H3v-5"/><path d="M21 3 14 10"/><path d="m3 21 7-7"/><circle cx="12" cy="12" r="3"/></svg></span>' +
+      "<span>Dəyiş</span>" +
+      "</button>" +
+      "</div>" +
       "</div>";
 
-    var video = document.getElementById("search-camera-video");
-    var fallback = document.getElementById("search-camera-fallback");
-    var shotBtn = document.getElementById("search-camera-shot");
     var galleryBtn = document.getElementById("search-camera-gallery");
+    var shotBtn = document.getElementById("search-camera-shot");
+    var flipBtn = document.getElementById("search-camera-flip");
+    var flashBtn = document.getElementById("search-camera-flash");
+    var retryBtn = document.getElementById("search-camera-retry");
+    var fallbackGallery = document.getElementById(
+      "search-camera-fallback-gallery"
+    );
 
-    function openFilePicker(useCapture) {
-      var fileInput = document.getElementById("search-popup-file");
-      if (!fileInput) return;
-      if (useCapture) fileInput.setAttribute("capture", "environment");
-      else fileInput.removeAttribute("capture");
-      fileInput.value = "";
-      fileInput.click();
+    if (galleryBtn) galleryBtn.addEventListener("click", openGalleryPicker);
+    if (fallbackGallery)
+      fallbackGallery.addEventListener("click", openGalleryPicker);
+    if (shotBtn) shotBtn.addEventListener("click", captureFromVideo);
+    if (retryBtn)
+      retryBtn.addEventListener("click", function () {
+        startLiveCamera();
+      });
+    if (flipBtn) {
+      flipBtn.addEventListener("click", function () {
+        cameraFacing = cameraFacing === "environment" ? "user" : "environment";
+        startLiveCamera();
+      });
     }
-
-    if (galleryBtn) {
-      galleryBtn.addEventListener("click", function () {
-        openFilePicker(false);
+    if (flashBtn) {
+      flashBtn.addEventListener("click", function () {
+        setTorch(!cameraTorchOn);
       });
     }
 
-    if (shotBtn) {
-      shotBtn.addEventListener("click", function () {
-        if (!video || !cameraStream || !video.videoWidth) {
-          openFilePicker(true);
-          return;
-        }
-        var canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext("2d").drawImage(video, 0, 0);
-        canvas.toBlob(
-          function (blob) {
-            if (!blob) {
-              openFilePicker(true);
-              return;
-            }
-            stopCamera();
-            processVisualSearch(blob);
-          },
-          "image/jpeg",
-          0.92
-        );
-      });
-    }
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      if (fallback) fallback.removeAttribute("hidden");
-      if (video) video.setAttribute("hidden", "");
-      openFilePicker(true);
-      return;
-    }
-
-    navigator.mediaDevices
-      .getUserMedia({
-        audio: false,
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
-      })
-      .then(function (stream) {
-        cameraStream = stream;
-        if (video) {
-          video.srcObject = stream;
-          video.play().catch(function () {
-            /* ignore */
-          });
-        }
-      })
-      .catch(function () {
-        if (fallback) fallback.removeAttribute("hidden");
-        if (video) video.setAttribute("hidden", "");
-        openFilePicker(true);
-      });
+    startLiveCamera();
   }
 
-  function renderVisualLoading(previewUrl) {
+  function cropThumbFromPreview(previewUrl, bbox) {
+    return new Promise(function (resolve) {
+      if (!previewUrl || !bbox || bbox.length < 4) {
+        resolve("");
+        return;
+      }
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var w = img.naturalWidth || img.width;
+          var h = img.naturalHeight || img.height;
+          var x = Math.max(0, Math.min(1, Number(bbox[0]) || 0));
+          var y = Math.max(0, Math.min(1, Number(bbox[1]) || 0));
+          var bw = Math.max(0.08, Math.min(1 - x, Number(bbox[2]) || 0.3));
+          var bh = Math.max(0.08, Math.min(1 - y, Number(bbox[3]) || 0.3));
+          var sx = Math.floor(x * w);
+          var sy = Math.floor(y * h);
+          var sw = Math.max(1, Math.floor(bw * w));
+          var sh = Math.max(1, Math.floor(bh * h));
+          var size = 160;
+          var canvas = document.createElement("canvas");
+          canvas.width = size;
+          canvas.height = size;
+          canvas
+            .getContext("2d")
+            .drawImage(img, sx, sy, sw, sh, 0, 0, size, size);
+          resolve(canvas.toDataURL("image/jpeg", 0.82));
+        } catch (e) {
+          resolve("");
+        }
+      };
+      img.onerror = function () {
+        resolve("");
+      };
+      img.src = previewUrl;
+    });
+  }
+
+  function detectionToAnalysis(det, fallback) {
+    fallback = fallback || {};
+    return {
+      product_name: det.label || fallback.product_name || "",
+      brand: det.brand || "",
+      category: det.category || fallback.category || "",
+      type: det.type || fallback.type || "",
+      keywords: det.keywords || [],
+      search_queries: det.search_queries || [det.label || ""].filter(Boolean),
+      catalog_match: det.matched_ids && det.matched_ids.length ? true : false,
+      matched_ids: det.matched_ids || [],
+      needed_ids: det.needed_ids || [],
+    };
+  }
+
+  function buildDetectionCards(analysis, products, previewUrl) {
+    var list = Array.isArray(analysis && analysis.detections)
+      ? analysis.detections.slice(0, 6)
+      : [];
+    if (!list.length) {
+      list = [
+        {
+          label: analysis.product_name || analysis.type || "Məhsul",
+          type: analysis.type || "",
+          brand: analysis.brand || "",
+          keywords: analysis.keywords || [],
+          bbox: null,
+          matched_ids: analysis.matched_ids || [],
+          needed_ids: analysis.needed_ids || [],
+        },
+      ];
+    }
+
+    return Promise.all(
+      list.map(function (det) {
+        var partial = detectionToAnalysis(det, analysis);
+        var ranked = rankProductsByVision(products, partial);
+        var count =
+          (ranked.similar || []).length + (ranked.needed || []).length;
+        var firstImg =
+          (ranked.similar[0] && productImage(ranked.similar[0].product)) ||
+          (ranked.needed[0] && productImage(ranked.needed[0].product)) ||
+          "";
+        return cropThumbFromPreview(previewUrl, det.bbox).then(function (
+          thumb
+        ) {
+          return {
+            label: det.label || partial.product_name || "Məhsul",
+            type: partial.type || "",
+            thumb: thumb || firstImg || previewUrl,
+            count: count,
+            ranked: ranked,
+            analysis: partial,
+          };
+        });
+      })
+    );
+  }
+
+  function formatCountLabel(n) {
+    if (n <= 0) return "Kataloqda yoxdur";
+    if (n >= 20) return n + "+ məhsul";
+    return n + " məhsul";
+  }
+
+  function renderDetectPick(previewUrl, detections) {
     var body = document.getElementById("search-popup-body");
     var foot = document.getElementById("search-popup-foot");
     if (!body) return;
     if (foot) foot.setAttribute("hidden", "");
+    setVizMode(true);
+
+    lastDetectState = { previewUrl: previewUrl, detections: detections };
+
+    var cards = detections
+      .map(function (d, i) {
+        return (
+          '<button type="button" class="vizpick__card" data-detect-idx="' +
+          i +
+          '">' +
+          '<span class="vizpick__thumb">' +
+          (d.thumb
+            ? '<img src="' + escAttr(d.thumb) + '" alt="" />'
+            : '<span class="vizpick__thumb-ph">📦</span>') +
+          "</span>" +
+          '<span class="vizpick__meta">' +
+          '<span class="vizpick__name">' +
+          esc(d.label) +
+          "</span>" +
+          '<span class="vizpick__count">' +
+          esc(formatCountLabel(d.count)) +
+          "</span>" +
+          "</span>" +
+          '<svg class="vizpick__chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>' +
+          "</button>"
+        );
+      })
+      .join("");
+
     body.innerHTML =
-      '<div class="search-visual">' +
-      (previewUrl
-        ? '<div class="search-visual__preview"><img src="' +
-          escAttr(previewUrl) +
-          '" alt="" /></div>'
+      '<div class="vizpick">' +
+      '<div class="vizpick__bg" style="background-image:url(\'' +
+      escAttr(previewUrl) +
+      "')\"></div>" +
+      '<div class="vizpick__shade"></div>' +
+      '<div class="vizpick__content">' +
+      '<div class="vizpick__head">' +
+      '<button type="button" class="vizpick__back" data-camera-retry aria-label="Geri">' +
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>' +
+      "</button>" +
+      "<div>" +
+      '<p class="vizpick__title">Şəkildə tapılanlar</p>' +
+      '<p class="vizpick__sub">Axtarmaq istədiyin məhsulu seç</p>' +
+      "</div></div>" +
+      '<div class="vizpick__list">' +
+      cards +
+      "</div>" +
+      (detections.length > 1
+        ? '<button type="button" class="vizpick__all" data-detect-all>Hamısına bax</button>'
         : "") +
-      '<div class="search-popup__loading">' +
-      '<span class="search-popup__spinner" aria-hidden="true"></span>' +
-      "Oxşar məhsullar axtarılır..." +
+      '<button type="button" class="vizpick__retake" data-camera-retry>' +
+      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/></svg>' +
+      " Yenidən çək" +
+      "</button>" +
       "</div></div>";
   }
 
@@ -410,6 +710,7 @@
     var foot = document.getElementById("search-popup-foot");
     if (!body) return;
     if (foot) foot.setAttribute("hidden", "");
+    setVizMode(true);
     meta = meta || {};
     pack = pack || {};
     var similar = pack.similar || [];
@@ -418,53 +719,35 @@
 
     if (!similar.length && !needed.length) {
       body.innerHTML =
-        '<div class="search-visual">' +
+        '<div class="vizpick vizpick--plain">' +
         (previewUrl
-          ? '<div class="search-visual__preview"><img src="' +
+          ? '<div class="vizpick__bg" style="background-image:url(\'' +
             escAttr(previewUrl) +
-            '" alt="" /></div>'
+            "')\"></div><div class=\"vizpick__shade\"></div>"
           : "") +
-        '<div class="search-popup__empty">' +
-        '<div class="search-popup__empty-icon" aria-hidden="true">📷</div>' +
+        '<div class="vizpick__content">' +
+        '<div class="search-popup__empty" style="color:#fff">' +
         "<p><strong>" +
         (detected
           ? "“" + esc(detected) + "” üçün kataloqda uyğun məhsul yoxdur"
           : "Uyğun məhsul tapılmadı") +
         "</strong></p>" +
-        '<p class="search-popup__empty-hint">' +
-        esc(
-          meta.hint ||
-            "Bu tip məhsul hələ kataloqda yoxdur. Mətnlə axtarın və ya başqa bucaqdan çəkin."
-        ) +
+        '<p class="search-popup__empty-hint" style="color:#cbd5e1">' +
+        esc(meta.hint || "Başqa bucaqdan çəkin və ya mətnlə axtarın.") +
         "</p>" +
-        (meta.query
-          ? '<button type="button" class="search-visual__retry" data-visual-text-search="' +
-            escAttr(meta.query) +
-            '">“' +
-            esc(meta.query) +
-            "” ilə axtar</button>"
+        (lastDetectState
+          ? '<button type="button" class="search-visual__retry" data-detect-back>Siyahıya qayıt</button>'
           : "") +
-        '<button type="button" class="search-visual__retry search-visual__retry--link" data-camera-retry>Yenidən çək</button>' +
-        "</div></div>";
+        '<button type="button" class="vizpick__retake" data-camera-retry>Yenidən çək</button>' +
+        "</div></div></div>";
       return;
     }
-
-    var queryHint = detected
-      ? '<p class="search-visual__query">Tanındı: <strong>' +
-        esc(detected) +
-        "</strong></p>"
-      : meta.query
-        ? '<p class="search-visual__query">Axtarış: <strong>' +
-          esc(meta.query) +
-          "</strong></p>"
-        : "";
 
     var similarHtml = similar.length
       ? '<section class="search-visual__section">' +
         '<h3 class="search-visual__section-title">Eyni / oxşar</h3>' +
         renderMatchList(similar, function (m) {
-          var kind = m.kind || "";
-          if (kind === "exact") {
+          if (m.kind === "exact") {
             return ' · <span class="search-visual__match">Eyni / çox yaxın</span>';
           }
           var pct = Math.round((m.score || 0) * 100);
@@ -486,23 +769,64 @@
       : "";
 
     body.innerHTML =
-      '<div class="search-visual">' +
-      '<div class="search-visual__top">' +
+      '<div class="vizresults">' +
+      '<div class="vizresults__head">' +
+      '<button type="button" class="vizpick__back" data-detect-back aria-label="Geri">' +
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"/></svg>' +
+      "</button>" +
+      "<div>" +
+      '<p class="vizresults__title">' +
+      esc(detected || "Uyğun məhsullar") +
+      "</p>" +
+      '<p class="vizresults__meta">' +
+      esc(String(similar.length + needed.length)) +
+      " nəticə</p>" +
+      "</div>" +
+      '<button type="button" class="vizpick__retake vizpick__retake--mini" data-camera-retry>Yenidən</button>' +
+      "</div>" +
       (previewUrl
-        ? '<div class="search-visual__preview search-visual__preview--sm"><img src="' +
+        ? '<div class="vizresults__preview"><img src="' +
           escAttr(previewUrl) +
           '" alt="" /></div>'
         : "") +
-      "<div>" +
-      '<p class="search-popup__results-meta">' +
-      esc(String(similar.length + needed.length)) +
-      " uyğun nəticə</p>" +
-      queryHint +
-      '<button type="button" class="search-visual__retry search-visual__retry--link" data-camera-retry>Yenidən çək</button>' +
-      "</div></div>" +
       similarHtml +
       neededHtml +
       "</div>";
+  }
+
+  function showDetectionByIndex(idx) {
+    if (!lastDetectState || !lastDetectState.detections) return;
+    var d = lastDetectState.detections[idx];
+    if (!d) return;
+    if (input) input.value = d.label || "";
+    renderVisualResults(d.thumb || lastDetectState.previewUrl, d.ranked, {
+      detected: d.label,
+      query: d.label,
+    });
+  }
+
+  function showAllDetections() {
+    if (!lastDetectState || !lastDetectState.detections) return;
+    var merged = { similar: [], needed: [] };
+    var seen = {};
+    lastDetectState.detections.forEach(function (d) {
+      (d.ranked.similar || []).forEach(function (m) {
+        var id = String(m.product.id);
+        if (seen[id]) return;
+        seen[id] = true;
+        merged.similar.push(m);
+      });
+      (d.ranked.needed || []).forEach(function (m) {
+        var id = String(m.product.id);
+        if (seen[id]) return;
+        seen[id] = true;
+        merged.needed.push(m);
+      });
+    });
+    renderVisualResults(lastDetectState.previewUrl, merged, {
+      detected: "Bütün tapılanlar",
+      query: "",
+    });
   }
 
   function azFold(s) {
@@ -945,14 +1269,15 @@
   function processVisualSearch(blob) {
     var token = ++visualToken;
     var previewUrl = "";
-
     var bodyEl = document.getElementById("search-popup-body");
+    setVizMode(true);
+
     if (bodyEl) {
       bodyEl.innerHTML =
-        '<div class="search-visual">' +
-        '<div class="search-popup__loading">' +
+        '<div class="vizpick vizpick--plain">' +
+        '<div class="vizpick__content" style="justify-content:center;align-items:center;gap:14px">' +
         '<span class="search-popup__spinner" aria-hidden="true"></span>' +
-        "Şəkil hazırlanır..." +
+        '<p style="color:#fff;margin:0;font-weight:700">Şəkil hazırlanır...</p>' +
         "</div></div>";
     }
 
@@ -964,41 +1289,45 @@
         previewUrl = imgPack.previewUrl;
         if (bodyEl) {
           bodyEl.innerHTML =
-            '<div class="search-visual">' +
-            '<div class="search-visual__preview"><img src="' +
+            '<div class="vizpick">' +
+            '<div class="vizpick__bg" style="background-image:url(\'' +
             escAttr(previewUrl) +
-            '" alt="" /></div>' +
-            '<div class="search-popup__loading">' +
+            "')\"></div>" +
+            '<div class="vizpick__shade"></div>' +
+            '<div class="vizpick__content" style="justify-content:center;align-items:center;gap:14px">' +
             '<span class="search-popup__spinner" aria-hidden="true"></span>' +
-            "AI məhsulu tanıyır..." +
+            '<p style="color:#fff;margin:0;font-weight:700">Şəkildəki məhsullar tanınır...</p>' +
             "</div></div>";
         }
-
-        return analyzeImageWithGemini(imgPack.base64, imgPack.mime, products).then(
-          function (analysis) {
-            return { analysis: analysis, products: products };
-          }
-        );
+        return analyzeImageWithGemini(
+          imgPack.base64,
+          imgPack.mime,
+          products
+        ).then(function (analysis) {
+          return { analysis: analysis, products: products };
+        });
       })
       .then(function (pack) {
         if (!pack || token !== visualToken || !isOpen) return;
-        var ranked = rankProductsByVision(pack.products, pack.analysis);
-        var detected =
-          pack.analysis.product_name ||
-          pack.analysis.type ||
-          (pack.analysis.keywords && pack.analysis.keywords[0]) ||
-          "";
-        var q =
-          (pack.analysis.search_queries && pack.analysis.search_queries[0]) ||
-          detected ||
-          "";
-        if (q && input) input.value = q;
-        renderVisualResults(previewUrl, ranked, {
-          query: q,
-          detected: detected,
-          hint: ranked.similar.length
-            ? ""
-            : "Şəkildəki məhsul tipi kataloqda tapılmadı.",
+        return buildDetectionCards(
+          pack.analysis,
+          pack.products,
+          previewUrl
+        ).then(function (detections) {
+          if (token !== visualToken || !isOpen) return;
+          if (detections.length === 1 && detections[0].count > 0) {
+            lastDetectState = {
+              previewUrl: previewUrl,
+              detections: detections,
+            };
+            if (input) input.value = detections[0].label || "";
+            renderVisualResults(previewUrl, detections[0].ranked, {
+              detected: detections[0].label,
+              query: detections[0].label,
+            });
+            return;
+          }
+          renderDetectPick(previewUrl, detections);
         });
       })
       .catch(function (err) {
@@ -1009,40 +1338,26 @@
 
         if (msg === "NO_GEMINI_KEY") {
           body.innerHTML =
-            '<div class="search-visual">' +
-            (previewUrl
-              ? '<div class="search-visual__preview"><img src="' +
-                escAttr(previewUrl) +
-                '" alt="" /></div>'
-              : "") +
-            '<div class="search-popup__empty">' +
-            '<div class="search-popup__empty-icon" aria-hidden="true">🔑</div>' +
+            '<div class="vizpick vizpick--plain"><div class="vizpick__content">' +
+            '<div class="search-popup__empty" style="color:#fff">' +
             "<p><strong>AI axtarış üçün Google açarı lazımdır</strong></p>" +
-            '<p class="search-popup__empty-hint">' +
-            '1) <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — açar götürün<br/>' +
-            "2) Layihə kökündə <code>.env</code> faylına yazın:<br/><code>GEMINI_API_KEY=AIza...</code><br/>" +
-            "3) XAMPP Apache-ni yenidən başladın / səhifəni yeniləyin." +
+            '<p class="search-popup__empty-hint" style="color:#cbd5e1">' +
+            "Layihə kökündə <code>.env</code> faylına yazın:<br/><code>GEMINI_API_KEY=AIza...</code>" +
             "</p>" +
-            '<button type="button" class="search-visual__retry" data-camera-retry>Yenidən çək</button>' +
-            "</div></div>";
+            '<button type="button" class="vizpick__retake" data-camera-retry>Yenidən çək</button>' +
+            "</div></div></div>";
           return;
         }
 
-        // Əvvəlki kimi eyni məhsulları göstərmirik — xətanı göstəririk
         body.innerHTML =
-          '<div class="search-visual">' +
-          (previewUrl
-            ? '<div class="search-visual__preview"><img src="' +
-              escAttr(previewUrl) +
-              '" alt="" /></div>'
-            : "") +
-          '<div class="search-popup__empty">' +
+          '<div class="vizpick vizpick--plain"><div class="vizpick__content">' +
+          '<div class="search-popup__empty" style="color:#fff">' +
           "<p><strong>Şəkil tanına bilmədi</strong></p>" +
-          '<p class="search-popup__empty-hint">' +
+          '<p class="search-popup__empty-hint" style="color:#cbd5e1">' +
           esc(msg || "Yenidən cəhd edin.") +
           "</p>" +
-          '<button type="button" class="search-visual__retry" data-camera-retry>Yenidən çək</button>' +
-          "</div></div>";
+          '<button type="button" class="vizpick__retake" data-camera-retry>Yenidən çək</button>' +
+          "</div></div></div>";
       });
   }
 
@@ -1082,7 +1397,7 @@
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
       "</button>" +
       "</div>" +
-      '<input type="file" id="search-popup-file" class="search-popup__file" accept="image/*" capture="environment" hidden />' +
+      '<input type="file" id="search-popup-file" class="search-popup__file" accept="image/*" hidden />' +
       '<p class="search-popup__auth-hint" id="search-popup-auth-hint" hidden>' +
       'Daha dəqiq nəticələr üçün <a href="' +
       escAttr(getRoot() + "pages/login/") +
@@ -1108,6 +1423,7 @@
         input.value = "";
         clearBtn.setAttribute("hidden", "");
         stopCamera();
+        setVizMode(false);
         renderIdleState();
         input.focus();
       });
@@ -1164,6 +1480,7 @@
       if (e.target.closest("[data-camera-back]")) {
         e.preventDefault();
         stopCamera();
+        setVizMode(false);
         renderIdleState();
         if (input) input.focus();
         return;
@@ -1176,11 +1493,40 @@
         return;
       }
 
+      var detectCard = e.target.closest("[data-detect-idx]");
+      if (detectCard) {
+        e.preventDefault();
+        showDetectionByIndex(
+          Number(detectCard.getAttribute("data-detect-idx"))
+        );
+        return;
+      }
+
+      if (e.target.closest("[data-detect-all]")) {
+        e.preventDefault();
+        showAllDetections();
+        return;
+      }
+
+      if (e.target.closest("[data-detect-back]")) {
+        e.preventDefault();
+        if (lastDetectState && lastDetectState.detections) {
+          renderDetectPick(
+            lastDetectState.previewUrl,
+            lastDetectState.detections
+          );
+        } else {
+          openCameraSearch();
+        }
+        return;
+      }
+
       var textSearchBtn = e.target.closest("[data-visual-text-search]");
       if (textSearchBtn) {
         e.preventDefault();
         var tq = textSearchBtn.getAttribute("data-visual-text-search") || "";
         if (tq) {
+          setVizMode(false);
           if (input) input.value = tq;
           renderResults(tq);
         }
@@ -1235,6 +1581,7 @@
     var foot = document.getElementById("search-popup-foot");
     if (!body) return;
     if (foot) foot.setAttribute("hidden", "");
+    setVizMode(false);
 
     var recent = readRecent();
     var recentHtml = "";
@@ -1414,6 +1761,7 @@
     if (!overlay) return;
     isOpen = false;
     stopCamera();
+    setVizMode(false);
     visualToken += 1;
     overlay.setAttribute("hidden", "");
     document.body.classList.remove("search-popup-open");

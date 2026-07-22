@@ -260,15 +260,6 @@ body.dark-mode .search-popup__camera:hover {
     background: rgba(255, 145, 0, 0.22);
 }
 
-body.dark-mode .search-camera__head strong {
-    color: #f1f5f9;
-}
-
-body.dark-mode .search-camera__gallery {
-    background: #1e293b;
-    border-color: #334155;
-    color: #e2e8f0;
-}
 
 body.dark-mode .search-popup__clear {
     background: #334155;

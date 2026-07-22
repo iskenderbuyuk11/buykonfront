@@ -96,7 +96,7 @@ function call_gemini(string $apiKey, string $model, string $prompt, string $base
 
     $gen = [
         'temperature' => 0.1,
-        'maxOutputTokens' => 1024,
+        'maxOutputTokens' => 1600,
     ];
     if ($jsonMime) {
         $gen['responseMimeType'] = 'application/json';
@@ -211,25 +211,34 @@ if (!preg_match('#^image/(jpeg|jpg|png|webp)$#i', $mime)) {
 
 $prompt =
     "You help Buykon (Azerbaijani marketplace) visual search.\n" .
-    "STEP 1: Identify the MAIN product in the photo (name, brand, type).\n" .
-    "STEP 2: From OUR CATALOG, select ONLY products that are the SAME or TRULY SIMILAR type.\n" .
-    "STEP 3: Also select catalog products that are typically NEEDED FOR / USED WITH that product (parts, accessories, complements).\n" .
-    "CRITICAL RULES:\n" .
-    "- If catalog has nothing similar, return matched_ids: [] and catalog_match: false. DO NOT invent unrelated matches.\n" .
-    "- Never pick bathroom faucets for a phone, clothing, food, etc.\n" .
-    "- Prefer exact model/brand when visible.\n" .
+    "Find ALL distinct shoppable products visible in the photo (not background furniture).\n" .
+    "For EACH detected product, estimate a bounding box as fractions of the image (0..1): [x, y, width, height] from top-left.\n" .
+    "Match each detection to OUR CATALOG ids when truly similar. Also list complementary needed_ids.\n" .
+    "CRITICAL: Do not force unrelated catalog matches. If none fit, matched_ids=[].\n" .
     "Return ONLY valid JSON:\n" .
     "{\n" .
-    "  \"product_name\": \"what is in the photo\",\n" .
+    "  \"detections\": [\n" .
+    "    {\n" .
+    "      \"label\": \"short AZ/EN name e.g. Powerbank\",\n" .
+    "      \"type\": \"powerbank|kran|dus|charger|smartphone|...\",\n" .
+    "      \"brand\": \"\",\n" .
+    "      \"keywords\": [\"az\",\"en\"],\n" .
+    "      \"bbox\": [0.1, 0.2, 0.3, 0.4],\n" .
+    "      \"matched_ids\": [catalog ids],\n" .
+    "      \"needed_ids\": [complementary catalog ids]\n" .
+    "    }\n" .
+    "  ],\n" .
+    "  \"product_name\": \"primary product\",\n" .
     "  \"brand\": \"\",\n" .
     "  \"category\": \"ev-yasam|elektronika|geyim|kosmetika|aksesuar|usaq|idman|supermarket|other\",\n" .
-    "  \"type\": \"short type e.g. kran, dus, elbow, smartphone\",\n" .
-    "  \"keywords\": [\"specific az+en words\"],\n" .
-    "  \"search_queries\": [\"2-3 short queries\"],\n" .
+    "  \"type\": \"primary type\",\n" .
+    "  \"keywords\": [\"...\"],\n" .
+    "  \"search_queries\": [\"...\"],\n" .
     "  \"catalog_match\": true,\n" .
-    "  \"matched_ids\": [same/similar catalog ids, best first],\n" .
-    "  \"needed_ids\": [complementary catalog ids for use with the photographed item]\n" .
+    "  \"matched_ids\": [],\n" .
+    "  \"needed_ids\": []\n" .
     "}\n" .
+    "Put 1-6 detections, most prominent first. Primary fields should mirror detections[0].\n" .
     "CATALOG (id | name | category | brand):\n" .
     ($catalog !== '' ? $catalog : '(empty)');
 
