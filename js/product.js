@@ -1840,6 +1840,9 @@
     initCarouselNav();
     initMobileTabs();
     renderProductCarousels(product, allProducts);
+    if (typeof window.initProductTryOn === "function") {
+      window.initProductTryOn(product);
+    }
   }
 
   function showMissing() {
@@ -1849,7 +1852,7 @@
     if (now) now.textContent = "—";
     var panel = $("pd-specs");
     if (panel) panel.innerHTML = "<p class='pd-mini'>Link düzgün deyil və ya məhsul mövcud deyil.</p>";
-    ["pd-qty-wrap", "pd-actions", "pd-seller", "pd-availability", "pd-meta-row"].forEach(function (cls) {
+    ["pd-qty-wrap", "pd-actions", "pd-seller", "pd-availability", "pd-meta-row", "pd-tryon"].forEach(function (cls) {
       var el = document.getElementById(cls) || document.querySelector("." + cls);
       if (el) el.style.display = "none";
     });

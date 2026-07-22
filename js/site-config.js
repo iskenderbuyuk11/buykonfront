@@ -128,6 +128,16 @@
     return root + "api/kyc-session.php";
   }
 
+  function resolveTryOnUrl() {
+    var root = "";
+    if (global.document && global.document.body) {
+      var attr = global.document.body.getAttribute("data-root");
+      if (attr != null) root = String(attr);
+    }
+    if (root && root.slice(-1) !== "/" && root !== "") root += "/";
+    return root + "api/try-on.php";
+  }
+
   global.BizdevarSiteConfig = {
     PROD_API: PROD_API,
     LOCAL_API: LOCAL_API,
@@ -140,6 +150,7 @@
     productPageUrl: productPageUrl,
     resolveVisualSearchUrl: resolveVisualSearchUrl,
     resolveKycSessionUrl: resolveKycSessionUrl,
+    resolveTryOnUrl: resolveTryOnUrl,
   };
 
   global.BIZDEVAR_API_BASE = resolveApiBase();
