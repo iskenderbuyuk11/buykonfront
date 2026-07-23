@@ -308,7 +308,7 @@
       '<nav class="mobile-menu__nav">' +
       item(root + "index.html#catalog", "grid", "Məhsullar", "Bütün kataloq") +
       item(root + "index.html#kateqoriyalar", "grid", "Kateqoriyalar", "Seçilmiş bölmələr") +
-      item(root + "pages/sat/", "store", "Bizdə Sat", "Mağazanı aç") +
+      item(root + "buykonbusiness/register.html", "store", "Bizdə Sat", "Mağazanı aç") +
       "</nav></div>" +
       '<div class="mobile-menu__section">' +
       '<h4 class="mobile-menu__section-title">Dəstək &amp; məlumat</h4>' +

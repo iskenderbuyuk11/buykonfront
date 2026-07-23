@@ -4,110 +4,286 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="../js/favicon.js"></script>
-
-    <title>Mağaza qeydiyyatı | Buykon Business</title>
+    <title>Satıcı Ol | Buykon</title>
     <meta name="bizdevar-api" content="https://api.buykon.com/api" />
-    <script src="../js/site-config.js"></script>
+    <meta name="description" content="Buykon marketplace-də satıcı olun — peşəkar qeydiyyat və mağaza açılışı." />
+    <script src="../js/site-config.js?v=5"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <link rel="stylesheet" href="styles.css?v=2" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="register-wizard.css?v=1" />
     <script src="../sellerpanel/seller-api.js"></script>
   </head>
-  <body class="register-page">
-    <div class="register-shell">
-      <div class="register-top">
-        <a class="brand" href="index.html">
-          <span class="brand__mark"><i class="fa-solid fa-briefcase"></i></span>
-          <span>Buykon Business</span>
+  <body class="sw-body" data-root="../">
+    <div class="sw" id="sellerWizard">
+      <aside class="sw-aside" aria-label="İrəliləyiş">
+        <a class="sw-brand" href="index.html">
+          <span class="sw-brand__mark" aria-hidden="true">B</span>
+          <span class="sw-brand__text">
+            <strong>Buykon</strong>
+            <small>Satıcı Ol</small>
+          </span>
         </a>
-        <a class="btn btn--ghost" href="../sellerpanel/login.html">Artıq hesabım var</a>
-      </div>
 
-      <div class="register-card" id="stepType">
-        <h1>Mağaza qeydiyyatı</h1>
-        <p>Satıcı növünü seçin və məlumatlarınızı daxil edin. Təsdiqdən sonra satıcı panelinə daxil ola bilərsiniz.</p>
-        <div class="type-grid">
-          <button type="button" class="type-card" data-type="voensiz">
-            <i class="fa-solid fa-user"></i>
-            <strong>VOEN-siz satıcı</strong>
-            <span>Fərdi və kiçik online satış üçün</span>
-          </button>
-          <button type="button" class="type-card" data-type="voenli">
-            <i class="fa-solid fa-building"></i>
-            <strong>VOEN-li satıcı</strong>
-            <span>Rəsmi qeydiyyatlı biznes və şirkətlər üçün</span>
-          </button>
+        <div class="sw-aside__hero">
+          <p class="sw-aside__kicker">Marketplace</p>
+          <h1 class="sw-aside__title">Satışa peşəkar başlanğıc</h1>
+          <p class="sw-aside__lead">Hesabınızı qoruyuruq — OTP, KYC və admin təsdiqi ilə.</p>
         </div>
-      </div>
 
-      <div class="register-card" id="stepForm" hidden>
-        <h1>Hesab məlumatları</h1>
-        <p id="typeLabel">VOEN-siz qeydiyyat</p>
-        <form id="regForm">
-          <div class="form-grid">
-            <div class="field field--full">
-              <label for="email">Email *</label>
-              <input id="email" type="email" required placeholder="satici@example.com" autocomplete="email" />
-            </div>
-            <div class="field">
-              <label for="password">Şifrə *</label>
-              <input id="password" type="password" required minlength="6" autocomplete="new-password" />
-            </div>
-            <div class="field">
-              <label for="password2">Şifrə təkrar *</label>
-              <input id="password2" type="password" required minlength="6" autocomplete="new-password" />
-            </div>
-            <div class="field">
-              <label for="phone">Telefon</label>
-              <input id="phone" type="tel" placeholder="+994 50 000 00 00" />
-            </div>
-            <div class="field">
-              <label for="ownerName">Sahib adı</label>
-              <input id="ownerName" type="text" placeholder="Ad" />
-            </div>
-            <div class="field">
-              <label for="ownerSurname">Sahib soyadı</label>
-              <input id="ownerSurname" type="text" placeholder="Soyad" />
-            </div>
-            <div class="field field--full">
-              <label for="storeName">Mağaza adı <small style="color:var(--soft)">(boş buraxsanız avtomatik verilir)</small></label>
-              <input id="storeName" type="text" placeholder="Məs: TechShop Baku" />
-            </div>
-            <div class="field" id="voenField" hidden>
-              <label for="voen">VÖEN *</label>
-              <input id="voen" type="text" inputmode="numeric" placeholder="1234567890" />
-            </div>
-            <div class="field">
-              <label for="category">Kateqoriya</label>
-              <select id="category">
-                <option value="Elektronika">Elektronika</option>
-                <option value="Geyim">Geyim</option>
-                <option value="Ev və yaşam">Ev və yaşam</option>
-                <option value="Kosmetika">Kosmetika</option>
-                <option value="Digər">Digər</option>
-              </select>
-            </div>
-          </div>
-          <p class="form-error" id="formError" hidden></p>
-          <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
-            <button class="btn btn--ghost" type="button" id="backBtn">Geri</button>
-            <button class="btn btn--primary" type="submit" id="submitBtn"><i class="fa-solid fa-paper-plane"></i> Qeydiyyatı tamamla</button>
-          </div>
-        </form>
-      </div>
+        <ol class="sw-steps" id="swStepList"></ol>
 
-      <div class="register-card form-success" id="stepSuccess" hidden>
-        <i class="fa-solid fa-circle-check"></i>
-        <h1>Qeydiyyat qəbul edildi</h1>
-        <p>Mağazanız admin təsdiqi üçün göndərildi. Təsdiq olunduqdan sonra email ünvanınıza mağaza kodunuz göndəriləcək.</p>
-        <div class="store-code-box" id="storeCodeBox">
-          <p><i class="fa-solid fa-envelope"></i> Təsdiq emaili gəldikdən sonra aşağıdakı linkdən giriş edin.</p>
+        <div class="sw-aside__foot">
+          <a href="../sellerpanel/login.html">Artıq hesabım var →</a>
         </div>
-        <a class="btn btn--primary" href="../sellerpanel/login.html" style="margin-top:20px" id="goLoginBtn">Satıcı girişinə keç</a>
-      </div>
+      </aside>
+
+      <main class="sw-main">
+        <header class="sw-top">
+          <div class="sw-progress" aria-hidden="true">
+            <div class="sw-progress__bar" id="swProgressBar"></div>
+          </div>
+          <div class="sw-top__row">
+            <p class="sw-top__meta" id="swStepMeta">Addım 1 / 10</p>
+            <a class="sw-top__login" href="../sellerpanel/login.html">Giriş</a>
+          </div>
+        </header>
+
+        <div class="sw-panel-wrap">
+          <p class="sw-alert" id="swAlert" hidden role="alert"></p>
+
+          <!-- 1. Hesab növü -->
+          <section class="sw-panel is-active" data-step="1" aria-labelledby="t1">
+            <h2 id="t1" class="sw-title">Hesab növü</h2>
+            <p class="sw-sub">Satış formalı seçin — növbəti formlar buna görə dəyişəcək.</p>
+            <div class="sw-type-grid" role="radiogroup" aria-label="Hesab növü">
+              <button type="button" class="sw-type" data-account="fiziki" aria-pressed="false">
+                <span class="sw-type__icon" aria-hidden="true">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </span>
+                <strong>Fiziki şəxs</strong>
+                <span>VÖEN tələb olunmur</span>
+              </button>
+              <button type="button" class="sw-type" data-account="ferdi" aria-pressed="false">
+                <span class="sw-type__icon" aria-hidden="true">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </span>
+                <strong>Fərdi sahibkar</strong>
+                <span>VÖEN mütləqdir</span>
+              </button>
+              <button type="button" class="sw-type" data-account="mmc" aria-pressed="false">
+                <span class="sw-type__icon" aria-hidden="true">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/></svg>
+                </span>
+                <strong>MMC / Şirkət</strong>
+                <span>Şirkət məlumatları + VÖEN</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- 2. Şəxsi məlumatlar -->
+          <section class="sw-panel" data-step="2" hidden aria-labelledby="t2">
+            <h2 id="t2" class="sw-title">Şəxsi məlumatlar</h2>
+            <p class="sw-sub">Hesabınızın təhlükəsizliyi üçün düzgün məlumat daxil edin.</p>
+            <div class="sw-grid">
+              <label class="sw-field"><span>Ad *</span><input id="f_name" name="name" autocomplete="given-name" required /></label>
+              <label class="sw-field"><span>Soyad *</span><input id="f_surname" name="surname" autocomplete="family-name" required /></label>
+              <label class="sw-field"><span>Ata adı *</span><input id="f_patronymic" name="patronymic" required /></label>
+              <label class="sw-field"><span>Doğum tarixi *</span><input id="f_birth" type="date" name="birth" required /></label>
+              <label class="sw-field"><span>Telefon *</span><input id="f_phone" type="tel" name="phone" placeholder="+994 50 000 00 00" autocomplete="tel" required /></label>
+              <label class="sw-field"><span>E-poçt *</span><input id="f_email" type="email" name="email" placeholder="satici@mail.com" autocomplete="email" required /></label>
+              <label class="sw-field"><span>Şifrə *</span><input id="f_pass" type="password" name="password" minlength="8" autocomplete="new-password" required /></label>
+              <label class="sw-field"><span>Şifrənin təkrarı *</span><input id="f_pass2" type="password" name="password2" minlength="8" autocomplete="new-password" required /></label>
+            </div>
+            <label class="sw-check sw-check--captcha">
+              <input type="checkbox" id="f_captcha" />
+              <span>Robot deyiləm — qeydiyyatı insan kimi tamamlayıram</span>
+            </label>
+            <input type="text" id="f_honeypot" name="website" tabindex="-1" autocomplete="off" class="sw-honeypot" aria-hidden="true" />
+          </section>
+
+          <!-- 3. Telefon OTP -->
+          <section class="sw-panel" data-step="3" hidden aria-labelledby="t3">
+            <h2 id="t3" class="sw-title">Telefon təsdiqi</h2>
+            <p class="sw-sub">6 rəqəmli kod <strong id="otpPhoneMask"></strong> nömrəsinə göndərildi.</p>
+            <div class="sw-otp" id="otpPhone" data-channel="phone"></div>
+            <div class="sw-otp-actions">
+              <button type="button" class="sw-linkbtn" id="resendPhone" disabled>Yenidən göndər <span id="phoneTimer"></span></button>
+            </div>
+          </section>
+
+          <!-- 4. Email OTP -->
+          <section class="sw-panel" data-step="4" hidden aria-labelledby="t4">
+            <h2 id="t4" class="sw-title">E-poçt təsdiqi</h2>
+            <p class="sw-sub">6 rəqəmli kod <strong id="otpEmailMask"></strong> ünvanına göndərildi.</p>
+            <div class="sw-otp" id="otpEmail" data-channel="email"></div>
+            <div class="sw-otp-actions">
+              <button type="button" class="sw-linkbtn" id="resendEmail" disabled>Yenidən göndər <span id="emailTimer"></span></button>
+            </div>
+          </section>
+
+          <!-- 5. KYC -->
+          <section class="sw-panel" data-step="5" hidden aria-labelledby="t5">
+            <h2 id="t5" class="sw-title">Şəxsiyyətin təsdiqi</h2>
+            <p class="sw-sub">Vəsiqə və selfie admin tərəfindən yoxlanılacaq. Aydın, oxunaqlı şəkillər yükləyin.</p>
+            <div class="sw-uploads">
+              <label class="sw-upload">
+                <input type="file" id="kycFront" accept="image/jpeg,image/png,image/webp" hidden />
+                <span class="sw-upload__preview" id="kycFrontPrev"></span>
+                <span class="sw-upload__label">Şəxsiyyət — ön</span>
+              </label>
+              <label class="sw-upload">
+                <input type="file" id="kycBack" accept="image/jpeg,image/png,image/webp" hidden />
+                <span class="sw-upload__preview" id="kycBackPrev"></span>
+                <span class="sw-upload__label">Şəxsiyyət — arxa</span>
+              </label>
+              <label class="sw-upload">
+                <input type="file" id="kycSelfie" accept="image/jpeg,image/png,image/webp" hidden />
+                <span class="sw-upload__preview" id="kycSelfiePrev"></span>
+                <span class="sw-upload__label">Selfie</span>
+              </label>
+            </div>
+            <p class="sw-hint">JPG, PNG və ya WEBP — hər fayl max 5 MB.</p>
+          </section>
+
+          <!-- 6. Vergi / şirkət -->
+          <section class="sw-panel" data-step="6" hidden aria-labelledby="t6">
+            <h2 id="t6" class="sw-title">Vergi və şirkət</h2>
+            <div id="taxFiziki" class="sw-tax-skip" hidden>
+              <div class="sw-badge-ok">Fiziki şəxs</div>
+              <p>Bu hesab növü üçün <strong>VÖEN tələb olunmur</strong>. Davam edə bilərsiniz.</p>
+            </div>
+            <div id="taxFerdi" class="sw-grid" hidden>
+              <label class="sw-field sw-field--full"><span>VÖEN *</span><input id="f_voen" inputmode="numeric" maxlength="10" placeholder="1234567890" /></label>
+            </div>
+            <div id="taxMmc" class="sw-grid" hidden>
+              <label class="sw-field sw-field--full"><span>Şirkətin adı *</span><input id="f_company" placeholder="MMC adı" /></label>
+              <label class="sw-field"><span>VÖEN *</span><input id="f_voen_mmc" inputmode="numeric" maxlength="10" placeholder="1234567890" /></label>
+              <label class="sw-field"><span>Şirkət e-poçtu *</span><input id="f_company_email" type="email" placeholder="info@company.az" /></label>
+              <label class="sw-field sw-field--full"><span>Şirkət telefonu *</span><input id="f_company_phone" type="tel" placeholder="+994 12 000 00 00" /></label>
+            </div>
+          </section>
+
+          <!-- 7. Mağaza -->
+          <section class="sw-panel" data-step="7" hidden aria-labelledby="t7">
+            <h2 id="t7" class="sw-title">Mağaza məlumatları</h2>
+            <p class="sw-sub">Alıcıların görəcəyi mağaza profilini qurun.</p>
+            <div class="sw-grid">
+              <label class="sw-field sw-field--full"><span>Mağaza adı *</span><input id="f_store" required placeholder="Məs: Aura Fashion" /></label>
+              <label class="sw-field sw-field--full"><span>Mağaza haqqında *</span><textarea id="f_about" rows="3" required placeholder="Qısa təsvir..."></textarea></label>
+              <label class="sw-field"><span>Şəhər *</span><input id="f_city" required placeholder="Bakı" /></label>
+              <label class="sw-field"><span>İş saatları *</span><input id="f_hours" required placeholder="09:00 – 21:00" /></label>
+              <label class="sw-field sw-field--full"><span>Ünvan *</span><input id="f_address" required placeholder="Küçə, bina" /></label>
+            </div>
+            <div class="sw-media-row">
+              <label class="sw-upload sw-upload--sm">
+                <input type="file" id="storeLogo" accept="image/*" hidden />
+                <span class="sw-upload__preview" id="logoPrev"></span>
+                <span class="sw-upload__label">Logo *</span>
+              </label>
+              <label class="sw-upload sw-upload--banner">
+                <input type="file" id="storeBanner" accept="image/*" hidden />
+                <span class="sw-upload__preview" id="bannerPrev"></span>
+                <span class="sw-upload__label">Banner *</span>
+              </label>
+            </div>
+          </section>
+
+          <!-- 8. Müqavilə -->
+          <section class="sw-panel" data-step="8" hidden aria-labelledby="t8">
+            <h2 id="t8" class="sw-title">Satıcı müqaviləsi</h2>
+            <p class="sw-sub">Müqaviləni sonuna qədər oxuyun — sonra qəbul aktivləşəcək.</p>
+            <div class="sw-contract" id="swContract" tabindex="0">
+              <article class="sw-contract__inner">
+                <h3>BUYKON SATICI MÜQAVİLƏSİ</h3>
+                <h4>1. Ümumi müddəalar</h4>
+                <p>Bu müqavilə Buykon Marketplace ilə Satıcı arasında bağlanır və platformada məhsul satışının hüquqi əsaslarını müəyyən edir.</p>
+                <h4>2. Satıcının öhdəlikləri</h4>
+                <p>Satıcı:</p>
+                <ul>
+                  <li>yalnız qanuni məhsullar sata bilər;</li>
+                  <li>saxta məhsul yerləşdirə bilməz;</li>
+                  <li>müəllif hüquqlarını poza bilməz;</li>
+                  <li>qadağan olunmuş məhsullar sata bilməz;</li>
+                  <li>məhsullar barədə düzgün məlumat verməlidir;</li>
+                  <li>düzgün qiymət göstərməlidir;</li>
+                  <li>müştərini aldatmamalıdır;</li>
+                  <li>sifarişləri vaxtında emal etməlidir;</li>
+                  <li>məhsulu düzgün qablaşdırmalıdır;</li>
+                  <li>məhsulu vaxtında göndərməlidir;</li>
+                  <li>qanunvericiliyə riayət etməlidir.</li>
+                </ul>
+                <h4>3. Qadağan olunan məhsullar</h4>
+                <p>Aşağıdakı məhsulların satışı qadağandır:</p>
+                <ul>
+                  <li>Silah</li>
+                  <li>Narkotik vasitələr</li>
+                  <li>Saxta məhsullar</li>
+                  <li>Pirat proqram təminatı</li>
+                  <li>Oğurlanmış məhsullar</li>
+                  <li>İnsan sağlamlığı üçün təhlükəli məhsullar</li>
+                  <li>Azərbaycan qanunvericiliyinə zidd olan bütün məhsullar</li>
+                </ul>
+                <h4>4. Məhsul məsuliyyəti</h4>
+                <p>Satıcı platformaya yerləşdirdiyi bütün məhsullara görə tam hüquqi məsuliyyət daşıyır.</p>
+                <h4>5. Komissiya</h4>
+                <p>Buykon satışlardan komissiya tuta bilər. Komissiya dərəcəsi platforma tərəfindən müəyyən edilir və dəyişdirilə bilər.</p>
+                <h4>6. Ödənişlər</h4>
+                <p>Ödənişlər yalnız Buykon-un inteqrasiya etdiyi rəsmi ödəniş tərəfdaşları vasitəsilə həyata keçiriləcək.</p>
+                <h4>7. Hesabın dayandırılması</h4>
+                <p>Buykon aşağıdakı hallarda satıcı hesabını xəbərdarlıq etmədən məhdudlaşdıra və ya bağlaya bilər: saxta məhsul satışı; dələduzluq; qanunsuz fəaliyyət; saxta sifarişlər; platformanın təhlükəsizliyinə zərər vurmaq; digər istifadəçiləri aldatmaq; müqavilə şərtlərinin pozulması.</p>
+                <h4>8. Məsuliyyət</h4>
+                <p>Buykon satıcının təqdim etdiyi yanlış məlumatlara və ya satdığı məhsullara görə məsuliyyət daşımır.</p>
+                <h4>9. Məxfilik</h4>
+                <p>Satıcı platformada əldə etdiyi müştəri məlumatlarını yalnız sifarişin icrası məqsədilə istifadə edə bilər və üçüncü şəxslərlə paylaşa bilməz.</p>
+                <h4>10. Dəyişikliklər</h4>
+                <p>Buykon bu müqaviləyə dəyişiklik etmək hüququnu özündə saxlayır. Yenilənmiş şərtlər platformada dərc edildiyi andan qüvvəyə minir.</p>
+                <h4>11. Mübahisələrin həlli</h4>
+                <p>Mübahisələr Azərbaycan Respublikasının qüvvədə olan qanunvericiliyinə uyğun həll edilir.</p>
+                <h4>12. Qəbul</h4>
+                <p>«Qəbul edirəm» düyməsini sıxmaqla satıcı bu müqavilənin bütün şərtlərini oxuduğunu, başa düşdüyünü və tam şəkildə qəbul etdiyini təsdiq edir.</p>
+                <p class="sw-contract__end" id="contractEnd">— Müqavilənin sonu —</p>
+              </article>
+            </div>
+            <label class="sw-check" id="contractCheckWrap">
+              <input type="checkbox" id="f_contract" disabled />
+              <span>Satıcı Müqaviləsini oxudum və qəbul edirəm.</span>
+            </label>
+          </section>
+
+          <!-- 9. Bank -->
+          <section class="sw-panel" data-step="9" hidden aria-labelledby="t9">
+            <h2 id="t9" class="sw-title">Bank hesabı</h2>
+            <p class="sw-sub">Buykon kart və ya IBAN toplamır. Ödənişlər rəsmi tərəfdaşlar vasitəsilə aparılacaq.</p>
+            <div class="sw-bank">
+              <div class="sw-bank__icon" aria-hidden="true">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+              </div>
+              <h3>Bank hesabınızı əlaqələndirin</h3>
+              <p>Stripe Connect, Adyen, Payoneer və digər inteqrasiyalar üçün yer.</p>
+              <button type="button" class="sw-btn sw-btn--bank" id="bankLinkBtn">Bank hesabını əlaqələndir</button>
+              <p class="sw-hint" id="bankHint">Hazırda yer tutucu — tezliklə aktiv olacaq. Davam edə bilərsiniz.</p>
+            </div>
+          </section>
+
+          <!-- 10. Success -->
+          <section class="sw-panel" data-step="10" hidden aria-labelledby="t10">
+            <div class="sw-success">
+              <div class="sw-success__ring" aria-hidden="true"></div>
+              <h2 id="t10" class="sw-title">Müraciət göndərildi</h2>
+              <p class="sw-status-pill">Status: Gözlənilir</p>
+              <p class="sw-sub">Admin sənədlərinizi yoxlayıb təsdiq və ya rədd edəcək. Təsdiqdən sonra satıcı paneli aktiv olacaq.</p>
+              <a class="sw-btn sw-btn--primary" href="../sellerpanel/login.html">Satıcı girişinə keç</a>
+            </div>
+          </section>
+
+          <footer class="sw-nav" id="swNav">
+            <button type="button" class="sw-btn sw-btn--ghost" id="swBack" hidden>Geri</button>
+            <button type="button" class="sw-btn sw-btn--primary" id="swNext">Davam et</button>
+          </footer>
+        </div>
+      </main>
     </div>
-    <script src="register.js"></script>
+    <script src="register.js?v=3"></script>
   </body>
 </html>
