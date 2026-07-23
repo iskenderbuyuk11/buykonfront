@@ -21,14 +21,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     buykon_json_fail(405, 'Yalnız POST');
 }
 
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start([
-        'cookie_httponly' => true,
-        'cookie_samesite' => 'Lax',
-        'use_strict_mode' => true,
-    ]);
-}
-
 function so_clean(string $v, int $max = 500): string
 {
     $v = trim(strip_tags($v));
@@ -52,11 +44,8 @@ if (!preg_match('/^\+994\d{9}$/', $phone)) {
     buykon_json_fail(400, 'Telefon yanlışdır');
 }
 
-$otpOk = $_SESSION['seller_otp_ok'] ?? [];
-$emailVerifiedFlag = (($_POST['email_verified'] ?? '') === '1');
-$sessionOk = is_array($otpOk) && !empty($otpOk['email|' . $email]);
-if (!$sessionOk && !$emailVerifiedFlag) {
-    // Java API-də verify olunubsa frontend email_verified=1 göndərir
+// E-poçt OTP Java API-də (/api/auth/email/*) yoxlanır; frontend email_verified=1 göndərir
+if (($_POST['email_verified'] ?? '') !== '1') {
     buykon_json_fail(403, 'E-poçt təsdiqi tələb olunur');
 }
 

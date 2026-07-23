@@ -37,12 +37,12 @@
     return "../";
   }
 
-  function otpUrl() {
-    return root() + "api/seller-otp.php";
-  }
-
   function onboardUrl() {
     return root() + "api/seller-onboard.php";
+  }
+
+  function sellerApi() {
+    return window.BuykonSellerAPI || window.BizdeSellerAPI || null;
   }
 
   function showAlert(msg) {
@@ -213,27 +213,13 @@
   }
 
   function sendEmailOtp() {
+    var api = sellerApi();
+    if (!api || typeof api.requestRegisterOtp !== "function") {
+      return Promise.reject(new Error("OTP servisi yüklənmədi — səhifəni yeniləyin."));
+    }
     var destination = val("f_email").toLowerCase();
-    var api = window.BuykonSellerAPI;
-    var call =
-      api && typeof api.requestRegisterOtp === "function"
-        ? api.requestRegisterOtp(destination)
-        : fetch(otpUrl(), {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "same-origin",
-            body: JSON.stringify({ action: "send", channel: "email", destination: destination }),
-          }).then(function (res) {
-            return res.json().then(function (data) {
-              if (!res.ok || !data.ok) {
-                throw new Error((data && data.error) || "OTP göndərilmədi");
-              }
-              return data;
-            });
-          });
-
-    return call.then(function (data) {
-      startEmailTimer((data && data.expires_in) || data.retry_after || 60);
+    return api.requestRegisterOtp(destination).then(function (data) {
+      startEmailTimer((data && data.retry_after) || 60);
       return data;
     });
   }
@@ -244,29 +230,11 @@
     if (!/^\d{6}$/.test(code)) {
       return Promise.reject(new Error("6 rəqəmli kodu daxil edin."));
     }
-    var destination = val("f_email").toLowerCase();
-    var api = window.BuykonSellerAPI;
-    if (api && typeof api.verifyRegisterOtp === "function") {
-      return api.verifyRegisterOtp(destination, code);
+    var api = sellerApi();
+    if (!api || typeof api.verifyRegisterOtp !== "function") {
+      return Promise.reject(new Error("OTP servisi yüklənmədi — səhifəni yeniləyin."));
     }
-    return fetch(otpUrl(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({
-        action: "verify",
-        channel: "email",
-        destination: destination,
-        code: code,
-      }),
-    }).then(function (res) {
-      return res.json().then(function (data) {
-        if (!res.ok || !data.ok) {
-          throw new Error((data && data.error) || "Kod səhvdir");
-        }
-        return data;
-      });
-    });
+    return api.verifyRegisterOtp(val("f_email").toLowerCase(), code);
   }
 
   function showOtpTip(data) {
