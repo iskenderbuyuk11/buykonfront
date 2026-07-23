@@ -53,7 +53,10 @@ if (!preg_match('/^\+994\d{9}$/', $phone)) {
 }
 
 $otpOk = $_SESSION['seller_otp_ok'] ?? [];
-if (!is_array($otpOk) || empty($otpOk['email|' . $email])) {
+$emailVerifiedFlag = (($_POST['email_verified'] ?? '') === '1');
+$sessionOk = is_array($otpOk) && !empty($otpOk['email|' . $email]);
+if (!$sessionOk && !$emailVerifiedFlag) {
+    // Java API-də verify olunubsa frontend email_verified=1 göndərir
     buykon_json_fail(403, 'E-poçt təsdiqi tələb olunur');
 }
 

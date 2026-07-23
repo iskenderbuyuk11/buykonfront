@@ -251,6 +251,21 @@
       return request("/auth/seller-register", { method: "POST", body: payload });
     },
 
+    /** Satıcı qeydiyyatı e-poçt OTP — admin ilə eyni mail servisi */
+    requestRegisterOtp: function (email) {
+      return request("/auth/email/request-otp", {
+        method: "POST",
+        body: { email: email, purpose: "seller_register" },
+      });
+    },
+
+    verifyRegisterOtp: function (email, code) {
+      return request("/auth/email/verify-otp", {
+        method: "POST",
+        body: { email: email, code: code, purpose: "seller_register" },
+      });
+    },
+
     logout: function () {
       return request("/auth/seller/logout", { method: "POST", body: {} });
     },

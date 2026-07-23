@@ -214,27 +214,28 @@
 
   function sendEmailOtp() {
     var destination = val("f_email").toLowerCase();
-    return fetch(otpUrl(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify({ action: "send", channel: "email", destination: destination }),
-    })
-      .then(function (res) {
-        return res.json().then(function (data) {
-          if (!res.ok || !data.ok) {
-            throw new Error((data && data.error) || "OTP göndərilmədi");
-          }
-          return data;
-        });
-      })
-      .then(function (data) {
-        startEmailTimer(data.retry_after || 60);
-        if (data.dev_code) {
-          console.info("[Buykon OTP email]", data.dev_code);
-        }
-        return data;
-      });
+    var api = window.BuykonSellerAPI;
+    var call =
+      api && typeof api.requestRegisterOtp === "function"
+        ? api.requestRegisterOtp(destination)
+        : fetch(otpUrl(), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ action: "send", channel: "email", destination: destination }),
+          }).then(function (res) {
+            return res.json().then(function (data) {
+              if (!res.ok || !data.ok) {
+                throw new Error((data && data.error) || "OTP göndərilmədi");
+              }
+              return data;
+            });
+          });
+
+    return call.then(function (data) {
+      startEmailTimer((data && data.expires_in) || data.retry_after || 60);
+      return data;
+    });
   }
 
   function verifyEmailOtp() {
@@ -244,6 +245,10 @@
       return Promise.reject(new Error("6 rəqəmli kodu daxil edin."));
     }
     var destination = val("f_email").toLowerCase();
+    var api = window.BuykonSellerAPI;
+    if (api && typeof api.verifyRegisterOtp === "function") {
+      return api.verifyRegisterOtp(destination, code);
+    }
     return fetch(otpUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -262,6 +267,17 @@
         return data;
       });
     });
+  }
+
+  function showOtpTip(data) {
+    var tip = document.getElementById("otpTip");
+    if (!tip) return;
+    tip.hidden = false;
+    tip.classList.remove("is-warn");
+    tip.innerHTML =
+      data && data.dev_code
+        ? "Test kodu:<strong>" + String(data.dev_code) + "</strong>"
+        : "Kod e-poçtunuza göndərildi. Spam qovluğunu da yoxlayın.";
   }
 
   function bindFile(inputId, previewId, key) {
@@ -362,9 +378,7 @@
           buildOtpInputs(document.getElementById("otpEmail"));
           state.step = 3;
           updateChrome();
-          if (data && data.dev_code) {
-            showAlert("Test rejimi — e-poçt kodu: " + data.dev_code);
-          }
+          showOtpTip(data);
         })
         .catch(function (e) {
           showAlert(e.message || "OTP göndərilmədi");
@@ -558,9 +572,7 @@
       resend.addEventListener("click", function () {
         sendEmailOtp()
           .then(function (data) {
-            if (data && data.dev_code) {
-              showAlert("Test rejimi — e-poçt kodu: " + data.dev_code);
-            }
+            showOtpTip(data);
           })
           .catch(function (e) {
             showAlert(e.message);

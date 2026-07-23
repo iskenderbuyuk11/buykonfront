@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="register-wizard.css?v=2" />
+    <link rel="stylesheet" href="register-wizard.css?v=3" />
     <script src="../sellerpanel/seller-api.js"></script>
   </head>
   <body class="sw-body" data-root="../">
@@ -106,6 +106,7 @@
           <section class="sw-panel" data-step="3" hidden aria-labelledby="t3">
             <h2 id="t3" class="sw-title">E-poçt təsdiqi</h2>
             <p class="sw-sub">6 rəqəmli kod <strong id="otpEmailMask"></strong> ünvanına göndərildi.</p>
+            <div class="sw-otp-tip" id="otpTip" hidden></div>
             <div class="sw-otp" id="otpEmail" data-channel="email"></div>
             <div class="sw-otp-actions">
               <button type="button" class="sw-linkbtn" id="resendEmail" disabled>Yenidən göndər <span id="emailTimer"></span></button>
@@ -274,6 +275,6 @@
         </div>
       </main>
     </div>
-    <script src="register.js?v=4"></script>
+    <script src="register.js?v=6"></script>
   </body>
 </html>
