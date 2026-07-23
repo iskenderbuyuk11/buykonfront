@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="register-wizard.css?v=1" />
+    <link rel="stylesheet" href="register-wizard.css?v=2" />
     <script src="../sellerpanel/seller-api.js"></script>
   </head>
   <body class="sw-body" data-root="../">
@@ -28,7 +28,7 @@
         <div class="sw-aside__hero">
           <p class="sw-aside__kicker">Marketplace</p>
           <h1 class="sw-aside__title">Satışa peşəkar başlanğıc</h1>
-          <p class="sw-aside__lead">Hesabınızı qoruyuruq — OTP, KYC və admin təsdiqi ilə.</p>
+          <p class="sw-aside__lead">Hesabınızı qoruyuruq — e-poçt OTP, KYC və admin təsdiqi ilə.</p>
         </div>
 
         <ol class="sw-steps" id="swStepList"></ol>
@@ -44,7 +44,7 @@
             <div class="sw-progress__bar" id="swProgressBar"></div>
           </div>
           <div class="sw-top__row">
-            <p class="sw-top__meta" id="swStepMeta">Addım 1 / 10</p>
+            <p class="sw-top__meta" id="swStepMeta">Addım 1 / 9</p>
             <a class="sw-top__login" href="../sellerpanel/login.html">Giriş</a>
           </div>
         </header>
@@ -102,19 +102,9 @@
             <input type="text" id="f_honeypot" name="website" tabindex="-1" autocomplete="off" class="sw-honeypot" aria-hidden="true" />
           </section>
 
-          <!-- 3. Telefon OTP -->
+          <!-- 3. Email OTP -->
           <section class="sw-panel" data-step="3" hidden aria-labelledby="t3">
-            <h2 id="t3" class="sw-title">Telefon təsdiqi</h2>
-            <p class="sw-sub">6 rəqəmli kod <strong id="otpPhoneMask"></strong> nömrəsinə göndərildi.</p>
-            <div class="sw-otp" id="otpPhone" data-channel="phone"></div>
-            <div class="sw-otp-actions">
-              <button type="button" class="sw-linkbtn" id="resendPhone" disabled>Yenidən göndər <span id="phoneTimer"></span></button>
-            </div>
-          </section>
-
-          <!-- 4. Email OTP -->
-          <section class="sw-panel" data-step="4" hidden aria-labelledby="t4">
-            <h2 id="t4" class="sw-title">E-poçt təsdiqi</h2>
+            <h2 id="t3" class="sw-title">E-poçt təsdiqi</h2>
             <p class="sw-sub">6 rəqəmli kod <strong id="otpEmailMask"></strong> ünvanına göndərildi.</p>
             <div class="sw-otp" id="otpEmail" data-channel="email"></div>
             <div class="sw-otp-actions">
@@ -122,9 +112,9 @@
             </div>
           </section>
 
-          <!-- 5. KYC -->
-          <section class="sw-panel" data-step="5" hidden aria-labelledby="t5">
-            <h2 id="t5" class="sw-title">Şəxsiyyətin təsdiqi</h2>
+          <!-- 4. KYC -->
+          <section class="sw-panel" data-step="4" hidden aria-labelledby="t4">
+            <h2 id="t4" class="sw-title">Şəxsiyyətin təsdiqi</h2>
             <p class="sw-sub">Vəsiqə və selfie admin tərəfindən yoxlanılacaq. Aydın, oxunaqlı şəkillər yükləyin.</p>
             <div class="sw-uploads">
               <label class="sw-upload">
@@ -146,9 +136,9 @@
             <p class="sw-hint">JPG, PNG və ya WEBP — hər fayl max 5 MB.</p>
           </section>
 
-          <!-- 6. Vergi / şirkət -->
-          <section class="sw-panel" data-step="6" hidden aria-labelledby="t6">
-            <h2 id="t6" class="sw-title">Vergi və şirkət</h2>
+          <!-- 5. Vergi / şirkət -->
+          <section class="sw-panel" data-step="5" hidden aria-labelledby="t5">
+            <h2 id="t5" class="sw-title">Vergi və şirkət</h2>
             <div id="taxFiziki" class="sw-tax-skip" hidden>
               <div class="sw-badge-ok">Fiziki şəxs</div>
               <p>Bu hesab növü üçün <strong>VÖEN tələb olunmur</strong>. Davam edə bilərsiniz.</p>
@@ -164,9 +154,9 @@
             </div>
           </section>
 
-          <!-- 7. Mağaza -->
-          <section class="sw-panel" data-step="7" hidden aria-labelledby="t7">
-            <h2 id="t7" class="sw-title">Mağaza məlumatları</h2>
+          <!-- 6. Mağaza -->
+          <section class="sw-panel" data-step="6" hidden aria-labelledby="t6">
+            <h2 id="t6" class="sw-title">Mağaza məlumatları</h2>
             <p class="sw-sub">Alıcıların görəcəyi mağaza profilini qurun.</p>
             <div class="sw-grid">
               <label class="sw-field sw-field--full"><span>Mağaza adı *</span><input id="f_store" required placeholder="Məs: Aura Fashion" /></label>
@@ -189,9 +179,9 @@
             </div>
           </section>
 
-          <!-- 8. Müqavilə -->
-          <section class="sw-panel" data-step="8" hidden aria-labelledby="t8">
-            <h2 id="t8" class="sw-title">Satıcı müqaviləsi</h2>
+          <!-- 7. Müqavilə -->
+          <section class="sw-panel" data-step="7" hidden aria-labelledby="t7">
+            <h2 id="t7" class="sw-title">Satıcı müqaviləsi</h2>
             <p class="sw-sub">Müqaviləni sonuna qədər oxuyun — sonra qəbul aktivləşəcək.</p>
             <div class="sw-contract" id="swContract" tabindex="0">
               <article class="sw-contract__inner">
@@ -251,9 +241,9 @@
             </label>
           </section>
 
-          <!-- 9. Bank -->
-          <section class="sw-panel" data-step="9" hidden aria-labelledby="t9">
-            <h2 id="t9" class="sw-title">Bank hesabı</h2>
+          <!-- 8. Bank -->
+          <section class="sw-panel" data-step="8" hidden aria-labelledby="t8">
+            <h2 id="t8" class="sw-title">Bank hesabı</h2>
             <p class="sw-sub">Buykon kart və ya IBAN toplamır. Ödənişlər rəsmi tərəfdaşlar vasitəsilə aparılacaq.</p>
             <div class="sw-bank">
               <div class="sw-bank__icon" aria-hidden="true">
@@ -266,11 +256,11 @@
             </div>
           </section>
 
-          <!-- 10. Success -->
-          <section class="sw-panel" data-step="10" hidden aria-labelledby="t10">
+          <!-- 9. Success -->
+          <section class="sw-panel" data-step="9" hidden aria-labelledby="t9">
             <div class="sw-success">
               <div class="sw-success__ring" aria-hidden="true"></div>
-              <h2 id="t10" class="sw-title">Müraciət göndərildi</h2>
+              <h2 id="t9" class="sw-title">Müraciət göndərildi</h2>
               <p class="sw-status-pill">Status: Gözlənilir</p>
               <p class="sw-sub">Admin sənədlərinizi yoxlayıb təsdiq və ya rədd edəcək. Təsdiqdən sonra satıcı paneli aktiv olacaq.</p>
               <a class="sw-btn sw-btn--primary" href="../sellerpanel/login.html">Satıcı girişinə keç</a>
@@ -284,6 +274,6 @@
         </div>
       </main>
     </div>
-    <script src="register.js?v=3"></script>
+    <script src="register.js?v=4"></script>
   </body>
 </html>

@@ -53,11 +53,8 @@ if (!preg_match('/^\+994\d{9}$/', $phone)) {
 }
 
 $otpOk = $_SESSION['seller_otp_ok'] ?? [];
-if (!is_array($otpOk)
-    || empty($otpOk['phone|' . $phone])
-    || empty($otpOk['email|' . $email])
-) {
-    buykon_json_fail(403, 'Telefon və e-poçt təsdiqi tələb olunur');
+if (!is_array($otpOk) || empty($otpOk['email|' . $email])) {
+    buykon_json_fail(403, 'E-poçt təsdiqi tələb olunur');
 }
 
 $password = (string) ($_POST['password'] ?? '');

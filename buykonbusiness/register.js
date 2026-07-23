@@ -1,13 +1,13 @@
 /**
- * Buykon — Satıcı Ol 10-addımlı wizard
+ * Buykon — Satıcı Ol wizard (e-poçt OTP, SMS yoxdur)
  */
 (function () {
   "use strict";
 
+  var TOTAL = 9;
   var STEP_LABELS = [
     "Hesab növü",
     "Şəxsi məlumatlar",
-    "Telefon təsdiqi",
     "E-poçt təsdiqi",
     "Şəxsiyyət (KYC)",
     "Vergi / şirkət",
@@ -20,12 +20,11 @@
   var state = {
     step: 1,
     account: "",
-    phoneVerified: false,
     emailVerified: false,
     contractRead: false,
     bankClicked: false,
     files: {},
-    timers: { phone: 0, email: 0 },
+    emailTimer: 0,
   };
 
   var alertEl = document.getElementById("swAlert");
@@ -92,22 +91,22 @@
     });
 
     var meta = document.getElementById("swStepMeta");
-    if (meta) meta.textContent = "Addım " + state.step + " / 10";
+    if (meta) meta.textContent = "Addım " + state.step + " / " + TOTAL;
 
     var bar = document.getElementById("swProgressBar");
-    if (bar) bar.style.width = state.step * 10 + "%";
+    if (bar) bar.style.width = Math.round((state.step / TOTAL) * 100) + "%";
 
     if (backBtn) {
-      backBtn.hidden = state.step <= 1 || state.step >= 10;
+      backBtn.hidden = state.step <= 1 || state.step >= TOTAL;
     }
     if (nextBtn) {
-      nextBtn.hidden = state.step >= 10;
-      nextBtn.textContent = state.step === 9 ? "Müraciəti göndər" : "Davam et";
+      nextBtn.hidden = state.step >= TOTAL;
+      nextBtn.textContent = state.step === 8 ? "Müraciəti göndər" : "Davam et";
       nextBtn.disabled = false;
     }
 
     var nav = document.getElementById("swNav");
-    if (nav) nav.hidden = state.step >= 10;
+    if (nav) nav.hidden = state.step >= TOTAL;
 
     showAlert("");
     syncTaxPanels();
@@ -134,12 +133,6 @@
     if (d.length === 9) return "+994" + d;
     if (String(raw).indexOf("+994") === 0 && d.length >= 12) return "+994" + d.slice(-9);
     return String(raw || "").trim();
-  }
-
-  function maskPhone(p) {
-    var s = normalizePhone(p);
-    if (s.length < 8) return s;
-    return s.slice(0, 7) + " *** " + s.slice(-2);
   }
 
   function maskEmail(e) {
@@ -198,35 +191,34 @@
       .join("");
   }
 
-  function startTimer(channel, seconds) {
-    state.timers[channel] = seconds;
-    var btn = document.getElementById(channel === "phone" ? "resendPhone" : "resendEmail");
-    var timerEl = document.getElementById(channel === "phone" ? "phoneTimer" : "emailTimer");
+  function startEmailTimer(seconds) {
+    state.emailTimer = seconds;
+    var btn = document.getElementById("resendEmail");
+    var timerEl = document.getElementById("emailTimer");
     if (btn) btn.disabled = true;
 
     function tick() {
-      if (state.timers[channel] <= 0) {
+      if (state.emailTimer <= 0) {
         if (btn) {
           btn.disabled = false;
           if (timerEl) timerEl.textContent = "";
         }
         return;
       }
-      if (timerEl) timerEl.textContent = "(" + state.timers[channel] + "s)";
-      state.timers[channel] -= 1;
+      if (timerEl) timerEl.textContent = "(" + state.emailTimer + "s)";
+      state.emailTimer -= 1;
       setTimeout(tick, 1000);
     }
     tick();
   }
 
-  function sendOtp(channel) {
-    var destination =
-      channel === "phone" ? normalizePhone(val("f_phone")) : val("f_email").toLowerCase();
+  function sendEmailOtp() {
+    var destination = val("f_email").toLowerCase();
     return fetch(otpUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ action: "send", channel: channel, destination: destination }),
+      body: JSON.stringify({ action: "send", channel: "email", destination: destination }),
     })
       .then(function (res) {
         return res.json().then(function (data) {
@@ -237,29 +229,28 @@
         });
       })
       .then(function (data) {
-        startTimer(channel, data.retry_after || 60);
+        startEmailTimer(data.retry_after || 60);
         if (data.dev_code) {
-          console.info("[Buykon OTP " + channel + "]", data.dev_code);
+          console.info("[Buykon OTP email]", data.dev_code);
         }
         return data;
       });
   }
 
-  function verifyOtp(channel) {
-    var container = document.getElementById(channel === "phone" ? "otpPhone" : "otpEmail");
+  function verifyEmailOtp() {
+    var container = document.getElementById("otpEmail");
     var code = readOtp(container);
     if (!/^\d{6}$/.test(code)) {
       return Promise.reject(new Error("6 rəqəmli kodu daxil edin."));
     }
-    var destination =
-      channel === "phone" ? normalizePhone(val("f_phone")) : val("f_email").toLowerCase();
+    var destination = val("f_email").toLowerCase();
     return fetch(otpUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
       body: JSON.stringify({
         action: "verify",
-        channel: channel,
+        channel: "email",
         destination: destination,
         code: code,
       }),
@@ -317,22 +308,17 @@
       return "";
     }
     if (step === 3) {
-      var c3 = readOtp(document.getElementById("otpPhone"));
-      if (!/^\d{6}$/.test(c3)) return "6 rəqəmli telefon kodunu daxil edin.";
+      var c3 = readOtp(document.getElementById("otpEmail"));
+      if (!/^\d{6}$/.test(c3)) return "6 rəqəmli e-poçt kodunu daxil edin.";
       return "";
     }
     if (step === 4) {
-      var c4 = readOtp(document.getElementById("otpEmail"));
-      if (!/^\d{6}$/.test(c4)) return "6 rəqəmli e-poçt kodunu daxil edin.";
-      return "";
-    }
-    if (step === 5) {
       if (!state.files.kycFront || !state.files.kycBack || !state.files.kycSelfie) {
         return "Ön, arxa və selfie şəkillərini yükləyin.";
       }
       return "";
     }
-    if (step === 6) {
+    if (step === 5) {
       if (state.account === "ferdi") {
         if (!/^\d{10}$/.test(val("f_voen"))) return "VÖEN 10 rəqəm olmalıdır.";
       }
@@ -344,14 +330,14 @@
       }
       return "";
     }
-    if (step === 7) {
+    if (step === 6) {
       if (!val("f_store") || !val("f_about") || !val("f_city") || !val("f_hours") || !val("f_address")) {
         return "Mağaza məlumatlarını tamamlayın.";
       }
       if (!state.files.logo || !state.files.banner) return "Logo və banner yükləyin.";
       return "";
     }
-    if (step === 8) {
+    if (step === 7) {
       var cb = document.getElementById("f_contract");
       if (!state.contractRead) return "Müqaviləni sonuna qədər oxuyun.";
       if (!cb || !cb.checked) return "Müqaviləni qəbul edin.";
@@ -370,14 +356,14 @@
     if (state.step === 2) {
       nextBtn.disabled = true;
       nextBtn.textContent = "Kod göndərilir...";
-      sendOtp("phone")
+      sendEmailOtp()
         .then(function (data) {
-          document.getElementById("otpPhoneMask").textContent = maskPhone(val("f_phone"));
-          buildOtpInputs(document.getElementById("otpPhone"));
+          document.getElementById("otpEmailMask").textContent = maskEmail(val("f_email"));
+          buildOtpInputs(document.getElementById("otpEmail"));
           state.step = 3;
           updateChrome();
           if (data && data.dev_code) {
-            showAlert("Test rejimi — telefon kodu: " + data.dev_code);
+            showAlert("Test rejimi — e-poçt kodu: " + data.dev_code);
           }
         })
         .catch(function (e) {
@@ -390,34 +376,10 @@
 
     if (state.step === 3) {
       nextBtn.disabled = true;
-      verifyOtp("phone")
-        .then(function () {
-          state.phoneVerified = true;
-          return sendOtp("email");
-        })
-        .then(function (data) {
-          document.getElementById("otpEmailMask").textContent = maskEmail(val("f_email"));
-          buildOtpInputs(document.getElementById("otpEmail"));
-          state.step = 4;
-          updateChrome();
-          if (data && data.dev_code) {
-            showAlert("Test rejimi — e-poçt kodu: " + data.dev_code);
-          }
-        })
-        .catch(function (e) {
-          showAlert(e.message || "Təsdiq alınmadı");
-          nextBtn.disabled = false;
-          nextBtn.textContent = "Davam et";
-        });
-      return;
-    }
-
-    if (state.step === 4) {
-      nextBtn.disabled = true;
-      verifyOtp("email")
+      verifyEmailOtp()
         .then(function () {
           state.emailVerified = true;
-          state.step = 5;
+          state.step = 4;
           updateChrome();
         })
         .catch(function (e) {
@@ -428,7 +390,7 @@
       return;
     }
 
-    if (state.step === 9) {
+    if (state.step === 8) {
       submitApplication();
       return;
     }
@@ -438,7 +400,7 @@
   }
 
   function goBack() {
-    if (state.step <= 1 || state.step >= 10) return;
+    if (state.step <= 1 || state.step >= TOTAL) return;
     state.step -= 1;
     updateChrome();
   }
@@ -470,7 +432,6 @@
     fd.append("address", val("f_address"));
     fd.append("contract_accepted", "1");
     fd.append("bank_placeholder", state.bankClicked ? "1" : "0");
-    fd.append("phone_verified", state.phoneVerified ? "1" : "0");
     fd.append("email_verified", state.emailVerified ? "1" : "0");
 
     if (state.account === "ferdi") fd.append("voen", val("f_voen"));
@@ -530,7 +491,7 @@
 
     Promise.all([localSave, remote])
       .then(function () {
-        state.step = 10;
+        state.step = TOTAL;
         updateChrome();
       })
       .catch(function (e) {
@@ -554,13 +515,11 @@
     }
 
     box.addEventListener("scroll", checkScroll, { passive: true });
-    // Qısa məzmun / böyük ekran
     setTimeout(checkScroll, 200);
   }
 
   function init() {
     buildStepList();
-    buildOtpInputs(document.getElementById("otpPhone"));
     buildOtpInputs(document.getElementById("otpEmail"));
     bindContract();
 
@@ -594,16 +553,20 @@
       });
     }
 
-    document.getElementById("resendPhone").addEventListener("click", function () {
-      sendOtp("phone").catch(function (e) {
-        showAlert(e.message);
+    var resend = document.getElementById("resendEmail");
+    if (resend) {
+      resend.addEventListener("click", function () {
+        sendEmailOtp()
+          .then(function (data) {
+            if (data && data.dev_code) {
+              showAlert("Test rejimi — e-poçt kodu: " + data.dev_code);
+            }
+          })
+          .catch(function (e) {
+            showAlert(e.message);
+          });
       });
-    });
-    document.getElementById("resendEmail").addEventListener("click", function () {
-      sendOtp("email").catch(function (e) {
-        showAlert(e.message);
-      });
-    });
+    }
 
     nextBtn.addEventListener("click", goNext);
     backBtn.addEventListener("click", goBack);

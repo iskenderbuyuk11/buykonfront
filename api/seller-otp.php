@@ -39,28 +39,16 @@ $action = (string) ($input['action'] ?? '');
 $channel = strtolower(trim((string) ($input['channel'] ?? '')));
 $destination = trim((string) ($input['destination'] ?? ''));
 
-if (!in_array($channel, ['phone', 'email'], true)) {
-    buykon_json_fail(400, 'Kanal yanlışdır');
+if (!in_array($channel, ['email'], true)) {
+    buykon_json_fail(400, 'Yalnız e-poçt OTP dəstəklənir');
 }
 if ($destination === '') {
     buykon_json_fail(400, 'Ünvan lazımdır');
 }
 
-if ($channel === 'phone') {
-    $digits = preg_replace('/\D+/', '', $destination) ?? '';
-    if (str_starts_with($digits, '994') && strlen($digits) === 12) {
-        $destination = '+' . $digits;
-    } elseif (strlen($digits) === 9) {
-        $destination = '+994' . $digits;
-    }
-    if (!preg_match('/^\+994\d{9}$/', $destination)) {
-        buykon_json_fail(400, 'Telefon formatı yanlışdır');
-    }
-} else {
-    $destination = strtolower($destination);
-    if (!filter_var($destination, FILTER_VALIDATE_EMAIL)) {
-        buykon_json_fail(400, 'E-poçt yanlışdır');
-    }
+$destination = strtolower($destination);
+if (!filter_var($destination, FILTER_VALIDATE_EMAIL)) {
+    buykon_json_fail(400, 'E-poçt yanlışdır');
 }
 
 $storeDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'seller-otp';
