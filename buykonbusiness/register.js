@@ -1,124 +1,38 @@
 /**
- * Buykon — Satıcı Ol wizard (e-poçt OTP, SMS yoxdur)
+ * Buykon — sadə satıcı qeydiyyatı (login UI)
+ * VÖEN-li / VÖEN-siz + e-poçt OTP + ixtiyari bank hesabı
  */
 (function () {
   "use strict";
 
-  var TOTAL = 9;
-  var STEP_LABELS = [
-    "Hesab növü",
-    "Şəxsi məlumatlar",
-    "E-poçt təsdiqi",
-    "Şəxsiyyət (KYC)",
-    "Vergi / şirkət",
-    "Mağaza",
-    "Müqavilə",
-    "Bank hesabı",
-    "Admin təsdiqi",
-  ];
-
   var state = {
-    step: 1,
-    account: "",
+    type: "",
     emailVerified: false,
-    contractRead: false,
-    bankClicked: false,
-    files: {},
-    emailTimer: 0,
+    otpTimer: 0,
   };
 
-  var alertEl = document.getElementById("swAlert");
-  var nextBtn = document.getElementById("swNext");
-  var backBtn = document.getElementById("swBack");
+  var errEl = document.getElementById("err");
+  var subtitle = document.getElementById("regSubtitle");
+  var steps = {
+    type: document.getElementById("stepType"),
+    details: document.getElementById("stepDetails"),
+    otp: document.getElementById("stepOtp"),
+    success: document.getElementById("stepSuccess"),
+  };
 
-  function root() {
-    var b = document.body.getAttribute("data-root");
-    if (b) return b.endsWith("/") ? b : b + "/";
-    return "../";
-  }
-
-  function onboardUrl() {
-    return root() + "api/seller-onboard.php";
-  }
-
-  function sellerApi() {
+  function api() {
     return window.BuykonSellerAPI || window.BizdeSellerAPI || null;
   }
 
-  function showAlert(msg) {
-    if (!alertEl) return;
-    if (!msg) {
-      alertEl.hidden = true;
-      alertEl.textContent = "";
-      return;
-    }
-    alertEl.hidden = false;
-    alertEl.textContent = msg;
-    alertEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  function showErr(msg) {
+    if (errEl) errEl.textContent = msg || "";
   }
 
-  function buildStepList() {
-    var ol = document.getElementById("swStepList");
-    if (!ol) return;
-    ol.innerHTML = STEP_LABELS.map(function (label, i) {
-      var n = i + 1;
-      return (
-        '<li data-n="' +
-        n +
-        '"><span class="sw-steps__num">' +
-        n +
-        "</span><span>" +
-        label +
-        "</span></li>"
-      );
-    }).join("");
-  }
-
-  function updateChrome() {
-    document.querySelectorAll(".sw-panel").forEach(function (p) {
-      var n = Number(p.getAttribute("data-step"));
-      var on = n === state.step;
-      p.hidden = !on;
-      p.classList.toggle("is-active", on);
+  function showStep(name) {
+    Object.keys(steps).forEach(function (k) {
+      if (steps[k]) steps[k].hidden = k !== name;
     });
-
-    document.querySelectorAll("#swStepList li").forEach(function (li) {
-      var n = Number(li.getAttribute("data-n"));
-      li.classList.toggle("is-active", n === state.step);
-      li.classList.toggle("is-done", n < state.step);
-      var num = li.querySelector(".sw-steps__num");
-      if (num) num.textContent = n < state.step ? "✓" : String(n);
-    });
-
-    var meta = document.getElementById("swStepMeta");
-    if (meta) meta.textContent = "Addım " + state.step + " / " + TOTAL;
-
-    var bar = document.getElementById("swProgressBar");
-    if (bar) bar.style.width = Math.round((state.step / TOTAL) * 100) + "%";
-
-    if (backBtn) {
-      backBtn.hidden = state.step <= 1 || state.step >= TOTAL;
-    }
-    if (nextBtn) {
-      nextBtn.hidden = state.step >= TOTAL;
-      nextBtn.textContent = state.step === 8 ? "Müraciəti göndər" : "Davam et";
-      nextBtn.disabled = false;
-    }
-
-    var nav = document.getElementById("swNav");
-    if (nav) nav.hidden = state.step >= TOTAL;
-
-    showAlert("");
-    syncTaxPanels();
-  }
-
-  function syncTaxPanels() {
-    var fiz = document.getElementById("taxFiziki");
-    var fer = document.getElementById("taxFerdi");
-    var mmc = document.getElementById("taxMmc");
-    if (fiz) fiz.hidden = state.account !== "fiziki";
-    if (fer) fer.hidden = state.account !== "ferdi";
-    if (mmc) mmc.hidden = state.account !== "mmc";
+    showErr("");
   }
 
   function val(id) {
@@ -143,415 +57,216 @@
     return show + "***@" + parts[1];
   }
 
-  function buildOtpInputs(container) {
-    if (!container || container.dataset.ready) return;
-    container.innerHTML = "";
-    for (var i = 0; i < 6; i++) {
-      var inp = document.createElement("input");
-      inp.type = "text";
-      inp.inputMode = "numeric";
-      inp.maxLength = 1;
-      inp.autocomplete = i === 0 ? "one-time-code" : "off";
-      inp.setAttribute("aria-label", "OTP " + (i + 1));
-      container.appendChild(inp);
+  function syncVoenField() {
+    var field = document.getElementById("voenField");
+    var input = document.getElementById("regVoen");
+    var need = state.type === "voenli";
+    if (field) field.hidden = !need;
+    if (input) {
+      input.required = need;
+      if (!need) input.value = "";
     }
-    container.dataset.ready = "1";
-
-    var inputs = container.querySelectorAll("input");
-    inputs.forEach(function (inp, idx) {
-      inp.addEventListener("input", function () {
-        inp.value = inp.value.replace(/\D/g, "").slice(0, 1);
-        if (inp.value && idx < 5) inputs[idx + 1].focus();
-      });
-      inp.addEventListener("keydown", function (e) {
-        if (e.key === "Backspace" && !inp.value && idx > 0) {
-          inputs[idx - 1].focus();
-        }
-      });
-      inp.addEventListener("paste", function (e) {
-        e.preventDefault();
-        var text = (e.clipboardData || window.clipboardData).getData("text") || "";
-        var digits = text.replace(/\D/g, "").slice(0, 6).split("");
-        digits.forEach(function (d, i) {
-          if (inputs[i]) inputs[i].value = d;
-        });
-        if (inputs[Math.min(digits.length, 5)]) {
-          inputs[Math.min(digits.length, 5)].focus();
-        }
-      });
-    });
   }
 
-  function readOtp(container) {
-    if (!container) return "";
-    return Array.prototype.map
-      .call(container.querySelectorAll("input"), function (i) {
-        return i.value;
-      })
-      .join("");
-  }
-
-  function startEmailTimer(seconds) {
-    state.emailTimer = seconds;
-    var btn = document.getElementById("resendEmail");
-    var timerEl = document.getElementById("emailTimer");
+  function startOtpTimer(seconds) {
+    state.otpTimer = seconds || 60;
+    var btn = document.getElementById("btnResendOtp");
+    var timerEl = document.getElementById("otpTimer");
     if (btn) btn.disabled = true;
 
     function tick() {
-      if (state.emailTimer <= 0) {
-        if (btn) {
-          btn.disabled = false;
-          if (timerEl) timerEl.textContent = "";
-        }
+      if (state.otpTimer <= 0) {
+        if (btn) btn.disabled = false;
+        if (timerEl) timerEl.textContent = "";
         return;
       }
-      if (timerEl) timerEl.textContent = "(" + state.emailTimer + "s)";
-      state.emailTimer -= 1;
+      if (timerEl) timerEl.textContent = "(" + state.otpTimer + "s)";
+      state.otpTimer -= 1;
       setTimeout(tick, 1000);
     }
     tick();
-  }
-
-  function sendEmailOtp() {
-    var api = sellerApi();
-    if (!api || typeof api.requestRegisterOtp !== "function") {
-      return Promise.reject(new Error("OTP servisi yüklənmədi — səhifəni yeniləyin."));
-    }
-    var destination = val("f_email").toLowerCase();
-    return api.requestRegisterOtp(destination).then(function (data) {
-      startEmailTimer((data && data.retry_after) || 60);
-      return data;
-    });
-  }
-
-  function verifyEmailOtp() {
-    var container = document.getElementById("otpEmail");
-    var code = readOtp(container);
-    if (!/^\d{6}$/.test(code)) {
-      return Promise.reject(new Error("6 rəqəmli kodu daxil edin."));
-    }
-    var api = sellerApi();
-    if (!api || typeof api.verifyRegisterOtp !== "function") {
-      return Promise.reject(new Error("OTP servisi yüklənmədi — səhifəni yeniləyin."));
-    }
-    return api.verifyRegisterOtp(val("f_email").toLowerCase(), code);
   }
 
   function showOtpTip(data) {
     var tip = document.getElementById("otpTip");
     if (!tip) return;
     tip.hidden = false;
-    tip.classList.remove("is-warn");
     tip.innerHTML =
       data && data.dev_code
-        ? "Test kodu:<strong>" + String(data.dev_code) + "</strong>"
+        ? 'Test kodu: <strong>' + String(data.dev_code) + "</strong>"
         : "Kod e-poçtunuza göndərildi. Spam qovluğunu da yoxlayın.";
   }
 
-  function bindFile(inputId, previewId, key) {
-    var input = document.getElementById(inputId);
-    var prev = document.getElementById(previewId);
-    if (!input || !prev) return;
-    input.addEventListener("change", function () {
-      var file = input.files && input.files[0];
-      if (!file) return;
-      if (file.size > 5 * 1024 * 1024) {
-        showAlert("Fayl 5 MB-dan böyük ola bilməz.");
-        input.value = "";
-        return;
-      }
-      state.files[key] = file;
-      var url = URL.createObjectURL(file);
-      prev.style.backgroundImage = "url(" + url + ")";
-      prev.classList.add("has-file");
-    });
-  }
-
-  function validateStep(step) {
-    if (step === 1) {
-      if (!state.account) return "Hesab növünü seçin.";
-      return "";
+  function validateDetails() {
+    if (!state.type) return "Hesab növünü seçin.";
+    if (!val("regName") || !val("regSurname")) return "Ad və soyadı daxil edin.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("regEmail"))) return "E-poçt düzgün deyil.";
+    var phone = normalizePhone(val("regPhone"));
+    if (!/^\+994\d{9}$/.test(phone)) return "Telefon +994XXXXXXXXX formatında olmalıdır.";
+    if (!val("regStore")) return "Mağaza adını daxil edin.";
+    if (state.type === "voenli" && !/^\d{10}$/.test(val("regVoen"))) {
+      return "VÖEN 10 rəqəm olmalıdır.";
     }
-    if (step === 2) {
-      if (val("f_honeypot")) return "Şübhəli fəaliyyət aşkarlandı.";
-      if (!document.getElementById("f_captcha").checked) {
-        return "CAPTCHA təsdiqini tamamlayın.";
-      }
-      var required = ["f_name", "f_surname", "f_patronymic", "f_birth", "f_phone", "f_email", "f_pass", "f_pass2"];
-      for (var i = 0; i < required.length; i++) {
-        if (!val(required[i])) return "Bütün məcburi sahələri doldurun.";
-      }
-      var phone = normalizePhone(val("f_phone"));
-      if (!/^\+994\d{9}$/.test(phone)) return "Telefon +994XXXXXXXXX formatında olmalıdır.";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val("f_email"))) return "E-poçt düzgün deyil.";
-      if (val("f_pass").length < 8) return "Şifrə ən azı 8 simvol olmalıdır.";
-      if (val("f_pass") !== val("f_pass2")) return "Şifrələr uyğun gəlmir.";
-      var birth = new Date(val("f_birth"));
-      var age = (Date.now() - birth.getTime()) / (365.25 * 24 * 3600 * 1000);
-      if (!(age >= 18)) return "Satıcı olmaq üçün 18 yaşdan yuxarı olmalısınız.";
-      return "";
-    }
-    if (step === 3) {
-      var c3 = readOtp(document.getElementById("otpEmail"));
-      if (!/^\d{6}$/.test(c3)) return "6 rəqəmli e-poçt kodunu daxil edin.";
-      return "";
-    }
-    if (step === 4) {
-      if (!state.files.kycFront || !state.files.kycBack || !state.files.kycSelfie) {
-        return "Ön, arxa və selfie şəkillərini yükləyin.";
-      }
-      return "";
-    }
-    if (step === 5) {
-      if (state.account === "ferdi") {
-        if (!/^\d{10}$/.test(val("f_voen"))) return "VÖEN 10 rəqəm olmalıdır.";
-      }
-      if (state.account === "mmc") {
-        if (!val("f_company")) return "Şirkət adını daxil edin.";
-        if (!/^\d{10}$/.test(val("f_voen_mmc"))) return "VÖEN 10 rəqəm olmalıdır.";
-        if (!val("f_company_email")) return "Şirkət e-poçtunu daxil edin.";
-        if (!val("f_company_phone")) return "Şirkət telefonunu daxil edin.";
-      }
-      return "";
-    }
-    if (step === 6) {
-      if (!val("f_store") || !val("f_about") || !val("f_city") || !val("f_hours") || !val("f_address")) {
-        return "Mağaza məlumatlarını tamamlayın.";
-      }
-      if (!state.files.logo || !state.files.banner) return "Logo və banner yükləyin.";
-      return "";
-    }
-    if (step === 7) {
-      var cb = document.getElementById("f_contract");
-      if (!state.contractRead) return "Müqaviləni sonuna qədər oxuyun.";
-      if (!cb || !cb.checked) return "Müqaviləni qəbul edin.";
-      return "";
+    if (val("regPass").length < 6) return "Şifrə ən azı 6 simvol olmalıdır.";
+    if (val("regPass") !== val("regPass2")) return "Şifrələr uyğun gəlmir.";
+    if (!document.getElementById("regContract").checked) {
+      return "Müqavilə şərtlərini qəbul edin.";
     }
     return "";
   }
 
-  function goNext() {
-    var err = validateStep(state.step);
-    if (err) {
-      showAlert(err);
-      return;
+  function sendOtp() {
+    var sellerApi = api();
+    if (!sellerApi || typeof sellerApi.requestRegisterOtp !== "function") {
+      return Promise.reject(new Error("OTP servisi yüklənmədi — səhifəni yeniləyin."));
     }
-
-    if (state.step === 2) {
-      nextBtn.disabled = true;
-      nextBtn.textContent = "Kod göndərilir...";
-      sendEmailOtp()
-        .then(function (data) {
-          document.getElementById("otpEmailMask").textContent = maskEmail(val("f_email"));
-          buildOtpInputs(document.getElementById("otpEmail"));
-          state.step = 3;
-          updateChrome();
-          showOtpTip(data);
-        })
-        .catch(function (e) {
-          showAlert(e.message || "OTP göndərilmədi");
-          nextBtn.disabled = false;
-          nextBtn.textContent = "Davam et";
-        });
-      return;
-    }
-
-    if (state.step === 3) {
-      nextBtn.disabled = true;
-      verifyEmailOtp()
-        .then(function () {
-          state.emailVerified = true;
-          state.step = 4;
-          updateChrome();
-        })
-        .catch(function (e) {
-          showAlert(e.message || "Kod səhvdir");
-          nextBtn.disabled = false;
-          nextBtn.textContent = "Davam et";
-        });
-      return;
-    }
-
-    if (state.step === 8) {
-      submitApplication();
-      return;
-    }
-
-    state.step += 1;
-    updateChrome();
+    return sellerApi.requestRegisterOtp(val("regEmail").toLowerCase());
   }
 
-  function goBack() {
-    if (state.step <= 1 || state.step >= TOTAL) return;
-    state.step -= 1;
-    updateChrome();
-  }
-
-  function mapStoreType() {
-    if (state.account === "fiziki") return "voensiz";
-    return "voenli";
-  }
-
-  function submitApplication() {
-    nextBtn.disabled = true;
-    nextBtn.textContent = "Göndərilir...";
-
-    var fd = new FormData();
-    fd.append("account_type", state.account);
-    fd.append("store_type", mapStoreType());
-    fd.append("name", val("f_name"));
-    fd.append("surname", val("f_surname"));
-    fd.append("patronymic", val("f_patronymic"));
-    fd.append("birth_date", val("f_birth"));
-    fd.append("phone", normalizePhone(val("f_phone")));
-    fd.append("email", val("f_email").toLowerCase());
-    fd.append("password", val("f_pass"));
-    fd.append("password_confirm", val("f_pass2"));
-    fd.append("store_name", val("f_store"));
-    fd.append("about", val("f_about"));
-    fd.append("city", val("f_city"));
-    fd.append("hours", val("f_hours"));
-    fd.append("address", val("f_address"));
-    fd.append("contract_accepted", "1");
-    fd.append("bank_placeholder", state.bankClicked ? "1" : "0");
-    fd.append("email_verified", state.emailVerified ? "1" : "0");
-
-    if (state.account === "ferdi") fd.append("voen", val("f_voen"));
-    if (state.account === "mmc") {
-      fd.append("voen", val("f_voen_mmc"));
-      fd.append("company_name", val("f_company"));
-      fd.append("company_email", val("f_company_email"));
-      fd.append("company_phone", val("f_company_phone"));
+  function verifyAndRegister() {
+    var sellerApi = api();
+    if (!sellerApi) {
+      return Promise.reject(new Error("API yüklənmədi — səhifəni yeniləyin."));
+    }
+    var code = val("regOtp").replace(/\D/g, "");
+    if (!/^\d{6}$/.test(code)) {
+      return Promise.reject(new Error("6 rəqəmli kodu daxil edin."));
     }
 
-    ["kycFront", "kycBack", "kycSelfie", "logo", "banner"].forEach(function (k) {
-      if (state.files[k]) fd.append(k, state.files[k]);
-    });
-
-    var apiPayload = {
-      email: val("f_email").toLowerCase(),
-      password: val("f_pass"),
-      password_confirm: val("f_pass2"),
-      phone: normalizePhone(val("f_phone")),
-      store_name: val("f_store"),
-      owner_name: val("f_name"),
-      owner_surname: val("f_surname"),
+    var payload = {
+      email: val("regEmail").toLowerCase(),
+      password: val("regPass"),
+      password_confirm: val("regPass2"),
+      phone: normalizePhone(val("regPhone")),
+      store_name: val("regStore"),
+      owner_name: val("regName"),
+      owner_surname: val("regSurname"),
       category: "Digər",
-      store_type: mapStoreType(),
-      voen: state.account === "ferdi" ? val("f_voen") : state.account === "mmc" ? val("f_voen_mmc") : "",
-      account_type: state.account,
-      about: val("f_about"),
-      city: val("f_city"),
-      address: val("f_address"),
-      hours: val("f_hours"),
-      company_name: val("f_company"),
-      company_email: val("f_company_email"),
-      company_phone: val("f_company_phone"),
-      patronymic: val("f_patronymic"),
-      birth_date: val("f_birth"),
+      store_type: state.type,
+      voen: state.type === "voenli" ? val("regVoen") : "",
+      bank_account: val("regBank"),
     };
 
-    var localSave = fetch(onboardUrl(), {
-      method: "POST",
-      credentials: "same-origin",
-      body: fd,
-    }).then(function (res) {
-      return res.json().then(function (data) {
-        if (!res.ok || !data.ok) {
-          throw new Error((data && data.error) || "Müraciət saxlanılmadı");
-        }
-        return data;
-      });
+    return sellerApi.verifyRegisterOtp(payload.email, code).then(function () {
+      state.emailVerified = true;
+      return sellerApi.register(payload);
     });
-
-    var remote =
-      window.BuykonSellerAPI && typeof window.BuykonSellerAPI.register === "function"
-        ? window.BuykonSellerAPI.register(apiPayload).catch(function () {
-            return null;
-          })
-        : Promise.resolve(null);
-
-    Promise.all([localSave, remote])
-      .then(function () {
-        state.step = TOTAL;
-        updateChrome();
-      })
-      .catch(function (e) {
-        showAlert(e.message || "Göndərmə alınmadı");
-        nextBtn.disabled = false;
-        nextBtn.textContent = "Müraciəti göndər";
-      });
   }
 
-  function bindContract() {
-    var box = document.getElementById("swContract");
-    var cb = document.getElementById("f_contract");
-    if (!box || !cb) return;
-
-    function checkScroll() {
-      var atEnd = box.scrollTop + box.clientHeight >= box.scrollHeight - 12;
-      if (atEnd) {
-        state.contractRead = true;
-        cb.disabled = false;
-      }
-    }
-
-    box.addEventListener("scroll", checkScroll, { passive: true });
-    setTimeout(checkScroll, 200);
+  function bindType() {
+    document.querySelectorAll(".reg-type").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        state.type = btn.getAttribute("data-type") || "";
+        document.querySelectorAll(".reg-type").forEach(function (b) {
+          b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+        });
+        var next = document.getElementById("btnTypeNext");
+        if (next) next.disabled = !state.type;
+        syncVoenField();
+        showErr("");
+      });
+    });
   }
 
   function init() {
-    buildStepList();
-    buildOtpInputs(document.getElementById("otpEmail"));
-    bindContract();
+    bindType();
+    syncVoenField();
 
-    document.querySelectorAll(".sw-type").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        state.account = btn.getAttribute("data-account") || "";
-        document.querySelectorAll(".sw-type").forEach(function (b) {
-          b.setAttribute("aria-pressed", b === btn ? "true" : "false");
-        });
-        showAlert("");
+    var voenInput = document.getElementById("regVoen");
+    if (voenInput) {
+      voenInput.addEventListener("input", function () {
+        voenInput.value = voenInput.value.replace(/\D/g, "").slice(0, 10);
       });
+    }
+
+    var otpInput = document.getElementById("regOtp");
+    if (otpInput) {
+      otpInput.addEventListener("input", function () {
+        otpInput.value = otpInput.value.replace(/\D/g, "").slice(0, 6);
+      });
+    }
+
+    document.getElementById("btnTypeNext").addEventListener("click", function () {
+      if (!state.type) {
+        showErr("Hesab növünü seçin.");
+        return;
+      }
+      subtitle.textContent =
+        state.type === "voenli" ? "VÖEN-li satıcı — məlumatları doldurun" : "VÖEN-siz satıcı — məlumatları doldurun";
+      syncVoenField();
+      showStep("details");
     });
 
-    bindFile("kycFront", "kycFrontPrev", "kycFront");
-    bindFile("kycBack", "kycBackPrev", "kycBack");
-    bindFile("kycSelfie", "kycSelfiePrev", "kycSelfie");
-    bindFile("storeLogo", "logoPrev", "logo");
-    bindFile("storeBanner", "bannerPrev", "banner");
+    document.getElementById("btnBackType").addEventListener("click", function () {
+      subtitle.textContent = "Hesab növünü seçin";
+      showStep("type");
+    });
 
-    var bankBtn = document.getElementById("bankLinkBtn");
-    if (bankBtn) {
-      bankBtn.addEventListener("click", function () {
-        state.bankClicked = true;
-        bankBtn.classList.add("is-linked");
-        bankBtn.textContent = "Əlaqələndirmə gözlənilir";
-        var hint = document.getElementById("bankHint");
-        if (hint) {
-          hint.textContent =
-            "Xarici ödəniş inteqrasiyası tezliklə aktiv olacaq. Kart/IBAN Buykon-da saxlanılmır.";
-        }
-      });
-    }
+    document.getElementById("btnDetailsNext").addEventListener("click", function () {
+      var vErr = validateDetails();
+      if (vErr) {
+        showErr(vErr);
+        return;
+      }
+      var btn = document.getElementById("btnDetailsNext");
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kod göndərilir...';
+      sendOtp()
+        .then(function (data) {
+          document.getElementById("otpEmailMask").textContent = maskEmail(val("regEmail"));
+          subtitle.textContent = "E-poçt təsdiqi";
+          showStep("otp");
+          showOtpTip(data);
+          startOtpTimer((data && data.retry_after) || 60);
+        })
+        .catch(function (e) {
+          showErr(e.message || "OTP göndərilmədi");
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-envelope"></i> E-poçt kodu göndər';
+        });
+    });
 
-    var resend = document.getElementById("resendEmail");
-    if (resend) {
-      resend.addEventListener("click", function () {
-        sendEmailOtp()
-          .then(function (data) {
-            showOtpTip(data);
-          })
-          .catch(function (e) {
-            showAlert(e.message);
-          });
-      });
-    }
+    document.getElementById("btnBackDetails").addEventListener("click", function () {
+      subtitle.textContent =
+        state.type === "voenli" ? "VÖEN-li satıcı — məlumatları doldurun" : "VÖEN-siz satıcı — məlumatları doldurun";
+      showStep("details");
+    });
 
-    nextBtn.addEventListener("click", goNext);
-    backBtn.addEventListener("click", goBack);
+    document.getElementById("btnResendOtp").addEventListener("click", function () {
+      sendOtp()
+        .then(function (data) {
+          showOtpTip(data);
+          startOtpTimer((data && data.retry_after) || 60);
+          showErr("");
+        })
+        .catch(function (e) {
+          showErr(e.message || "OTP göndərilmədi");
+        });
+    });
 
-    updateChrome();
+    document.getElementById("btnVerifyOtp").addEventListener("click", function () {
+      var btn = document.getElementById("btnVerifyOtp");
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yoxlanılır...';
+      verifyAndRegister()
+        .then(function () {
+          subtitle.textContent = "Qeydiyyat tamamlandı";
+          showStep("success");
+        })
+        .catch(function (e) {
+          showErr(e.message || "Qeydiyyat alınmadı");
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-check"></i> Təsdiqlə və qeydiyyatdan keç';
+        });
+    });
+
+    document.getElementById("regForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+    });
   }
 
   if (document.readyState === "loading") {

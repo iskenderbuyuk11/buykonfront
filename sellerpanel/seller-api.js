@@ -172,6 +172,47 @@
     });
   }
 
+  /** Same-origin PHP OTP — Java 404 olduqda SMTP ilə göndərir */
+  function resolveLocalOtpUrl() {
+    var body = typeof document !== "undefined" ? document.body : null;
+    var root = body && body.getAttribute("data-root");
+    if (root != null) {
+      root = String(root);
+      if (root && root.slice(-1) !== "/") root += "/";
+      return root + "api/seller-otp.php";
+    }
+    var path = (typeof window !== "undefined" && window.location && window.location.pathname) || "/";
+    var m = path.match(/^(.*?)\/(buykonbusiness|sellerpanel|adminpanel)(\/|$)/i);
+    if (m) return m[1] + "/api/seller-otp.php";
+    return "/api/seller-otp.php";
+  }
+
+  function localRegisterOtp(action, email, code) {
+    var body = { action: action, email: email, purpose: "seller_register" };
+    if (code) body.code = code;
+    return fetch(resolveLocalOtpUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify(body),
+    }).then(function (res) {
+      return res
+        .json()
+        .catch(function () {
+          return {};
+        })
+        .then(function (data) {
+          if (!res.ok || (data && data.ok === false)) {
+            var err = new Error((data && data.error) || "OTP xətası");
+            err.status = res.status;
+            err.payload = data;
+            throw err;
+          }
+          return data;
+        });
+    });
+  }
+
   window.BuykonSellerAPI = window.BizdeSellerAPI = {
     baseUrl: API_BASE,
     loginUrl: sellerLoginUrl,
@@ -251,18 +292,29 @@
       return request("/auth/seller-register", { method: "POST", body: payload });
     },
 
-    /** Satıcı qeydiyyatı e-poçt OTP — admin ilə eyni mail servisi */
+    /**
+     * Satıcı qeydiyyatı e-poçt OTP
+     * PHP eyni SMTP ilə göndərir; içində Java API-yə cəhd + 404 fallback var
+     */
     requestRegisterOtp: function (email) {
-      return request("/auth/email/request-otp", {
-        method: "POST",
-        body: { email: email, purpose: "seller_register" },
+      return localRegisterOtp("send", email).catch(function (phpErr) {
+        return request("/auth/email/request-otp", {
+          method: "POST",
+          body: { email: email, purpose: "seller_register" },
+        }).catch(function () {
+          throw phpErr;
+        });
       });
     },
 
     verifyRegisterOtp: function (email, code) {
-      return request("/auth/email/verify-otp", {
-        method: "POST",
-        body: { email: email, code: code, purpose: "seller_register" },
+      return localRegisterOtp("verify", email, code).catch(function (phpErr) {
+        return request("/auth/email/verify-otp", {
+          method: "POST",
+          body: { email: email, code: code, purpose: "seller_register" },
+        }).catch(function () {
+          throw phpErr;
+        });
       });
     },
 
