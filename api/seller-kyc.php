@@ -421,6 +421,59 @@ function skyc_status_response(array $app, string $token): array
     return $out;
 }
 
+function skyc_push_to_java(array $app): array
+{
+    global $apiBase;
+    $token = (string) ($app['application_token'] ?? '');
+    $email = (string) ($app['email'] ?? '');
+    $sessionId = (string) ($app['didit_session_id'] ?? '');
+    if ($token === '' || $email === '') {
+        return ['ok' => false, 'error' => 'token/email yoxdur'];
+    }
+    $body = [
+        'token' => $token,
+        'kyc_token' => $token,
+        'email' => $email,
+        'session_id' => $sessionId !== '' ? $sessionId : null,
+    ];
+    return skyc_proxy_json('POST', rtrim((string) $apiBase, '/') . '/auth/seller/kyc/import', $body);
+}
+
+function skyc_find_by_email(string $storeDir, string $email): array
+{
+    $email = strtolower(trim($email));
+    if ($email === '' || !is_dir($storeDir)) {
+        return [];
+    }
+    $best = [];
+    $bestScore = -1;
+    foreach (glob($storeDir . DIRECTORY_SEPARATOR . '*.json') ?: [] as $file) {
+        $app = skyc_read($file);
+        if ($app === []) {
+            continue;
+        }
+        if (strtolower((string) ($app['email'] ?? '')) !== $email) {
+            continue;
+        }
+        $st = strtolower((string) ($app['status'] ?? ''));
+        $score = match ($st) {
+            'approved' => 5,
+            'pending_review' => 4,
+            'in_progress', 'awaiting_user' => 3,
+            'declined' => 2,
+            default => 1,
+        };
+        if (!empty($app['didit_session_id'])) {
+            $score += 1;
+        }
+        if ($score >= $bestScore) {
+            $bestScore = $score;
+            $best = $app;
+        }
+    }
+    return $best;
+}
+
 if ($action === 'status' || $action === 'kyc-status') {
     if ($token === '') {
         buykon_json_fail(400, 'KYC token tələb olunur');
@@ -510,7 +563,81 @@ if ($action === 'status' || $action === 'kyc-status') {
     if ($javaOk && !in_array(strtolower((string) ($out['status'] ?? '')), $terminal, true)) {
         $out['java_status'] = $java['data']['status'] ?? null;
     }
+    // Approved olduqda Java DB-yə yaz (admin panel üçün)
+    if (strtolower((string) ($out['status'] ?? '')) === 'approved') {
+        $push = skyc_push_to_java($app);
+        $out['java_import'] = [
+            'ok' => ($push['http'] >= 200 && $push['http'] < 300),
+            'http' => $push['http'] ?? 0,
+            'status' => $push['data']['status'] ?? null,
+        ];
+    }
     echo json_encode($out, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($action === 'by-email' || $action === 'lookup') {
+    $lookupEmail = strtolower(trim((string) ($_GET['email'] ?? $email)));
+    if ($lookupEmail === '' || !filter_var($lookupEmail, FILTER_VALIDATE_EMAIL)) {
+        buykon_json_fail(400, 'E-poçt tələb olunur');
+    }
+    $app = skyc_find_by_email($storeDir, $lookupEmail);
+    if ($app === []) {
+        buykon_json_fail(404, 'Bu e-poçt üçün KYC tapılmadı');
+    }
+    // Decision yenilə
+    $sessionId = (string) ($app['didit_session_id'] ?? '');
+    $st = strtolower((string) ($app['status'] ?? ''));
+    if ($sessionId !== '' && !in_array($st, ['approved', 'declined', 'expired', 'kyc_expired', 'abandoned'], true)) {
+        $decision = skyc_fetch_decision($sessionId);
+        if ($decision !== []) {
+            $app = skyc_apply_decision_to_app($app, $decision);
+            $tok = (string) ($app['application_token'] ?? '');
+            if ($tok !== '') {
+                skyc_write(skyc_file($storeDir, $tok), $app);
+            }
+        }
+    }
+    // Java-ya push et
+    $push = skyc_push_to_java($app);
+    $out = skyc_status_response($app, (string) ($app['application_token'] ?? ''));
+    $out['session_id'] = $app['didit_session_id'] ?? null;
+    $out['document_type'] = $app['document_type'] ?? null;
+    $out['document_number'] = $app['document_number'] ?? null;
+    $out['first_name'] = $app['first_name'] ?? null;
+    $out['last_name'] = $app['last_name'] ?? null;
+    $out['full_name'] = $app['full_name'] ?? null;
+    $out['date_of_birth'] = $app['date_of_birth'] ?? null;
+    $out['nationality'] = $app['nationality'] ?? null;
+    $out['gender'] = $app['gender'] ?? null;
+    $out['address'] = $app['address'] ?? null;
+    $out['issuing_state'] = $app['issuing_state'] ?? null;
+    $out['issuing_state_name'] = $app['issuing_state_name'] ?? null;
+    $out['java_import'] = [
+        'ok' => ($push['http'] >= 200 && $push['http'] < 300),
+        'http' => $push['http'] ?? 0,
+        'data' => $push['data'] ?? null,
+    ];
+    echo json_encode($out, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+if ($action === 'import-java' || $action === 'push-java') {
+    if ($token === '') {
+        buykon_json_fail(400, 'KYC token tələb olunur');
+    }
+    $path = skyc_file($storeDir, $token);
+    $app = skyc_read($path);
+    if ($app === []) {
+        buykon_json_fail(404, 'KYC müraciəti tapılmadı');
+    }
+    $push = skyc_push_to_java($app);
+    if (($push['http'] ?? 0) < 200 || ($push['http'] ?? 0) >= 300) {
+        buykon_json_fail((int) ($push['http'] ?: 502), (string) (($push['data']['error'] ?? null) ?: 'Java KYC import alınmadı'));
+    }
+    $data = $push['data'];
+    $data['via'] = 'php-push';
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
 }
 

@@ -1810,14 +1810,116 @@
       return;
     }
     if (action === "vendor-detail" && id) {
-      BizdeAdminAPI.vendor(id).then(function (r) {
-        var v = r.vendor || {};
-        if (!v.id) {
-          toast("Xəta", "Mağaza tapılmadı", true);
-          return;
-        }
-        openModal("Mağaza haqqında", renderVendorDetailHtml(v), { variant: "vendor" });
-      }).catch(function (err) { toast("Xəta", err.message, true); });
+      var loadVendor = function (forceSync) {
+        var start = forceSync
+          ? Promise.resolve(null)
+          : BizdeAdminAPI.vendor(id);
+        return start.then(function (r) {
+          var v = (r && r.vendor) || {};
+          var kyc = v.kyc || {};
+          var missing = !v.id || !kyc.status || kyc.status === "missing"
+            || (!kyc.first_name && !kyc.document_number && kyc.status !== "approved");
+          if (!forceSync && v.id && missing) {
+            // 1) PHP storage-dan e-poçt ilə tap
+            var email = v.email && v.email !== "—" ? v.email : "";
+            var phpLookup = email
+              ? fetch("../api/seller-kyc.php?action=by-email&email=" + encodeURIComponent(email), {
+                  credentials: "same-origin",
+                  headers: { Accept: "application/json" },
+                })
+                  .then(function (res) {
+                    return res.json().catch(function () { return {}; }).then(function (data) {
+                      return res.ok ? data : null;
+                    });
+                  })
+                  .catch(function () { return null; })
+              : Promise.resolve(null);
+
+            return phpLookup.then(function (phpData) {
+              var body = {};
+              if (phpData) {
+                if (phpData.kyc_token || phpData.token) body.token = phpData.kyc_token || phpData.token;
+                if (phpData.session_id) body.session_id = phpData.session_id;
+              }
+              return BizdeAdminAPI.syncVendorKyc(id, body).catch(function () {
+                return BizdeAdminAPI.vendor(id);
+              });
+            });
+          }
+          return r || BizdeAdminAPI.vendor(id);
+        });
+      };
+
+      loadVendor(false)
+        .then(function (r) {
+          var v = (r && r.vendor) || {};
+          if (!v.id) {
+            toast("Xəta", "Mağaza tapılmadı", true);
+            return;
+          }
+          openModal("Mağaza haqqında", renderVendorDetailHtml(v), {
+            variant: "vendor",
+            footer:
+              '<button type="button" class="btn btn--ghost" data-action="sync-vendor-kyc" data-id="' +
+              esc(String(v.id)) +
+              '"><i class="fa-solid fa-fingerprint"></i> KYC yenilə</button>',
+          });
+        })
+        .catch(function (err) {
+          toast("Xəta", err.message, true);
+        });
+      return;
+    }
+    if (action === "sync-vendor-kyc" && id) {
+      toast("KYC", "Didit məlumatı yenilənir…");
+      BizdeAdminAPI.vendor(id)
+        .then(function (r) {
+          var v = (r && r.vendor) || {};
+          var emailHint = v.email && v.email !== "—" ? v.email : "";
+          return emailHint
+            ? fetch("../api/seller-kyc.php?action=by-email&email=" + encodeURIComponent(emailHint), {
+                credentials: "same-origin",
+                headers: { Accept: "application/json" },
+              })
+                .then(function (res) {
+                  return res.json().catch(function () { return {}; }).then(function (data) {
+                    return res.ok ? data : null;
+                  });
+                })
+                .catch(function () { return null; })
+            : Promise.resolve(null);
+        })
+        .then(function (phpData) {
+          var body = {};
+          if (phpData) {
+            if (phpData.kyc_token || phpData.token) body.token = phpData.kyc_token || phpData.token;
+            if (phpData.session_id) body.session_id = phpData.session_id;
+          }
+          return BizdeAdminAPI.syncVendorKyc(id, body);
+        })
+        .then(function (r) {
+          var v = (r && r.vendor) || {};
+          if (!v.id) {
+            toast("Xəta", "Mağaza tapılmadı", true);
+            return;
+          }
+          var sync = r.kyc_sync || {};
+          if (sync.ok === false && sync.status === "missing") {
+            toast("KYC", sync.error || "KYC tapılmadı — satıcı yenidən Didit keçməlidir", true);
+          } else {
+            toast("Uğurlu", "KYC məlumatı yeniləndi");
+          }
+          openModal("Mağaza haqqında", renderVendorDetailHtml(v), {
+            variant: "vendor",
+            footer:
+              '<button type="button" class="btn btn--ghost" data-action="sync-vendor-kyc" data-id="' +
+              esc(String(v.id)) +
+              '"><i class="fa-solid fa-fingerprint"></i> KYC yenilə</button>',
+          });
+        })
+        .catch(function (err) {
+          toast("Xəta", err.message || "KYC yenilənmədi", true);
+        });
       return;
     }
     if (action === "product-detail" && id) {

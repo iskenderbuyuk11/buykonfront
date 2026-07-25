@@ -112,6 +112,14 @@
       return request("/admin/vendors/" + id);
     },
 
+    /** PHP/Didit KYC-ni MySQL-ə gətir və satıcıya bağla */
+    syncVendorKyc: function (id, payload) {
+      return request("/admin/vendors/" + id + "/sync-kyc", {
+        method: "POST",
+        body: payload || {},
+      });
+    },
+
     approveVendor: function (id) {
       return request("/admin/vendors/" + id + "/approve", { method: "POST", body: {} });
     },

@@ -7,6 +7,7 @@
 
   var DRAFT_KEY = "buykon_seller_reg_draft";
   var KYC_TOKEN_KEY = "buykon_seller_kyc_token";
+  var KYC_SESSION_KEY = "buykon_seller_kyc_session";
   var OTP_PROOF_KEY = "buykon_seller_otp_proof";
   var POLL_INTERVAL_MS = 3000;
   var POLL_MAX_ATTEMPTS = 40;
@@ -16,6 +17,7 @@
     emailVerified: false,
     otpTimer: 0,
     kycToken: "",
+    kycSessionId: "",
     otpProof: "",
     kycStatus: "",
     pollTimer: null,
@@ -197,6 +199,7 @@
     try {
       sessionStorage.removeItem(DRAFT_KEY);
       sessionStorage.removeItem(KYC_TOKEN_KEY);
+      sessionStorage.removeItem(KYC_SESSION_KEY);
       sessionStorage.removeItem(OTP_PROOF_KEY);
     } catch (e) {
       /* ignore */
@@ -208,6 +211,16 @@
     try {
       if (state.kycToken) sessionStorage.setItem(KYC_TOKEN_KEY, state.kycToken);
       else sessionStorage.removeItem(KYC_TOKEN_KEY);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function saveKycSessionId(sessionId) {
+    state.kycSessionId = String(sessionId || "");
+    try {
+      if (state.kycSessionId) sessionStorage.setItem(KYC_SESSION_KEY, state.kycSessionId);
+      else sessionStorage.removeItem(KYC_SESSION_KEY);
     } catch (e) {
       /* ignore */
     }
@@ -226,6 +239,14 @@
   function loadKycToken() {
     try {
       return sessionStorage.getItem(KYC_TOKEN_KEY) || "";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function loadKycSessionId() {
+    try {
+      return sessionStorage.getItem(KYC_SESSION_KEY) || "";
     } catch (e) {
       return "";
     }
@@ -267,7 +288,8 @@
       (data && (data.kyc_token || data.token || data.application_token || data.applicationToken)) || "";
     var url =
       (data && (data.url || data.verification_url || data.session_url || data.verificationUrl)) || "";
-    return { token: String(token), url: String(url) };
+    var sessionId = (data && (data.session_id || data.sessionId || data.didit_session_id)) || "";
+    return { token: String(token), url: String(url), sessionId: String(sessionId) };
   }
 
   function normalizeKycStatus(raw) {
@@ -405,6 +427,7 @@
         var raw =
           (data && (data.status || data.kyc_status || (data.kyc && data.kyc.status))) || "pending";
         var status = normalizeKycStatus(raw);
+        if (data && data.session_id) saveKycSessionId(data.session_id);
         renderKycUi(status, data);
         if (!fromPoll) showErr("");
         schedulePoll();
@@ -442,6 +465,7 @@
       }
       saveDraft();
       saveKycToken(session.token);
+      saveKycSessionId(session.sessionId);
       window.location.href = session.url;
     });
   }
@@ -485,8 +509,31 @@
       voen: voen,
       bank_account: val("regBank") || draft.bank || "",
       kyc_token: state.kycToken,
+      kyc_session_id: state.kycSessionId || undefined,
       otp_proof: state.otpProof || undefined,
     };
+  }
+
+  function ensureKycInJava() {
+    var sellerApi = api();
+    if (!sellerApi || typeof sellerApi.importSellerKyc !== "function") {
+      return Promise.resolve();
+    }
+    if (!state.kycToken) return Promise.resolve();
+    return sellerApi
+      .importSellerKyc({
+        token: state.kycToken,
+        kyc_token: state.kycToken,
+        email: (val("regEmail") || (loadDraft() || {}).email || "").toLowerCase(),
+        session_id: state.kycSessionId || undefined,
+      })
+      .then(function (data) {
+        if (data && data.session_id) saveKycSessionId(data.session_id);
+        return data;
+      })
+      .catch(function () {
+        /* register zamanı Java yenə import cəhd edəcək */
+      });
   }
 
   function submitApplication() {
@@ -510,10 +557,13 @@
       return Promise.reject(new Error("Məlumatlar natamamdır — formu yenidən doldurun."));
     }
 
-    return sellerApi.register(payload).then(function (data) {
-      clearDraft();
-      state.kycToken = "";
-      return data;
+    return ensureKycInJava().then(function () {
+      return sellerApi.register(payload).then(function (data) {
+        clearDraft();
+        state.kycToken = "";
+        state.kycSessionId = "";
+        return data;
+      });
     });
   }
 
@@ -706,8 +756,10 @@
 
     var draft = loadDraft();
     var token = loadKycToken();
+    var sessionId = loadKycSessionId();
     var proof = loadOtpProof();
     if (proof) saveOtpProof(proof);
+    if (sessionId) saveKycSessionId(sessionId);
     if (isKycReturn() || (token && draft)) {
       if (draft) restoreDraft(draft);
       if (token) saveKycToken(token);

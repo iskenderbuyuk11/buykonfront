@@ -383,6 +383,20 @@
       });
     },
 
+    /** PHP KYC-ni Java MySQL-ə yaz (admin + register üçün) */
+    importSellerKyc: function (payload) {
+      return request("/auth/seller/kyc/import", {
+        method: "POST",
+        body: payload || {},
+      }).catch(function (javaErr) {
+        return localSellerKyc("import-java", {
+          token: (payload && (payload.token || payload.kyc_token)) || "",
+        }).catch(function () {
+          throw javaErr;
+        });
+      });
+    },
+
     /**
      * Satıcı qeydiyyatı e-poçt OTP
      * PHP eyni SMTP ilə göndərir; içində Java API-yə cəhd + 404 fallback var
