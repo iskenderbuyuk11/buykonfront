@@ -292,6 +292,21 @@
       return request("/auth/seller-register", { method: "POST", body: payload });
     },
 
+    /** Satıcı Didit KYC — Java POST /auth/seller/kyc/session */
+    createSellerKycSession: function (email, otpProof) {
+      var body = { email: email };
+      if (otpProof) body.otp_proof = otpProof;
+      return request("/auth/seller/kyc/session", {
+        method: "POST",
+        body: body,
+      });
+    },
+
+    /** Satıcı Didit KYC status — Java GET /auth/seller/kyc/status?token= */
+    sellerKycStatus: function (token) {
+      return request("/auth/seller/kyc/status?token=" + encodeURIComponent(token || ""));
+    },
+
     /**
      * Satıcı qeydiyyatı e-poçt OTP
      * PHP eyni SMTP ilə göndərir; içində Java API-yə cəhd + 404 fallback var

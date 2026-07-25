@@ -320,6 +320,28 @@
       alerts += '<div class="product-alert product-alert--danger"><i class="fa-solid fa-circle-xmark"></i><div><strong>Rədd səbəbi</strong><span>' + esc(v.rejection_reason) + "</span></div></div>";
     }
 
+    var kyc = v.kyc || {};
+    var kycRows =
+      metaRow("Status", badge(normalizeLabel(kyc.status_label || kyc.status || "—"), kyc.status_type || "info")) +
+      metaRow("Didit status", esc(kyc.didit_status || "—")) +
+      metaRow("Ad", esc(kyc.first_name || "—")) +
+      metaRow("Soyad", esc(kyc.last_name || "—")) +
+      metaRow("Tam ad", esc(kyc.full_name || "—")) +
+      metaRow("Doğum tarixi", esc(kyc.date_of_birth || "—")) +
+      metaRow("Sənəd növü", esc(kyc.document_type || "—")) +
+      metaRow("Sənəd nömrəsi", esc(kyc.document_number || "—")) +
+      metaRow("Milliyyət", esc(kyc.nationality || "—")) +
+      metaRow("Cins", esc(kyc.gender || "—")) +
+      metaRow("Verən ölkə", esc(kyc.issuing_state_name || kyc.issuing_state || "—")) +
+      metaRow("Verilmə tarixi", esc(kyc.date_of_issue || "—")) +
+      metaRow("Bitmə tarixi", esc(kyc.expiration_date || "—")) +
+      metaRow("Doğulduğu yer", esc(kyc.place_of_birth || "—")) +
+      metaRow("Ünvan", esc(kyc.address || "—")) +
+      (kyc.liveness_score != null ? metaRow("Liveness", esc(String(kyc.liveness_score))) : "") +
+      (kyc.face_match_score != null ? metaRow("Face match", esc(String(kyc.face_match_score))) : "") +
+      metaRow("Təsdiq tarixi", esc(kyc.verified_at || "—")) +
+      (kyc.session_id ? metaRow("Didit session", esc(kyc.session_id)) : "");
+
     return '<div class="vendor-detail">' + alerts +
       '<div class="vendor-detail__hero">' +
       '<div class="vendor-detail__avatar">' + esc(initials) + "</div>" +
@@ -327,6 +349,7 @@
       '<div class="product-detail__badges">' +
       badge(normalizeLabel(v.status_label || v.status), v.status_type || "info") +
       badge(normalizeLabel(v.verification_label || v.verification_status), v.verification_type || "warning") +
+      badge(normalizeLabel(kyc.status_label || "KYC"), kyc.status_type || "info") +
       "</div>" +
       "<h3 class=\"product-detail__name\">" + esc(v.name || "—") + "</h3>" +
       '<p class="vendor-detail__sub">' + esc(v.store_type_label || v.store_type || "—") + " · " + esc(v.category || "—") + "</p>" +
@@ -336,6 +359,9 @@
       metaRow("Ad, soyad", esc(v.owner_name || "—")) +
       metaRow("Qeydiyyat emaili", esc(v.email || "—")) +
       metaRow("Telefon", esc(v.phone || "—")) +
+      "</dl></section>" +
+      '<section class="vendor-detail__card vendor-detail__card--wide"><h3><i class="fa-solid fa-fingerprint"></i> Şəxsiyyət təsdiqi (Didit)</h3><dl class="product-meta">' +
+      kycRows +
       "</dl></section>" +
       '<section class="vendor-detail__card"><h3><i class="fa-solid fa-store"></i> Mağaza məlumatları</h3><dl class="product-meta">' +
       metaRow("Mağaza adı", esc(v.name || "—")) +

@@ -171,6 +171,24 @@ function seller_otp_local_send(string $email, string $purpose, string $storeDir,
     return $out;
 }
 
+function seller_otp_make_proof(string $email, string $purpose): array
+{
+    $secret = buykon_env('OTP_PROOF_SECRET');
+    if ($secret === '') {
+        $secret = buykon_env('DIDIT_WEBHOOK_SECRET');
+    }
+    if ($secret === '') {
+        return [];
+    }
+    $exp = time() + 7200;
+    $payload = strtolower($email) . '|' . $purpose . '|' . $exp;
+    $sig = hash_hmac('sha256', $payload, $secret);
+    return [
+        'otp_proof' => $payload . '|' . $sig,
+        'otp_proof_expires' => $exp,
+    ];
+}
+
 function seller_otp_local_verify(string $email, string $purpose, string $code, string $storeDir): array
 {
     if (strlen($code) !== 6) {
@@ -202,13 +220,14 @@ function seller_otp_local_verify(string $email, string $purpose, string $code, s
     }
     $_SESSION['seller_otp_ok']['email|' . $email] = time();
 
-    return [
+    $out = [
         'ok' => true,
         'verified' => true,
         'email' => $email,
         'purpose' => $purpose,
         'via' => 'php',
     ];
+    return array_merge($out, seller_otp_make_proof($email, $purpose));
 }
 
 if ($action === 'send' || $action === 'request' || $action === 'request-otp') {
@@ -251,6 +270,7 @@ if ($action === 'verify' || $action === 'verify-otp') {
         $_SESSION['seller_otp_ok']['email|' . $email] = time();
         $data = $java['data'];
         $data['via'] = 'java';
+        $data = array_merge($data, seller_otp_make_proof($email, $purpose));
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         exit;
     }

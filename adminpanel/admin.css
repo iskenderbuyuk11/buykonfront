@@ -2106,6 +2106,16 @@ body.dark .sidebar-foot {
   gap: 10px;
 }
 
+.vendor-detail__card--wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .vendor-detail__sections {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Şans çarxı ── */
 .wheel-note {
   display: flex;

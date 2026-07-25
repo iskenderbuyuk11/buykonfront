@@ -1,14 +1,25 @@
 /**
- * Buykon — sadə satıcı qeydiyyatı (login UI)
- * VÖEN-li / VÖEN-siz + e-poçt OTP + ixtiyari bank hesabı
+ * Buykon — satıcı qeydiyyatı
+ * type → details → email OTP → Didit KYC → submit → success
  */
 (function () {
   "use strict";
+
+  var DRAFT_KEY = "buykon_seller_reg_draft";
+  var KYC_TOKEN_KEY = "buykon_seller_kyc_token";
+  var OTP_PROOF_KEY = "buykon_seller_otp_proof";
+  var POLL_INTERVAL_MS = 3000;
+  var POLL_MAX_ATTEMPTS = 40;
 
   var state = {
     type: "",
     emailVerified: false,
     otpTimer: 0,
+    kycToken: "",
+    otpProof: "",
+    kycStatus: "",
+    pollTimer: null,
+    pollAttempts: 0,
   };
 
   var errEl = document.getElementById("err");
@@ -17,6 +28,7 @@
     type: document.getElementById("stepType"),
     details: document.getElementById("stepDetails"),
     otp: document.getElementById("stepOtp"),
+    kyc: document.getElementById("stepKyc"),
     success: document.getElementById("stepSuccess"),
   };
 
@@ -33,11 +45,17 @@
       if (steps[k]) steps[k].hidden = k !== name;
     });
     showErr("");
+    if (name !== "kyc") stopPolling();
   }
 
   function val(id) {
     var el = document.getElementById(id);
     return el ? String(el.value || "").trim() : "";
+  }
+
+  function setVal(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.value = value == null ? "" : String(value);
   }
 
   function normalizePhone(raw) {
@@ -115,6 +133,19 @@
     return "";
   }
 
+  function resolvePasswords() {
+    var pass = val("kycPass") || val("regPass");
+    var pass2 = val("kycPass2") || val("regPass2");
+    return { password: pass, passwordConfirm: pass2 };
+  }
+
+  function validatePasswordsForSubmit() {
+    var p = resolvePasswords();
+    if (p.password.length < 6) return "Şifrə ən azı 6 simvol olmalıdır.";
+    if (p.password !== p.passwordConfirm) return "Şifrələr uyğun gəlmir.";
+    return "";
+  }
+
   function sendOtp() {
     var sellerApi = api();
     if (!sellerApi || typeof sellerApi.requestRegisterOtp !== "function") {
@@ -123,7 +154,290 @@
     return sellerApi.requestRegisterOtp(val("regEmail").toLowerCase());
   }
 
-  function verifyAndRegister() {
+  function saveDraft() {
+    var draft = {
+      type: state.type,
+      emailVerified: state.emailVerified,
+      name: val("regName"),
+      surname: val("regSurname"),
+      email: val("regEmail").toLowerCase(),
+      phone: val("regPhone"),
+      store: val("regStore"),
+      voen: val("regVoen"),
+      bank: val("regBank"),
+      contract: !!(document.getElementById("regContract") && document.getElementById("regContract").checked),
+    };
+    try {
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch (e) {
+      /* ignore quota */
+    }
+  }
+
+  function loadDraft() {
+    try {
+      var raw = sessionStorage.getItem(DRAFT_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function clearDraft() {
+    try {
+      sessionStorage.removeItem(DRAFT_KEY);
+      sessionStorage.removeItem(KYC_TOKEN_KEY);
+      sessionStorage.removeItem(OTP_PROOF_KEY);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function saveKycToken(token) {
+    state.kycToken = String(token || "");
+    try {
+      if (state.kycToken) sessionStorage.setItem(KYC_TOKEN_KEY, state.kycToken);
+      else sessionStorage.removeItem(KYC_TOKEN_KEY);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function saveOtpProof(proof) {
+    state.otpProof = String(proof || "");
+    try {
+      if (state.otpProof) sessionStorage.setItem(OTP_PROOF_KEY, state.otpProof);
+      else sessionStorage.removeItem(OTP_PROOF_KEY);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function loadKycToken() {
+    try {
+      return sessionStorage.getItem(KYC_TOKEN_KEY) || "";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function loadOtpProof() {
+    try {
+      return sessionStorage.getItem(OTP_PROOF_KEY) || "";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function restoreDraft(draft) {
+    if (!draft) return;
+    state.type = draft.type || "";
+    state.emailVerified = !!draft.emailVerified;
+    setVal("regName", draft.name || "");
+    setVal("regSurname", draft.surname || "");
+    setVal("regEmail", draft.email || "");
+    setVal("regPhone", draft.phone || "");
+    setVal("regStore", draft.store || "");
+    setVal("regVoen", draft.voen || "");
+    setVal("regBank", draft.bank || "");
+    var contract = document.getElementById("regContract");
+    if (contract) contract.checked = !!draft.contract;
+    setVal("regPass", "");
+    setVal("regPass2", "");
+    document.querySelectorAll(".reg-type").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-type") === state.type ? "true" : "false");
+    });
+    var next = document.getElementById("btnTypeNext");
+    if (next) next.disabled = !state.type;
+    syncVoenField();
+  }
+
+  function extractKycSession(data) {
+    var token =
+      (data && (data.kyc_token || data.token || data.application_token || data.applicationToken)) || "";
+    var url =
+      (data && (data.url || data.verification_url || data.session_url || data.verificationUrl)) || "";
+    return { token: String(token), url: String(url) };
+  }
+
+  function normalizeKycStatus(raw) {
+    var s = String(raw || "")
+      .toLowerCase()
+      .trim()
+      .replace(/[\s-]+/g, "_");
+    if (s === "approved" || s === "verified" || s === "complete" || s === "completed") return "approved";
+    if (s === "declined" || s === "rejected" || s === "failed" || s === "abandoned") return "declined";
+    if (s === "expired" || s === "kyc_expired") return "expired";
+    if (
+      s === "in_review" ||
+      s === "pending_review" ||
+      s === "review" ||
+      s === "manual_review" ||
+      s === "inreview"
+    ) {
+      return "review";
+    }
+    if (
+      s === "pending" ||
+      s === "not_started" ||
+      s === "in_progress" ||
+      s === "processing" ||
+      s === "started" ||
+      s === ""
+    ) {
+      return "pending";
+    }
+    return s;
+  }
+
+  function stopPolling() {
+    if (state.pollTimer) {
+      clearTimeout(state.pollTimer);
+      state.pollTimer = null;
+    }
+  }
+
+  function schedulePoll() {
+    stopPolling();
+    if (state.pollAttempts >= POLL_MAX_ATTEMPTS) return;
+    if (state.kycStatus === "approved" || state.kycStatus === "declined" || state.kycStatus === "expired") {
+      return;
+    }
+    state.pollTimer = setTimeout(function () {
+      refreshKycStatus(true);
+    }, POLL_INTERVAL_MS);
+  }
+
+  function renderKycUi(status, data) {
+    state.kycStatus = status;
+    var card = document.getElementById("kycCard");
+    var title = document.getElementById("kycStatusTitle");
+    var text = document.getElementById("kycStatusText");
+    var icon = document.getElementById("kycStatusIcon");
+    var reasonEl = document.getElementById("kycReason");
+    var submitBtn = document.getElementById("btnSubmitApp");
+    var retryBtn = document.getElementById("btnKycRetry");
+    var refreshBtn = document.getElementById("btnKycRefresh");
+
+    if (card) card.setAttribute("data-status", status || "pending");
+
+    var reason =
+      (data && (data.reason || data.decline_reason || data.message || data.status_reason)) || "";
+
+    if (status === "approved") {
+      if (title) title.textContent = "Şəxsiyyət təsdiqləndi";
+      if (text) text.textContent = "KYC Approved — indi müraciəti göndərə bilərsiniz.";
+      if (icon) icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+      if (reasonEl) {
+        reasonEl.hidden = true;
+        reasonEl.textContent = "";
+      }
+      if (submitBtn) submitBtn.disabled = false;
+      if (retryBtn) retryBtn.hidden = true;
+      if (refreshBtn) refreshBtn.hidden = true;
+    } else if (status === "review") {
+      if (title) title.textContent = "Əlavə yoxlama";
+      if (text) text.textContent = "Müraciətiniz nəzərdən keçirilir. Bir az sonra statusu yeniləyin.";
+      if (icon) icon.innerHTML = '<i class="fa-solid fa-hourglass-half"></i>';
+      if (reasonEl) {
+        reasonEl.hidden = !reason;
+        reasonEl.textContent = reason || "";
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      if (retryBtn) retryBtn.hidden = true;
+      if (refreshBtn) refreshBtn.hidden = false;
+    } else if (status === "declined" || status === "expired") {
+      if (title) title.textContent = status === "expired" ? "KYC vaxtı bitib" : "KYC rədd edildi";
+      if (text) {
+        text.textContent =
+          status === "expired"
+            ? "Şəxsiyyət yoxlamasının vaxtı bitib. Yenidən cəhd edin."
+            : "Şəxsiyyət yoxlaması uğursuz oldu. Yenidən cəhd edə bilərsiniz.";
+      }
+      if (icon) icon.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+      if (reasonEl) {
+        reasonEl.hidden = !reason;
+        reasonEl.textContent = reason || "";
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      if (retryBtn) retryBtn.hidden = false;
+      if (refreshBtn) refreshBtn.hidden = false;
+    } else {
+      if (title) title.textContent = "Şəxsiyyət təsdiqi gözlənilir";
+      if (text) text.textContent = "Didit yoxlaması davam edir və ya nəticə hələ gəlməyib.";
+      if (icon) icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+      if (reasonEl) {
+        reasonEl.hidden = true;
+        reasonEl.textContent = "";
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      if (retryBtn) retryBtn.hidden = true;
+      if (refreshBtn) refreshBtn.hidden = false;
+    }
+  }
+
+  function refreshKycStatus(fromPoll) {
+    var sellerApi = api();
+    if (!sellerApi || typeof sellerApi.sellerKycStatus !== "function") {
+      showErr("KYC status servisi yüklənmədi — səhifəni yeniləyin.");
+      return Promise.resolve();
+    }
+    if (!state.kycToken) {
+      showErr("KYC token tapılmadı. OTP addımından yenidən başlayın.");
+      return Promise.resolve();
+    }
+
+    if (fromPoll) state.pollAttempts += 1;
+
+    return sellerApi
+      .sellerKycStatus(state.kycToken)
+      .then(function (data) {
+        var raw =
+          (data && (data.status || data.kyc_status || (data.kyc && data.kyc.status))) || "pending";
+        var status = normalizeKycStatus(raw);
+        renderKycUi(status, data);
+        if (!fromPoll) showErr("");
+        schedulePoll();
+      })
+      .catch(function (e) {
+        if (!fromPoll) showErr(e.message || "KYC statusu alınmadı");
+        schedulePoll();
+      });
+  }
+
+  function enterKycStep(opts) {
+    opts = opts || {};
+    subtitle.textContent = "Şəxsiyyət təsdiqi (KYC)";
+    showStep("kyc");
+    state.pollAttempts = 0;
+    renderKycUi(opts.status || state.kycStatus || "pending", opts.data || null);
+    refreshKycStatus(false);
+  }
+
+  function startDiditSession() {
+    var sellerApi = api();
+    if (!sellerApi || typeof sellerApi.createSellerKycSession !== "function") {
+      return Promise.reject(new Error("KYC servisi yüklənmədi — səhifəni yeniləyin."));
+    }
+    var email = val("regEmail").toLowerCase();
+    if (!email) return Promise.reject(new Error("E-poçt tapılmadı."));
+
+    return sellerApi.createSellerKycSession(email, state.otpProof).then(function (data) {
+      var session = extractKycSession(data);
+      if (!session.token) {
+        throw new Error("KYC token alınmadı. Yenidən cəhd edin.");
+      }
+      if (!session.url) {
+        throw new Error("Didit URL alınmadı. Yenidən cəhd edin.");
+      }
+      saveDraft();
+      saveKycToken(session.token);
+      window.location.href = session.url;
+    });
+  }
+
+  function verifyOtpThenKyc() {
     var sellerApi = api();
     if (!sellerApi) {
       return Promise.reject(new Error("API yüklənmədi — səhifəni yeniləyin."));
@@ -133,10 +447,21 @@
       return Promise.reject(new Error("6 rəqəmli kodu daxil edin."));
     }
 
-    var payload = {
+    var email = val("regEmail").toLowerCase();
+    return sellerApi.verifyRegisterOtp(email, code).then(function (data) {
+      state.emailVerified = true;
+      if (data && data.otp_proof) saveOtpProof(data.otp_proof);
+      saveDraft();
+      return startDiditSession();
+    });
+  }
+
+  function buildRegisterPayload() {
+    var p = resolvePasswords();
+    return {
       email: val("regEmail").toLowerCase(),
-      password: val("regPass"),
-      password_confirm: val("regPass2"),
+      password: p.password,
+      password_confirm: p.passwordConfirm,
       phone: normalizePhone(val("regPhone")),
       store_name: val("regStore"),
       owner_name: val("regName"),
@@ -145,12 +470,63 @@
       store_type: state.type,
       voen: state.type === "voenli" ? val("regVoen") : "",
       bank_account: val("regBank"),
+      kyc_token: state.kycToken,
+      otp_proof: state.otpProof || undefined,
     };
+  }
 
-    return sellerApi.verifyRegisterOtp(payload.email, code).then(function () {
-      state.emailVerified = true;
-      return sellerApi.register(payload);
+  function submitApplication() {
+    var sellerApi = api();
+    if (!sellerApi || typeof sellerApi.register !== "function") {
+      return Promise.reject(new Error("API yüklənmədi — səhifəni yeniləyin."));
+    }
+    if (!state.kycToken) {
+      return Promise.reject(new Error("KYC token yoxdur — şəxsiyyət yoxlamasını tamamlayın."));
+    }
+    if (state.kycStatus !== "approved") {
+      return Promise.reject(new Error("Yalnız təsdiqlənmiş KYC ilə müraciət göndərilə bilər."));
+    }
+    var passErr = validatePasswordsForSubmit();
+    if (passErr) return Promise.reject(new Error(passErr));
+    if (state.type === "voenli" && !/^\d{10}$/.test(val("regVoen"))) {
+      return Promise.reject(new Error("VÖEN 10 rəqəm olmalıdır."));
+    }
+    if (!val("regName") || !val("regSurname") || !val("regStore")) {
+      return Promise.reject(new Error("Məlumatlar natamamdır — formu yenidən doldurun."));
+    }
+
+    return sellerApi.register(buildRegisterPayload()).then(function (data) {
+      clearDraft();
+      state.kycToken = "";
+      return data;
     });
+  }
+
+  function isKycReturn() {
+    try {
+      var params = new URLSearchParams(window.location.search || "");
+      return params.get("kyc_return") === "1";
+    } catch (e) {
+      return /[?&]kyc_return=1(?:&|$)/.test(window.location.search || "");
+    }
+  }
+
+  function cleanKycReturnParam() {
+    try {
+      var url = new URL(window.location.href);
+      if (!url.searchParams.has("kyc_return")) return;
+      url.searchParams.delete("kyc_return");
+      var next = url.pathname + (url.searchParams.toString() ? "?" + url.searchParams.toString() : "") + url.hash;
+      window.history.replaceState({}, "", next);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  function detailsSubtitle() {
+    return state.type === "voenli"
+      ? "VÖEN-li satıcı — məlumatları doldurun"
+      : "VÖEN-siz satıcı — məlumatları doldurun";
   }
 
   function bindType() {
@@ -191,8 +567,7 @@
         showErr("Hesab növünü seçin.");
         return;
       }
-      subtitle.textContent =
-        state.type === "voenli" ? "VÖEN-li satıcı — məlumatları doldurun" : "VÖEN-siz satıcı — məlumatları doldurun";
+      subtitle.textContent = detailsSubtitle();
       syncVoenField();
       showStep("details");
     });
@@ -229,8 +604,7 @@
     });
 
     document.getElementById("btnBackDetails").addEventListener("click", function () {
-      subtitle.textContent =
-        state.type === "voenli" ? "VÖEN-li satıcı — məlumatları doldurun" : "VÖEN-siz satıcı — məlumatları doldurun";
+      subtitle.textContent = detailsSubtitle();
       showStep("details");
     });
 
@@ -250,23 +624,82 @@
       var btn = document.getElementById("btnVerifyOtp");
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Yoxlanılır...';
-      verifyAndRegister()
+      verifyOtpThenKyc()
+        .catch(function (e) {
+          showErr(e.message || "OTP və ya KYC sessiyası alınmadı");
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.innerHTML =
+            '<i class="fa-solid fa-fingerprint"></i> Təsdiqlə və şəxsiyyət yoxlamasına keç';
+        });
+    });
+
+    document.getElementById("btnKycRefresh").addEventListener("click", function () {
+      var btn = document.getElementById("btnKycRefresh");
+      btn.disabled = true;
+      refreshKycStatus(false).finally(function () {
+        btn.disabled = false;
+      });
+    });
+
+    document.getElementById("btnKycRetry").addEventListener("click", function () {
+      var btn = document.getElementById("btnKycRetry");
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Açılır...';
+      startDiditSession()
+        .catch(function (e) {
+          showErr(e.message || "KYC sessiyası açıla bilmədi");
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-fingerprint"></i> Yenidən yoxla';
+        });
+    });
+
+    document.getElementById("btnSubmitApp").addEventListener("click", function () {
+      var btn = document.getElementById("btnSubmitApp");
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Göndərilir...';
+      submitApplication()
         .then(function () {
           subtitle.textContent = "Qeydiyyat tamamlandı";
           showStep("success");
         })
         .catch(function (e) {
-          showErr(e.message || "Qeydiyyat alınmadı");
+          showErr(e.message || "Müraciət göndərilmədi");
+          btn.disabled = state.kycStatus !== "approved";
         })
         .finally(function () {
-          btn.disabled = false;
-          btn.innerHTML = '<i class="fa-solid fa-check"></i> Təsdiqlə və qeydiyyatdan keç';
+          btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Müraciəti göndər';
+          if (state.kycStatus === "approved" && steps.success && steps.success.hidden) {
+            btn.disabled = false;
+          }
         });
+    });
+
+    document.getElementById("btnBackFromKyc").addEventListener("click", function () {
+      stopPolling();
+      subtitle.textContent = detailsSubtitle();
+      showStep("details");
     });
 
     document.getElementById("regForm").addEventListener("submit", function (e) {
       e.preventDefault();
     });
+
+    var draft = loadDraft();
+    var token = loadKycToken();
+    var proof = loadOtpProof();
+    if (proof) saveOtpProof(proof);
+    if (isKycReturn() || (token && draft)) {
+      if (draft) restoreDraft(draft);
+      if (token) saveKycToken(token);
+      cleanKycReturnParam();
+      if (state.kycToken) {
+        enterKycStep();
+      }
+    }
   }
 
   if (document.readyState === "loading") {

@@ -152,5 +152,32 @@ if ($vendor !== '') {
     @file_put_contents($statusFile, json_encode($map, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 }
 
+// Seller KYC: forward to Java so seller_kyc_applications is updated even if
+// Didit console still points webhook at PHP hosting.
+$host = (string) ($_SERVER['HTTP_HOST'] ?? '');
+$isLocal = str_contains($host, 'localhost') || str_contains($host, '127.0.0.1');
+$apiBase = buykon_env('API_BASE');
+if ($apiBase === '') {
+    $apiBase = $isLocal ? 'http://localhost:8080/api' : 'https://api.buykon.com/api';
+}
+$apiBase = rtrim($apiBase, '/');
+$forwardUrl = $apiBase . '/webhooks/didit';
+$ch = curl_init($forwardUrl);
+curl_setopt_array($ch, [
+    CURLOPT_POST => true,
+    CURLOPT_HTTPHEADER => [
+        'Content-Type: application/json',
+        'Accept: application/json',
+        'X-Signature-V2: ' . $sig,
+        'X-Timestamp: ' . (string) $ts,
+    ],
+    CURLOPT_POSTFIELDS => (string) $raw,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 12,
+    CURLOPT_CONNECTTIMEOUT => 5,
+]);
+@curl_exec($ch);
+@curl_close($ch);
+
 // 6) 2xx quickly
 echo 'ok';
