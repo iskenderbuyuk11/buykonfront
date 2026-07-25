@@ -107,10 +107,15 @@ function skyc_callback_url(): string
     if ($configured !== '') {
         return $configured;
     }
+    // Didit localhost/http callback-i bəzən 400 verir — prod HTTPS default
     $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
         || (isset($_SERVER['SERVER_PORT']) && (string) $_SERVER['SERVER_PORT'] === '443');
-    $scheme = $https ? 'https' : 'http';
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
+    $isLocal = str_contains($host, 'localhost') || str_contains($host, '127.0.0.1');
+    if ($isLocal || !$https) {
+        return 'https://buykon.com/buykonbusiness/register.html?kyc_return=1';
+    }
+    $scheme = 'https';
     $base = rtrim(str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME'] ?? ''))), '/');
     return $scheme . '://' . $host . $base . '/buykonbusiness/register.html?kyc_return=1';
 }
@@ -122,20 +127,14 @@ function skyc_create_didit(string $vendorData, string $email): array
         return ['ok' => false, 'http' => 503, 'error' => 'NO_DIDIT_KEY'];
     }
 
+    // Customer KYC ilə eyni minimal payload — contact_details/metadata Didit-də 400 verir
     $payload = [
         'workflow_id' => DIDIT_WORKFLOW_ID,
         'vendor_data' => $vendorData,
         'callback' => skyc_callback_url(),
         'callback_method' => 'both',
-        'metadata' => [
-            'source' => 'buykon_seller_php',
-            'email' => $email,
-        ],
-        'contact_details' => [
-            'email' => $email,
-            'email_lang' => 'az',
-        ],
     ];
+    // $email yalnız caller tərəfindən local JSON-a yazılır
 
     $ch = curl_init('https://verification.didit.me/v3/session/');
     curl_setopt_array($ch, [
