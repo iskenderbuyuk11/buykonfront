@@ -150,6 +150,53 @@ if ($vendor !== '') {
         'updated_at' => date('c'),
     ];
     @file_put_contents($statusFile, json_encode($map, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+
+    // PHP seller KYC store (Java 404 fallback sessions)
+    if (str_starts_with($vendor, 'seller_kyc:')) {
+        $token = substr($vendor, strlen('seller_kyc:'));
+        $token = preg_replace('/[^a-f0-9]/', '', strtolower($token)) ?? '';
+        if ($token !== '') {
+            $sellerKycDir = $logDir . DIRECTORY_SEPARATOR . 'seller-kyc';
+            if (!is_dir($sellerKycDir)) {
+                @mkdir($sellerKycDir, 0755, true);
+            }
+            $sellerFile = $sellerKycDir . DIRECTORY_SEPARATOR . $token . '.json';
+            $app = [];
+            if (is_readable($sellerFile)) {
+                $prevApp = json_decode((string) file_get_contents($sellerFile), true);
+                if (is_array($prevApp)) {
+                    $app = $prevApp;
+                }
+            }
+            $app['application_token'] = $app['application_token'] ?? $token;
+            $app['status'] = $internal;
+            $app['didit_status'] = $status;
+            $app['didit_session_id'] = $parsed['session_id'] ?? ($app['didit_session_id'] ?? null);
+            $app['vendor_data'] = $vendor;
+            $app['updated_at'] = date('c');
+            if (isset($parsed['decision']) && is_array($parsed['decision'])) {
+                $app['decision'] = $parsed['decision'];
+                $idv = $parsed['decision']['id_verifications'][0] ?? null;
+                if (is_array($idv)) {
+                    $app['document_type'] = $idv['document_type'] ?? null;
+                    $app['document_number'] = $idv['document_number'] ?? null;
+                    $app['first_name'] = $idv['first_name'] ?? null;
+                    $app['last_name'] = $idv['last_name'] ?? null;
+                    $app['full_name'] = $idv['full_name'] ?? null;
+                    $app['date_of_birth'] = $idv['date_of_birth'] ?? null;
+                    $app['nationality'] = $idv['nationality'] ?? null;
+                    $app['gender'] = $idv['gender'] ?? null;
+                    $app['address'] = $idv['address'] ?? null;
+                    $app['issuing_state'] = $idv['issuing_state'] ?? null;
+                    $app['issuing_state_name'] = $idv['issuing_state_name'] ?? null;
+                }
+            }
+            if ($internal === 'approved') {
+                $app['verified_at'] = date('c');
+            }
+            @file_put_contents($sellerFile, json_encode($app, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), LOCK_EX);
+        }
+    }
 }
 
 // Seller KYC: forward to Java so seller_kyc_applications is updated even if

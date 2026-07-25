@@ -187,6 +187,10 @@
     return "/api/seller-otp.php";
   }
 
+  function resolveLocalKycUrl() {
+    return String(resolveLocalOtpUrl()).replace(/seller-otp\.php$/i, "seller-kyc.php");
+  }
+
   function localRegisterOtp(action, email, code) {
     var body = { action: action, email: email, purpose: "seller_register" };
     if (code) body.code = code;
@@ -204,6 +208,41 @@
         .then(function (data) {
           if (!res.ok || (data && data.ok === false)) {
             var err = new Error((data && data.error) || "OTP xətası");
+            err.status = res.status;
+            err.payload = data;
+            throw err;
+          }
+          return data;
+        });
+    });
+  }
+
+  function localSellerKyc(action, payload) {
+    var body = Object.assign({ action: action }, payload || {});
+    var url = resolveLocalKycUrl();
+    var opts = {
+      method: action === "status" ? "GET" : "POST",
+      headers: { Accept: "application/json" },
+      credentials: "same-origin",
+    };
+    if (action === "status") {
+      url +=
+        (url.indexOf("?") >= 0 ? "&" : "?") +
+        "action=status&token=" +
+        encodeURIComponent((payload && payload.token) || "");
+    } else {
+      opts.headers["Content-Type"] = "application/json";
+      opts.body = JSON.stringify(body);
+    }
+    return fetch(url, opts).then(function (res) {
+      return res
+        .json()
+        .catch(function () {
+          return {};
+        })
+        .then(function (data) {
+          if (!res.ok || (data && data.ok === false && !data.url && !data.kyc_token)) {
+            var err = new Error((data && data.error) || "KYC xətası");
             err.status = res.status;
             err.payload = data;
             throw err;
@@ -292,19 +331,33 @@
       return request("/auth/seller-register", { method: "POST", body: payload });
     },
 
-    /** Satıcı Didit KYC — Java POST /auth/seller/kyc/session */
+    /** Satıcı Didit KYC — Java əvvəl, 404/offline olsa PHP Didit */
     createSellerKycSession: function (email, otpProof) {
       var body = { email: email };
       if (otpProof) body.otp_proof = otpProof;
       return request("/auth/seller/kyc/session", {
         method: "POST",
         body: body,
+      }).catch(function (javaErr) {
+        return localSellerKyc("session", body).catch(function (phpErr) {
+          var msg = (phpErr && phpErr.message) || (javaErr && javaErr.message) || "KYC sessiyası açılmadı";
+          if (/tapilmadi|not found|404/i.test(String(msg))) {
+            msg = "KYC servisi cavab vermədi. Səhifəni yeniləyib yenidən yoxlayın (seller-api / seller-kyc).";
+          }
+          var err = new Error(msg);
+          err.status = (phpErr && phpErr.status) || (javaErr && javaErr.status);
+          throw err;
+        });
       });
     },
 
-    /** Satıcı Didit KYC status — Java GET /auth/seller/kyc/status?token= */
+    /** Satıcı Didit KYC status — Java əvvəl, sonra PHP */
     sellerKycStatus: function (token) {
-      return request("/auth/seller/kyc/status?token=" + encodeURIComponent(token || ""));
+      return request("/auth/seller/kyc/status?token=" + encodeURIComponent(token || "")).catch(function (javaErr) {
+        return localSellerKyc("status", { token: token }).catch(function () {
+          throw javaErr;
+        });
+      });
     },
 
     /**
