@@ -134,14 +134,21 @@
   }
 
   function resolvePasswords() {
-    var pass = val("kycPass") || val("regPass");
-    var pass2 = val("kycPass2") || val("regPass2");
+    var pass = val("regPass");
+    var pass2 = val("regPass2");
+    if (!pass || !pass2) {
+      var draft = loadDraft();
+      if (draft) {
+        if (!pass) pass = String(draft.password || "");
+        if (!pass2) pass2 = String(draft.passwordConfirm || draft.password || "");
+      }
+    }
     return { password: pass, passwordConfirm: pass2 };
   }
 
   function validatePasswordsForSubmit() {
     var p = resolvePasswords();
-    if (p.password.length < 6) return "Şifrə ən azı 6 simvol olmalıdır.";
+    if (p.password.length < 6) return "Şifrə tapılmadı — əvvəlki addıma qayıdıb şifrəni yenidən daxil edin.";
     if (p.password !== p.passwordConfirm) return "Şifrələr uyğun gəlmir.";
     return "";
   }
@@ -165,6 +172,8 @@
       store: val("regStore"),
       voen: val("regVoen"),
       bank: val("regBank"),
+      password: val("regPass"),
+      passwordConfirm: val("regPass2"),
       contract: !!(document.getElementById("regContract") && document.getElementById("regContract").checked),
     };
     try {
@@ -243,8 +252,8 @@
     setVal("regBank", draft.bank || "");
     var contract = document.getElementById("regContract");
     if (contract) contract.checked = !!draft.contract;
-    setVal("regPass", "");
-    setVal("regPass2", "");
+    setVal("regPass", draft.password || "");
+    setVal("regPass2", draft.passwordConfirm || draft.password || "");
     document.querySelectorAll(".reg-type").forEach(function (b) {
       b.setAttribute("aria-pressed", b.getAttribute("data-type") === state.type ? "true" : "false");
     });
@@ -588,6 +597,7 @@
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kod göndərilir...';
       sendOtp()
         .then(function (data) {
+          saveDraft();
           document.getElementById("otpEmailMask").textContent = maskEmail(val("regEmail"));
           subtitle.textContent = "E-poçt təsdiqi";
           showStep("otp");

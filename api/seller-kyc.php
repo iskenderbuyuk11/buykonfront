@@ -67,7 +67,13 @@ function skyc_map_status(string $diditStatus): string
         'Expired' => 'expired',
         'Kyc Expired' => 'kyc_expired',
     ];
-    return $map[$diditStatus] ?? 'pending';
+    foreach ($map as $key => $value) {
+        if (strcasecmp($key, $diditStatus) === 0) {
+            return $value;
+        }
+    }
+    $slug = strtolower(str_replace(' ', '_', trim($diditStatus)));
+    return $slug !== '' ? $slug : 'pending';
 }
 
 function skyc_proxy_json(string $method, string $url, ?array $body = null): array
@@ -268,6 +274,22 @@ if ($action === 'session' || $action === 'create' || $action === 'create-session
         if (empty($data['ok'])) {
             $data['ok'] = true;
         }
+        // Güzgü: status yeniləmədə Didit decision çəkmək üçün session_id saxla
+        $mirrorToken = (string) ($data['kyc_token'] ?? $data['token'] ?? '');
+        $mirrorSession = (string) ($data['session_id'] ?? '');
+        if ($mirrorToken !== '' && $mirrorSession !== '') {
+            skyc_write(skyc_file($storeDir, $mirrorToken), [
+                'application_token' => $mirrorToken,
+                'email' => $email,
+                'status' => skyc_map_status((string) ($data['status'] ?? 'Not Started')),
+                'didit_status' => $data['didit_status'] ?? ($data['status'] ?? 'Not Started'),
+                'didit_session_id' => $mirrorSession,
+                'vendor_data' => 'seller_kyc:' . $mirrorToken,
+                'created_at' => date('c'),
+                'updated_at' => date('c'),
+                'via' => 'java-mirror',
+            ]);
+        }
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         exit;
     }
@@ -307,45 +329,76 @@ if ($action === 'session' || $action === 'create' || $action === 'create-session
     exit;
 }
 
-if ($action === 'status' || $action === 'kyc-status') {
-    if ($token === '') {
-        buykon_json_fail(400, 'KYC token tələb olunur');
+function skyc_fetch_decision(string $sessionId): array
+{
+    $apiKey = buykon_env('DIDIT_API_KEY');
+    if ($apiKey === '' || $sessionId === '') {
+        return [];
     }
-
-    $java = skyc_proxy_json('GET', $apiBase . '/auth/seller/kyc/status?token=' . rawurlencode($token));
-    $ok = ($java['http'] >= 200 && $java['http'] < 300) && !empty($java['data']['ok']);
-    if ($ok) {
-        $data = $java['data'];
-        $data['via'] = 'java';
-        echo json_encode($data, JSON_UNESCAPED_UNICODE);
-        exit;
+    $url = 'https://verification.didit.me/v3/session/' . rawurlencode($sessionId) . '/decision/';
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_HTTPGET => true,
+        CURLOPT_HTTPHEADER => [
+            'Accept: application/json',
+            'x-api-key: ' . $apiKey,
+        ],
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 25,
+    ]);
+    $body = curl_exec($ch);
+    $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    if ($status < 200 || $status >= 300) {
+        return [];
     }
+    $data = json_decode((string) $body, true);
+    return is_array($data) ? $data : [];
+}
 
-    $path = skyc_file($storeDir, $token);
-    $app = skyc_read($path);
-    if ($app === []) {
-        // Also check global webhook map
-        $statusFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'kyc-status.json';
-        $vendorKey = 'seller_kyc:' . $token;
-        if (is_readable($statusFile)) {
-            $map = json_decode((string) file_get_contents($statusFile), true);
-            if (is_array($map) && isset($map[$vendorKey]) && is_array($map[$vendorKey])) {
-                $row = $map[$vendorKey];
-                echo json_encode([
-                    'ok' => true,
-                    'kyc_token' => $token,
-                    'status' => $row['status'] ?? 'pending',
-                    'kyc_status' => $row['status'] ?? 'pending',
-                    'didit_status' => $row['didit_status'] ?? null,
-                    'verified' => (($row['status'] ?? '') === 'approved'),
-                    'via' => 'php',
-                ], JSON_UNESCAPED_UNICODE);
-                exit;
-            }
-        }
-        buykon_json_fail(404, 'KYC müraciəti tapılmadı');
+function skyc_apply_decision_to_app(array $app, array $decision): array
+{
+    $diditStatus = (string) ($decision['status'] ?? ($app['didit_status'] ?? ''));
+    if ($diditStatus === '') {
+        return $app;
     }
+    $app['didit_status'] = $diditStatus;
+    $app['status'] = skyc_map_status($diditStatus);
+    $app['decision'] = $decision;
+    $app['updated_at'] = date('c');
+    if (($app['status'] ?? '') === 'approved') {
+        $app['verified_at'] = date('c');
+    }
+    $idv = $decision['id_verifications'][0] ?? null;
+    if (is_array($idv)) {
+        $app['document_type'] = $idv['document_type'] ?? null;
+        $app['document_number'] = $idv['document_number'] ?? null;
+        $app['first_name'] = $idv['first_name'] ?? null;
+        $app['last_name'] = $idv['last_name'] ?? null;
+        $app['full_name'] = $idv['full_name'] ?? null;
+        $app['date_of_birth'] = $idv['date_of_birth'] ?? null;
+        $app['nationality'] = $idv['nationality'] ?? null;
+        $app['gender'] = $idv['gender'] ?? null;
+        $app['address'] = $idv['address'] ?? null;
+        $app['issuing_state'] = $idv['issuing_state'] ?? null;
+        $app['issuing_state_name'] = $idv['issuing_state_name'] ?? null;
+        $app['place_of_birth'] = $idv['place_of_birth'] ?? null;
+        $app['expiration_date'] = $idv['expiration_date'] ?? null;
+        $app['date_of_issue'] = $idv['date_of_issue'] ?? null;
+    }
+    $live = $decision['liveness_checks'][0]['score'] ?? null;
+    $face = $decision['face_matches'][0]['score'] ?? null;
+    if ($live !== null) {
+        $app['liveness_score'] = $live;
+    }
+    if ($face !== null) {
+        $app['face_match_score'] = $face;
+    }
+    return $app;
+}
 
+function skyc_status_response(array $app, string $token): array
+{
     $out = [
         'ok' => true,
         'kyc_token' => $app['application_token'] ?? $token,
@@ -361,6 +414,101 @@ if ($action === 'status' || $action === 'kyc-status') {
     }
     if (($app['status'] ?? '') === 'declined') {
         $out['reason'] = 'Şəxsiyyət yoxlaması rədd edildi';
+    }
+    if (!empty($app['full_name'])) {
+        $out['full_name'] = $app['full_name'];
+    }
+    return $out;
+}
+
+if ($action === 'status' || $action === 'kyc-status') {
+    if ($token === '') {
+        buykon_json_fail(400, 'KYC token tələb olunur');
+    }
+
+    $terminal = ['approved', 'declined', 'expired', 'kyc_expired', 'abandoned'];
+
+    $java = skyc_proxy_json('GET', $apiBase . '/auth/seller/kyc/status?token=' . rawurlencode($token));
+    $javaOk = ($java['http'] >= 200 && $java['http'] < 300) && !empty($java['data']['ok']);
+    if ($javaOk) {
+        $st = strtolower((string) ($java['data']['status'] ?? $java['data']['kyc_status'] ?? ''));
+        if (in_array($st, $terminal, true)) {
+            $data = $java['data'];
+            $data['via'] = 'java';
+            echo json_encode($data, JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+    }
+
+    $path = skyc_file($storeDir, $token);
+    $app = skyc_read($path);
+    if ($app === []) {
+        $statusFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'kyc-status.json';
+        $vendorKey = 'seller_kyc:' . $token;
+        if (is_readable($statusFile)) {
+            $map = json_decode((string) file_get_contents($statusFile), true);
+            if (is_array($map) && isset($map[$vendorKey]) && is_array($map[$vendorKey])) {
+                $row = $map[$vendorKey];
+                $app = [
+                    'application_token' => $token,
+                    'status' => $row['status'] ?? 'pending',
+                    'didit_status' => $row['didit_status'] ?? null,
+                    'didit_session_id' => $row['session_id'] ?? null,
+                ];
+            }
+        }
+    }
+
+    // Java cavabından session_id götür (güzgü yoxdursa)
+    if ($app !== [] && empty($app['didit_session_id']) && $javaOk) {
+        $sid = (string) ($java['data']['session_id'] ?? '');
+        if ($sid !== '') {
+            $app['didit_session_id'] = $sid;
+        }
+    }
+
+    if ($app === []) {
+        if ($javaOk) {
+            $data = $java['data'];
+            $data['via'] = 'java';
+            echo json_encode($data, JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+        buykon_json_fail(404, 'KYC müraciəti tapılmadı');
+    }
+
+    $current = strtolower((string) ($app['status'] ?? 'pending'));
+    if (!in_array($current, $terminal, true)) {
+        $sessionId = (string) ($app['didit_session_id'] ?? '');
+        if ($sessionId !== '') {
+            $decision = skyc_fetch_decision($sessionId);
+            if ($decision !== []) {
+                $app = skyc_apply_decision_to_app($app, $decision);
+                skyc_write($path, $app);
+                $statusFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'kyc-status.json';
+                $map = [];
+                if (is_readable($statusFile)) {
+                    $prev = json_decode((string) file_get_contents($statusFile), true);
+                    if (is_array($prev)) {
+                        $map = $prev;
+                    }
+                }
+                $vendorKey = 'seller_kyc:' . $token;
+                $map[$vendorKey] = [
+                    'status' => $app['status'] ?? 'pending',
+                    'didit_status' => $app['didit_status'] ?? null,
+                    'session_id' => $sessionId,
+                    'updated_at' => date('c'),
+                ];
+                @file_put_contents($statusFile, json_encode($map, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+            }
+        }
+    }
+
+    $out = skyc_status_response($app, $token);
+    // Didit hələ pendingdirsə, Java pending cavabını da göstər
+    if ($javaOk && !in_array(strtolower((string) ($out['status'] ?? '')), $terminal, true)) {
+        $out['java_status'] = $java['data']['status'] ?? null;
     }
     echo json_encode($out, JSON_UNESCAPED_UNICODE);
     exit;

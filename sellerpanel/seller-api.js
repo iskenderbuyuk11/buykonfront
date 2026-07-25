@@ -351,12 +351,35 @@
       });
     },
 
-    /** Satıcı Didit KYC status — Java əvvəl, sonra PHP */
+    /** Satıcı Didit KYC status — PHP (Didit decision pull) + Java; təsdiqlənmişi üstün tut */
     sellerKycStatus: function (token) {
-      return request("/auth/seller/kyc/status?token=" + encodeURIComponent(token || "")).catch(function (javaErr) {
-        return localSellerKyc("status", { token: token }).catch(function () {
-          throw javaErr;
-        });
+      function statusRank(data) {
+        var s = String((data && (data.status || data.kyc_status)) || "")
+          .toLowerCase()
+          .replace(/[\s-]+/g, "_");
+        if (s === "approved" || s === "verified" || s === "completed" || s === "complete") return 4;
+        if (s === "declined" || s === "rejected" || s === "failed" || s === "abandoned") return 4;
+        if (s.indexOf("review") >= 0) return 3;
+        if (s === "expired" || s === "kyc_expired") return 3;
+        if (s === "in_progress" || s === "awaiting_user" || s === "resubmitted") return 2;
+        return 1;
+      }
+      var phpP = localSellerKyc("status", { token: token }).catch(function () {
+        return null;
+      });
+      var javaP = request("/auth/seller/kyc/status?token=" + encodeURIComponent(token || "")).catch(function () {
+        return null;
+      });
+      return Promise.all([phpP, javaP]).then(function (pair) {
+        var phpData = pair[0];
+        var javaData = pair[1];
+        if (!phpData && !javaData) {
+          var err = new Error("KYC statusu alınmadı");
+          throw err;
+        }
+        if (!phpData) return javaData;
+        if (!javaData) return phpData;
+        return statusRank(phpData) >= statusRank(javaData) ? phpData : javaData;
       });
     },
 
