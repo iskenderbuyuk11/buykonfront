@@ -467,18 +467,23 @@
 
   function buildRegisterPayload() {
     var p = resolvePasswords();
+    var draft = loadDraft() || {};
+    var type = state.type || draft.type || "";
+    var voen = type === "voenli"
+      ? String(val("regVoen") || draft.voen || "").replace(/\D/g, "").slice(0, 10)
+      : "";
     return {
-      email: val("regEmail").toLowerCase(),
+      email: (val("regEmail") || draft.email || "").toLowerCase(),
       password: p.password,
       password_confirm: p.passwordConfirm,
-      phone: normalizePhone(val("regPhone")),
-      store_name: val("regStore"),
-      owner_name: val("regName"),
-      owner_surname: val("regSurname"),
+      phone: normalizePhone(val("regPhone") || draft.phone || ""),
+      store_name: val("regStore") || draft.store || "",
+      owner_name: val("regName") || draft.name || "",
+      owner_surname: val("regSurname") || draft.surname || "",
       category: "Digər",
-      store_type: state.type,
-      voen: state.type === "voenli" ? val("regVoen") : "",
-      bank_account: val("regBank"),
+      store_type: type,
+      voen: voen,
+      bank_account: val("regBank") || draft.bank || "",
       kyc_token: state.kycToken,
       otp_proof: state.otpProof || undefined,
     };
@@ -497,14 +502,15 @@
     }
     var passErr = validatePasswordsForSubmit();
     if (passErr) return Promise.reject(new Error(passErr));
-    if (state.type === "voenli" && !/^\d{10}$/.test(val("regVoen"))) {
-      return Promise.reject(new Error("VÖEN 10 rəqəm olmalıdır."));
+    var payload = buildRegisterPayload();
+    if (payload.store_type === "voenli" && !/^\d{10}$/.test(payload.voen || "")) {
+      return Promise.reject(new Error("VÖEN 10 rəqəm olmalıdır — əvvəlki addıma qayıdıb düzəldin."));
     }
-    if (!val("regName") || !val("regSurname") || !val("regStore")) {
+    if (!payload.owner_name || !payload.owner_surname || !payload.store_name) {
       return Promise.reject(new Error("Məlumatlar natamamdır — formu yenidən doldurun."));
     }
 
-    return sellerApi.register(buildRegisterPayload()).then(function (data) {
+    return sellerApi.register(payload).then(function (data) {
       clearDraft();
       state.kycToken = "";
       return data;

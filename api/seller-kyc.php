@@ -372,9 +372,9 @@ function skyc_apply_decision_to_app(array $app, array $decision): array
     $idv = $decision['id_verifications'][0] ?? null;
     if (is_array($idv)) {
         $app['document_type'] = $idv['document_type'] ?? null;
-        $app['document_number'] = $idv['document_number'] ?? null;
-        $app['first_name'] = $idv['first_name'] ?? null;
-        $app['last_name'] = $idv['last_name'] ?? null;
+        $app['document_number'] = $idv['document_number'] ?? ($idv['personal_number'] ?? null);
+        $app['first_name'] = $idv['first_name'] ?? ($idv['given_name'] ?? null);
+        $app['last_name'] = $idv['last_name'] ?? ($idv['family_name'] ?? ($idv['surname'] ?? null));
         $app['full_name'] = $idv['full_name'] ?? null;
         $app['date_of_birth'] = $idv['date_of_birth'] ?? null;
         $app['nationality'] = $idv['nationality'] ?? null;

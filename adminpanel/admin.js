@@ -321,26 +321,34 @@
     }
 
     var kyc = v.kyc || {};
-    var kycRows =
-      metaRow("Status", badge(normalizeLabel(kyc.status_label || kyc.status || "—"), kyc.status_type || "info")) +
-      metaRow("Didit status", esc(kyc.didit_status || "—")) +
-      metaRow("Ad", esc(kyc.first_name || "—")) +
-      metaRow("Soyad", esc(kyc.last_name || "—")) +
-      metaRow("Tam ad", esc(kyc.full_name || "—")) +
-      metaRow("Doğum tarixi", esc(kyc.date_of_birth || "—")) +
-      metaRow("Sənəd növü", esc(kyc.document_type || "—")) +
-      metaRow("Sənəd nömrəsi", esc(kyc.document_number || "—")) +
-      metaRow("Milliyyət", esc(kyc.nationality || "—")) +
-      metaRow("Cins", esc(kyc.gender || "—")) +
-      metaRow("Verən ölkə", esc(kyc.issuing_state_name || kyc.issuing_state || "—")) +
-      metaRow("Verilmə tarixi", esc(kyc.date_of_issue || "—")) +
-      metaRow("Bitmə tarixi", esc(kyc.expiration_date || "—")) +
-      metaRow("Doğulduğu yer", esc(kyc.place_of_birth || "—")) +
-      metaRow("Ünvan", esc(kyc.address || "—")) +
-      (kyc.liveness_score != null ? metaRow("Liveness", esc(String(kyc.liveness_score))) : "") +
-      (kyc.face_match_score != null ? metaRow("Face match", esc(String(kyc.face_match_score))) : "") +
-      metaRow("Təsdiq tarixi", esc(kyc.verified_at || "—")) +
-      (kyc.session_id ? metaRow("Didit session", esc(kyc.session_id)) : "");
+    var kycMissing = !kyc.status || kyc.status === "missing";
+    var kycRows = kycMissing
+      ? metaRow("Status", badge("KYC yoxdur", "danger")) +
+        '<div class="empty-inline" style="grid-column:1/-1;padding:8px 0">Didit şəxsiyyət məlumatı tapılmadı — satıcı KYC tamamlamayıb və ya token bağlanmayıb.</div>'
+      : metaRow("Status", badge(normalizeLabel(kyc.status_label || kyc.status || "—"), kyc.status_type || "info")) +
+        metaRow("Didit status", esc(kyc.didit_status || "—")) +
+        metaRow("Ad", esc(kyc.first_name || "—")) +
+        metaRow("Soyad", esc(kyc.last_name || "—")) +
+        metaRow("Tam ad", esc(kyc.full_name || "—")) +
+        metaRow("Doğum tarixi", esc(kyc.date_of_birth || "—")) +
+        metaRow("Sənəd növü", esc(kyc.document_type || "—")) +
+        metaRow("Sənəd nömrəsi", esc(kyc.document_number || "—")) +
+        metaRow("Milliyyət", esc(kyc.nationality || "—")) +
+        metaRow("Cins", esc(kyc.gender || "—")) +
+        metaRow("Verən ölkə", esc(kyc.issuing_state_name || kyc.issuing_state || "—")) +
+        metaRow("Verilmə tarixi", esc(kyc.date_of_issue || "—")) +
+        metaRow("Bitmə tarixi", esc(kyc.expiration_date || "—")) +
+        metaRow("Doğulduğu yer", esc(kyc.place_of_birth || "—")) +
+        metaRow("Ünvan", esc(kyc.address || "—")) +
+        (kyc.liveness_score != null ? metaRow("Liveness", esc(String(kyc.liveness_score))) : metaRow("Liveness", "—")) +
+        (kyc.face_match_score != null ? metaRow("Face match", esc(String(kyc.face_match_score))) : metaRow("Face match", "—")) +
+        metaRow("Təsdiq tarixi", esc(kyc.verified_at || "—")) +
+        metaRow("Didit session", esc(kyc.session_id || "—"));
+
+    var voenDisplay = v.voen || "—";
+    if ((v.store_type === "voenli" || /voen/i.test(String(v.store_type_label || ""))) && !v.voen) {
+      voenDisplay = "— (daxil edilməyib)";
+    }
 
     return '<div class="vendor-detail">' + alerts +
       '<div class="vendor-detail__hero">' +
@@ -356,6 +364,8 @@
       "</div></div>" +
       '<div class="vendor-detail__sections">' +
       '<section class="vendor-detail__card"><h3><i class="fa-solid fa-user"></i> Mağaza sahibi</h3><dl class="product-meta">' +
+      metaRow("Ad", esc(v.owner_first_name || "—")) +
+      metaRow("Soyad", esc(v.owner_last_name || "—")) +
       metaRow("Ad, soyad", esc(v.owner_name || "—")) +
       metaRow("Qeydiyyat emaili", esc(v.email || "—")) +
       metaRow("Telefon", esc(v.phone || "—")) +
@@ -367,8 +377,10 @@
       metaRow("Mağaza adı", esc(v.name || "—")) +
       metaRow("Kateqoriya", esc(v.category || "—")) +
       metaRow("Mağaza növü", esc(v.store_type_label || v.store_type || "—")) +
-      metaRow("VÖEN", esc(v.voen || "—")) +
+      metaRow("VÖEN", esc(voenDisplay)) +
+      metaRow("Bank hesabı", esc(v.bank_account || "—")) +
       metaRow("Mağaza ID", "#" + esc(String(v.id || ""))) +
+      (v.seller_id ? metaRow("Satıcı ID", "#" + esc(String(v.seller_id))) : "") +
       (v.auto_named ? metaRow("Avtomatik ad", "Bəli") : "") +
       "</dl></section>" +
       '<section class="vendor-detail__card"><h3><i class="fa-solid fa-chart-line"></i> Statistika</h3><dl class="product-meta">' +
@@ -585,8 +597,12 @@
 
   function renderVendorApplications(d) {
     var rows = (d.applications || []).map(function (v) {
+      var typeLine = esc(v.store_type_label || v.store_type || "—");
+      if (v.voen) typeLine += " · VÖEN " + esc(v.voen);
+      else if (v.store_type === "voenli") typeLine += " · VÖEN yoxdur";
       return [
-        entity(v.name, v.category),
+        entity(v.name, typeLine),
+        esc(v.owner_name || "—") + "<br><span class=\"muted\">" + esc(v.email || v.phone || "") + "</span>",
         badge(v.verification, v.verification_type),
         badge(v.status, v.status_type),
         esc(v.created_at || "—"),
@@ -595,7 +611,7 @@
     });
     return pageHead("Mağaza sorğuları", "Yeni müraciətləri yoxlayın, təsdiqləyin və ya rədd edin.", reloadBtn()) +
       metricCards(d.metrics) +
-      table("Gözləyən müraciətlər", ["Mağaza", "Sənəd yoxlaması", "Status", "Tarix", ""], rows);
+      table("Gözləyən müraciətlər", ["Mağaza", "Sahib", "Sənəd yoxlaması", "Status", "Tarix", ""], rows);
   }
 
   function renderStores(d) {
