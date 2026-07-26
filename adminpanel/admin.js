@@ -504,7 +504,8 @@
 
   function storeMenu(v) {
     var items = [
-      { action: "vendor-detail", label: "Ətraflı bax", icon: "fa-eye" }
+      { action: "vendor-detail", label: "Ətraflı bax", icon: "fa-eye" },
+      { action: "resend-vendor-mail", label: "Mağaza kodunu mailə göndər", icon: "fa-envelope" }
     ];
     if (v.raw_status === "active") {
       items.push({ divider: true });
@@ -1358,9 +1359,9 @@
         return;
       }
       btn.disabled = true;
-      Promise.resolve(cfg.onConfirm()).then(function () {
+      Promise.resolve(cfg.onConfirm()).then(function (res) {
         closeModal();
-        if (cfg.onSuccess) cfg.onSuccess();
+        if (cfg.onSuccess) cfg.onSuccess(res);
       }).catch(function (err) {
         toast("Xəta", err.message, true);
         btn.disabled = false;
@@ -1473,10 +1474,34 @@
     if (action === "approve-vendor" && id) {
       openConfirmModal({
         title: "Mağazanı təsdiqlə",
-        message: "Bu mağaza müraciətini təsdiqləmək istəyirsiniz? Satıcı panelinə giriş açılacaq.",
+        message: "Bu mağaza müraciətini təsdiqləmək istəyirsiniz? Satıcıya mağaza nömrəsi e-poçtla göndəriləcək.",
         confirmLabel: "Təsdiqlə",
         onConfirm: function () { return BizdeAdminAPI.approveVendor(id); },
-        onSuccess: function () { toast("Uğurlu", "Mağaza təsdiqləndi"); loadRoute("vendor-applications"); }
+        onSuccess: function (res) {
+          var msg = "Mağaza təsdiqləndi";
+          if (res && res.store_code) msg += " — kod: " + res.store_code;
+          if (res && res.email_sent) msg += " (e-poçt göndərildi)";
+          else if (res && res.email_error) msg += " — e-poçt: " + res.email_error;
+          else if (res && res.email_sent === false) msg += " — e-poçt göndərilmədi";
+          toast(res && res.email_sent === false ? "Diqqət" : "Uğurlu", msg, res && res.email_sent === false);
+          loadRoute("vendor-applications");
+        }
+      });
+      return;
+    }
+    if (action === "resend-vendor-mail" && id) {
+      openConfirmModal({
+        title: "Mağaza kodunu göndər",
+        message: "Satıcının e-poçtuna mağaza nömrəsi yenidən göndərilsin?",
+        confirmLabel: "Göndər",
+        onConfirm: function () { return BizdeAdminAPI.resendVendorApprovalEmail(id); },
+        onSuccess: function (res) {
+          if (res && res.email_sent) {
+            toast("Uğurlu", "E-poçt göndərildi" + (res.store_code ? " — kod: " + res.store_code : ""));
+          } else {
+            toast("Xəta", (res && res.email_error) || "E-poçt göndərilmədi", true);
+          }
+        }
       });
       return;
     }

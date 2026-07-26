@@ -124,6 +124,10 @@
       return request("/admin/vendors/" + id + "/approve", { method: "POST", body: {} });
     },
 
+    resendVendorApprovalEmail: function (id) {
+      return request("/admin/vendors/" + id + "/resend-approval-email", { method: "POST", body: {} });
+    },
+
     suspendVendor: function (id) {
       return request("/admin/vendors/" + id + "/suspend", { method: "POST", body: {} });
     },
