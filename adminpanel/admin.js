@@ -370,6 +370,15 @@
       metaRow("Qeydiyyat emaili", esc(v.email || "—")) +
       metaRow("Telefon", esc(v.phone || "—")) +
       "</dl></section>" +
+      '<section class="vendor-detail__card"><h3><i class="fa-solid fa-key"></i> Giriş məlumatı</h3><dl class="product-meta">' +
+      metaRow("Mağaza nömrəsi", v.store_code
+        ? '<strong style="font-size:1.25rem;letter-spacing:2px">' + esc(v.store_code) + "</strong>"
+        : "— (təsdiqdən sonra yaranır)") +
+      metaRow("Satıcı giriş linki",
+        '<a href="' + esc(v.login_url || "https://buykon.com/sellerpanel/login.html") +
+        '" target="_blank" rel="noopener">buykon.com/sellerpanel/login.html</a>') +
+      (v.store_slug ? metaRow("Mağaza slug", esc(v.store_slug)) : "") +
+      "</dl></section>" +
       '<section class="vendor-detail__card vendor-detail__card--wide"><h3><i class="fa-solid fa-fingerprint"></i> Şəxsiyyət təsdiqi (Didit)</h3><dl class="product-meta">' +
       kycRows +
       "</dl></section>" +
@@ -1467,6 +1476,23 @@
 
     closeRowMenus();
 
+    if (action === "copy-store-code") {
+      var code = el.getAttribute("data-code") || "";
+      if (!code) {
+        toast("Xəta", "Mağaza kodu yoxdur", true);
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(function () {
+          toast("Uğurlu", "Mağaza kodu kopyalandı: " + code);
+        }).catch(function () {
+          toast("Kod", code);
+        });
+      } else {
+        toast("Kod", code);
+      }
+      return;
+    }
     if (action === "reload") {
       loadRoute(state.route);
       return;
@@ -1885,6 +1911,17 @@
           openModal("Mağaza haqqında", renderVendorDetailHtml(v), {
             variant: "vendor",
             footer:
+              (v.store_code
+                ? '<button type="button" class="btn btn--ghost" data-action="copy-store-code" data-code="' +
+                  esc(v.store_code) +
+                  '"><i class="fa-solid fa-copy"></i> Kodu kopyala</button>'
+                : "") +
+              '<a class="btn btn--ghost" href="' +
+              esc(v.login_url || "https://buykon.com/sellerpanel/login.html") +
+              '" target="_blank" rel="noopener"><i class="fa-solid fa-right-to-bracket"></i> Satıcı girişi</a>' +
+              '<button type="button" class="btn btn--ghost" data-action="resend-vendor-mail" data-id="' +
+              esc(String(v.id)) +
+              '"><i class="fa-solid fa-envelope"></i> Mail göndər</button>' +
               '<button type="button" class="btn btn--ghost" data-action="sync-vendor-kyc" data-id="' +
               esc(String(v.id)) +
               '"><i class="fa-solid fa-fingerprint"></i> KYC yenilə</button>',
