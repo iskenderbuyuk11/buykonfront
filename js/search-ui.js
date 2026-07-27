@@ -23,6 +23,105 @@
     { id: 5, name: "AirPods Pro 2", cat: "Aksesuarlar", price: 499, image_url: "images/products/iphone15.jpg" },
   ];
 
+  /** Axtarış təklifləri — yazılanda (məs. "te") tamamlanma sözləri */
+  var SEARCH_LEXICON = [
+    "telefon",
+    "televizor",
+    "tablet",
+    "televizor stendi",
+    "termos",
+    "tərəzi",
+    "təraş aparatı",
+    "təkər",
+    "təmir aləti",
+    "noutbuk",
+    "notebook",
+    "laptop",
+    "qulaqlıq",
+    "airpods",
+    "smartfon",
+    "iphone",
+    "samsung",
+    "xiaomi",
+    "planşet",
+    "saat",
+    "smart saat",
+    "qol saatı",
+    "kran",
+    "qarışdırıcı kran",
+    "duş",
+    "üst duş",
+    "duş sistemi",
+    "geyim",
+    "hoodie",
+    "köynək",
+    "şalvar",
+    "ayaqqabı",
+    "krossovka",
+    "çanta",
+    "kürək çanta",
+    "kosmetika",
+    "krem",
+    "serum",
+    "parfüm",
+    "elektronika",
+    "klaviatura",
+    "siçan",
+    "monitor",
+    "kamera",
+    "powerbank",
+    "adapter",
+    "kabel",
+    "usb",
+    "bluetooth",
+    "wifi",
+    "router",
+    "printer",
+    "oyun",
+    "oyun konsolu",
+    "playstation",
+    "xbox",
+    "uşaq oyuncağı",
+    "idman",
+    "fitness",
+    "velosiped",
+    "mebel",
+    "divan",
+    "masa",
+    "stul",
+    "yataq",
+    "mətbəx",
+    "blender",
+    "mikser",
+    "fen",
+    "ütü",
+    "tozsoran",
+    "soyuducu",
+    "paltaryuyan",
+    "qabyuyan",
+    "mikrovolnovka",
+    "çaydan",
+    "qəhvə aparatı",
+    "qaz sobası",
+    "elektrik sobası",
+    "kondisioner",
+    "ventilyator",
+    "isitici",
+    "lampa",
+    "led",
+    "batareya",
+    "akumulyator",
+    "aksesuar",
+    "qoruyucu örtük",
+    "ekran qoruyucu",
+    "kitab",
+    "dəftər",
+    "qələm",
+    "ev və yaşam",
+    "hamam",
+    "məişət",
+  ];
+
   var overlay = null;
   var input = null;
   var productsCache = null;
@@ -35,6 +134,9 @@
   var cameraFacing = "environment";
   var cameraTorchOn = false;
   var lastDetectState = null;
+  var activeSuggestIndex = -1;
+  var currentSuggestions = [];
+  var vocabCache = null;
 
   function getRoot() {
     if (window.BizdevarLayout && typeof BizdevarLayout.getRoot === "function") {
@@ -128,17 +230,20 @@
       return BizdevarAPI.products("all")
         .then(function (data) {
           productsCache = normalizeProducts((data && data.products) || []);
+          vocabCache = null;
           productsLoading = false;
           return productsCache;
         })
         .catch(function () {
           productsCache = normalizeProducts(getLocalProducts());
+          vocabCache = null;
           productsLoading = false;
           return productsCache;
         });
     }
 
     productsCache = normalizeProducts(getLocalProducts());
+    vocabCache = null;
     productsLoading = false;
     return Promise.resolve(productsCache);
   }
@@ -923,7 +1028,11 @@
     qarisdirici: ["kran", "faucet", "mixer", "musluk", "mixing"],
     dus: ["shower", "ust dus", "rainshower", "duş"],
     shower: ["dus", "ust", "rain"],
-    telefon: ["phone", "smartphone", "iphone", "samsung", "mobil"],
+    telefon: ["phone", "smartphone", "iphone", "samsung", "mobil", "smartfon"],
+    televizor: ["tv", "television", "smart tv", "monitor"],
+    tv: ["televizor", "television", "smart tv"],
+    tablet: ["planset", "ipad", "planşet"],
+    planset: ["tablet", "ipad", "planşet"],
     iphone: ["apple", "telefon", "phone", "ios"],
     samsung: ["galaxy", "telefon", "android", "phone"],
     ayaqqabi: ["shoe", "sneakers", "krossovka", "bot"],
@@ -1510,6 +1619,7 @@
     if (input) {
       input.addEventListener("input", function () {
         var val = input.value.trim();
+        activeSuggestIndex = -1;
         if (clearBtn) {
           if (val) clearBtn.removeAttribute("hidden");
           else clearBtn.setAttribute("hidden", "");
@@ -1519,13 +1629,33 @@
           stopCamera();
           if (!val) renderIdleState();
           else renderResults(val);
-        }, 180);
+        }, 140);
       });
 
       input.addEventListener("keydown", function (e) {
+        var max = currentSuggestions.length;
+        if (e.key === "ArrowDown" && max) {
+          e.preventDefault();
+          setActiveSuggest((activeSuggestIndex + 1) % max);
+          return;
+        }
+        if (e.key === "ArrowUp" && max) {
+          e.preventDefault();
+          setActiveSuggest(activeSuggestIndex <= 0 ? max - 1 : activeSuggestIndex - 1);
+          return;
+        }
+        if (e.key === "Tab" && activeSuggestIndex >= 0 && currentSuggestions[activeSuggestIndex]) {
+          e.preventDefault();
+          applySuggestion(currentSuggestions[activeSuggestIndex].query);
+          return;
+        }
         if (e.key === "Enter") {
           e.preventDefault();
-          goSearch(input.value);
+          if (activeSuggestIndex >= 0 && currentSuggestions[activeSuggestIndex]) {
+            goSearch(currentSuggestions[activeSuggestIndex].query);
+          } else {
+            goSearch(input.value);
+          }
         }
       });
     }
@@ -1609,6 +1739,24 @@
         return;
       }
 
+      var fillBtn = e.target.closest("[data-search-suggest-fill]");
+      if (fillBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        applySuggestion(fillBtn.getAttribute("data-search-suggest-fill") || "");
+        if (input) input.focus();
+        return;
+      }
+
+      var suggestBtn = e.target.closest("[data-search-suggest]");
+      if (suggestBtn) {
+        e.preventDefault();
+        var sq = suggestBtn.getAttribute("data-search-suggest") || "";
+        if (input) input.value = sq;
+        goSearch(sq);
+        return;
+      }
+
       var result = e.target.closest("[data-search-result]");
       if (result) {
         e.preventDefault();
@@ -1628,6 +1776,227 @@
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && isOpen) close();
     });
+  }
+
+  function addVocabTerm(map, term, weight) {
+    var raw = String(term || "").trim();
+    if (!raw || raw.length < 2) return;
+    var key = azFold(raw);
+    if (key.length < 2) return;
+    if (!map[key] || map[key].weight < weight) {
+      map[key] = { label: raw, weight: weight };
+    }
+  }
+
+  function buildSearchVocabulary(products) {
+    if (vocabCache) return vocabCache;
+    var map = {};
+
+    SEARCH_LEXICON.forEach(function (term) {
+      addVocabTerm(map, term, 80);
+    });
+
+    POPULAR_PICKS.forEach(function (item) {
+      addVocabTerm(map, item.label, 70);
+      addVocabTerm(map, item.query, 70);
+    });
+
+    Object.keys(VISUAL_SYNONYMS).forEach(function (key) {
+      addVocabTerm(map, key, 60);
+      VISUAL_SYNONYMS[key].forEach(function (syn) {
+        addVocabTerm(map, syn, 40);
+      });
+    });
+
+    (products || []).forEach(function (p) {
+      addVocabTerm(map, p.cat, 55);
+      addVocabTerm(map, p.vendor_name, 45);
+      tokenize(p.name || "").forEach(function (tok) {
+        if (tok.length >= 3) addVocabTerm(map, tok, 50);
+      });
+      var name = String(p.name || "").trim();
+      if (name.length >= 3 && name.length <= 48) addVocabTerm(map, name, 35);
+    });
+
+    readRecent().forEach(function (q) {
+      addVocabTerm(map, q, 65);
+    });
+
+    vocabCache = Object.keys(map).map(function (key) {
+      return { key: key, label: map[key].label, weight: map[key].weight };
+    });
+
+    // Kateqoriyaları arxa planda əlavə et (növbəti axtarışda görünəcək)
+    if (window.BizdevarAPI && typeof BizdevarAPI.categories === "function") {
+      BizdevarAPI.categories()
+        .then(function (data) {
+          var cats = (data && data.categories) || data || [];
+          if (!Array.isArray(cats)) return;
+          cats.forEach(function (c) {
+            addVocabTerm(map, c.name || c.slug, 75);
+          });
+          vocabCache = Object.keys(map).map(function (key) {
+            return { key: key, label: map[key].label, weight: map[key].weight };
+          });
+        })
+        .catch(function () {
+          /* ignore */
+        });
+    }
+
+    return vocabCache;
+  }
+
+  function highlightSuggest(label, query) {
+    var text = String(label || "");
+    var q = String(query || "").trim();
+    if (!q) return esc(text);
+
+    var foldText = azFold(text);
+    var foldQ = azFold(q);
+    var idx = foldText.indexOf(foldQ);
+    if (idx === -1) return esc(text);
+
+    // Map folded index back to original string length approximately by walking
+    var origStart = 0;
+    var foldPos = 0;
+    while (origStart < text.length && foldPos < idx) {
+      var chFold = azFold(text.charAt(origStart));
+      foldPos += chFold.length;
+      origStart += 1;
+    }
+    var origEnd = origStart;
+    var matched = 0;
+    while (origEnd < text.length && matched < foldQ.length) {
+      var part = azFold(text.charAt(origEnd));
+      matched += part.length;
+      origEnd += 1;
+    }
+
+    return (
+      esc(text.slice(0, origStart)) +
+      "<mark>" +
+      esc(text.slice(origStart, origEnd)) +
+      "</mark>" +
+      esc(text.slice(origEnd))
+    );
+  }
+
+  function buildSuggestions(query, products) {
+    var q = String(query || "").trim();
+    var foldQ = azFold(q);
+    if (foldQ.length < 1) return [];
+
+    var vocab = buildSearchVocabulary(products);
+    var scored = [];
+
+    vocab.forEach(function (item) {
+      if (item.key === foldQ) return;
+      var score = 0;
+      if (item.key.indexOf(foldQ) === 0) {
+        score = 1000 + item.weight * 2 - Math.min(item.key.length, 24);
+        // Qısa prefix-də (te → telefon) tipik məhsul sözlərini yuxarı qaldır
+        if (foldQ.length <= 3 && item.key.length >= 6 && item.key.length <= 14) {
+          score += 160;
+        }
+        if (
+          foldQ.length <= 3 &&
+          /^(telefon|televizor|tablet|smartfon|noutbuk|qulaqliq|elektronika|kosmetika)/.test(
+            item.key
+          )
+        ) {
+          score += 200;
+        }
+      } else if (item.key.indexOf(foldQ) !== -1) {
+        score = 400 + item.weight - item.key.indexOf(foldQ) * 10;
+      } else {
+        return;
+      }
+      scored.push({
+        label: item.label,
+        query: item.label,
+        score: score,
+      });
+    });
+
+    // Synonym boost: "te" → telefon/televizor via lexicon already;
+    // also surface related brand terms if query expands
+    Object.keys(VISUAL_SYNONYMS).forEach(function (key) {
+      if (key.indexOf(foldQ) === 0 || foldQ.indexOf(key) === 0) {
+        scored.push({
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+          query: key,
+          score: 900 + (key.indexOf(foldQ) === 0 ? 50 : 0),
+        });
+      }
+    });
+
+    scored.sort(function (a, b) {
+      return b.score - a.score || a.label.length - b.label.length;
+    });
+
+    var seen = {};
+    var out = [];
+    scored.forEach(function (s) {
+      var k = azFold(s.query);
+      if (seen[k] || k === foldQ) return;
+      seen[k] = true;
+      out.push(s);
+    });
+    return out.slice(0, 8);
+  }
+
+  function matchProducts(query, products) {
+    var foldQ = azFold(query);
+    if (!foldQ) return [];
+
+    var tokens = expandTokens(tokenize(query));
+    if (!tokens.length) tokens = [foldQ];
+
+    return products
+      .map(function (p) {
+        var hay = productHaystack(p);
+        var nameFold = azFold(p.name || "");
+        var score = 0;
+
+        if (nameFold.indexOf(foldQ) === 0) score += 120;
+        else if (nameFold.indexOf(foldQ) !== -1) score += 80;
+        if (hay.indexOf(foldQ) !== -1) score += 40;
+
+        tokens.forEach(function (t) {
+          if (hay.indexOf(t) !== -1) score += t.length >= 4 ? 18 : 10;
+        });
+
+        return { product: p, score: score };
+      })
+      .filter(function (row) {
+        return row.score > 0;
+      })
+      .sort(function (a, b) {
+        return b.score - a.score;
+      })
+      .map(function (row) {
+        return row.product;
+      });
+  }
+
+  function setActiveSuggest(index) {
+    activeSuggestIndex = index;
+    if (!overlay) return;
+    overlay.querySelectorAll("[data-search-suggest]").forEach(function (el, i) {
+      if (i === index) el.classList.add("is-active");
+      else el.classList.remove("is-active");
+    });
+  }
+
+  function applySuggestion(query) {
+    var q = String(query || "").trim();
+    if (!q || !input) return;
+    input.value = q;
+    var clearBtn = document.getElementById("search-popup-clear");
+    if (clearBtn) clearBtn.removeAttribute("hidden");
+    activeSuggestIndex = -1;
+    renderResults(q);
   }
 
   function renderIdleState() {
@@ -1698,6 +2067,9 @@
     var foot = document.getElementById("search-popup-foot");
     if (!body) return;
 
+    activeSuggestIndex = -1;
+    currentSuggestions = [];
+
     body.innerHTML =
       '<div class="search-popup__loading">' +
       '<span class="search-popup__spinner" aria-hidden="true"></span>' +
@@ -1707,14 +2079,11 @@
     getProducts().then(function (products) {
       if (!isOpen || !input || input.value.trim() !== query) return;
 
-      var lower = query.toLowerCase();
-      var found = products.filter(function (p) {
-        var name = (p.name || "").toLowerCase();
-        var cat = (p.cat || "").toLowerCase();
-        return name.indexOf(lower) !== -1 || cat.indexOf(lower) !== -1;
-      });
+      var suggestions = buildSuggestions(query, products);
+      var found = matchProducts(query, products);
+      currentSuggestions = suggestions;
 
-      if (!found.length) {
+      if (!suggestions.length && !found.length) {
         if (foot) foot.setAttribute("hidden", "");
         body.innerHTML =
           '<div class="search-popup__empty">' +
@@ -1727,44 +2096,91 @@
         return;
       }
 
-      var limited = found.slice(0, 6);
-      body.innerHTML =
-        '<div class="search-popup__results">' +
-        '<p class="search-popup__results-meta">' +
-        esc(String(found.length)) +
-        " nəticə tapıldı</p>" +
-        '<ul class="search-popup__result-list">' +
-        limited
-          .map(function (p) {
-            var img = productImage(p);
-            return (
-              '<li><button type="button" class="search-popup__result" data-search-result="' +
-              escAttr(p.name) +
-              '">' +
-              '<span class="search-popup__result-media">' +
-              (img
-                ? '<img src="' + escAttr(img) + '" alt="" loading="lazy" />'
-                : '<span class="search-popup__result-placeholder" aria-hidden="true">📦</span>') +
-              "</span>" +
-              '<span class="search-popup__result-body">' +
-              '<span class="search-popup__result-cat">' +
-              esc(p.cat) +
-              "</span>" +
-              '<span class="search-popup__result-name">' +
-              esc(p.name) +
-              "</span>" +
-              '<span class="search-popup__result-price">' +
-              esc(formatPrice(p.price)) +
-              "</span>" +
-              "</span>" +
-              '<svg class="search-popup__result-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>' +
-              "</button></li>"
-            );
-          })
-          .join("") +
-        "</ul></div>";
+      var suggestHtml = "";
+      if (suggestions.length) {
+        suggestHtml =
+          '<section class="search-popup__section search-popup__section--suggest">' +
+          '<div class="search-popup__section-head">' +
+          '<h3 class="search-popup__section-title"><span aria-hidden="true">✨</span> Təkliflər</h3>' +
+          "</div>" +
+          '<ul class="search-popup__suggest-list" role="listbox" aria-label="Axtarış təklifləri">' +
+          suggestions
+            .map(function (s, i) {
+              return (
+                '<li role="option">' +
+                '<button type="button" class="search-popup__suggest" data-search-suggest="' +
+                escAttr(s.query) +
+                '" data-suggest-index="' +
+                i +
+                '">' +
+                '<span class="search-popup__suggest-ico" aria-hidden="true">' +
+                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>' +
+                "</span>" +
+                '<span class="search-popup__suggest-text">' +
+                highlightSuggest(s.label, query) +
+                "</span>" +
+                '<span class="search-popup__suggest-fill" aria-hidden="true" data-search-suggest-fill="' +
+                escAttr(s.query) +
+                '">' +
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>' +
+                "</span>" +
+                "</button></li>"
+              );
+            })
+            .join("") +
+          "</ul></section>";
+      }
 
-      if (foot) foot.removeAttribute("hidden");
+      var productsHtml = "";
+      if (found.length) {
+        var limited = found.slice(0, 6);
+        productsHtml =
+          '<section class="search-popup__section">' +
+          '<div class="search-popup__section-head">' +
+          '<h3 class="search-popup__section-title"><span aria-hidden="true">📦</span> Məhsullar</h3>' +
+          '<span class="search-popup__results-meta">' +
+          esc(String(found.length)) +
+          " nəticə</span>" +
+          "</div>" +
+          '<ul class="search-popup__result-list">' +
+          limited
+            .map(function (p) {
+              var img = productImage(p);
+              return (
+                '<li><button type="button" class="search-popup__result" data-search-result="' +
+                escAttr(p.name) +
+                '">' +
+                '<span class="search-popup__result-media">' +
+                (img
+                  ? '<img src="' + escAttr(img) + '" alt="" loading="lazy" />'
+                  : '<span class="search-popup__result-placeholder" aria-hidden="true">📦</span>') +
+                "</span>" +
+                '<span class="search-popup__result-body">' +
+                '<span class="search-popup__result-cat">' +
+                esc(p.cat) +
+                "</span>" +
+                '<span class="search-popup__result-name">' +
+                esc(p.name) +
+                "</span>" +
+                '<span class="search-popup__result-price">' +
+                esc(formatPrice(p.price)) +
+                "</span>" +
+                "</span>" +
+                '<svg class="search-popup__result-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>' +
+                "</button></li>"
+              );
+            })
+            .join("") +
+          "</ul></section>";
+      }
+
+      body.innerHTML =
+        '<div class="search-popup__results">' + suggestHtml + productsHtml + "</div>";
+
+      if (foot) {
+        if (found.length) foot.removeAttribute("hidden");
+        else foot.setAttribute("hidden", "");
+      }
     });
   }
 
