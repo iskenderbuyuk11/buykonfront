@@ -45,6 +45,37 @@
     return data;
   }
 
+  function phpOtpUrl() {
+    try {
+      var path = window.location.pathname || "";
+      if (path.indexOf("/adminpanel") >= 0) return "../api/admin-otp.php";
+    } catch (e) {}
+    return "/api/admin-otp.php";
+  }
+
+  function phpOtp(body) {
+    return fetch(phpOtpUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      credentials: "include",
+      body: JSON.stringify(body || {}),
+    }).then(function (res) {
+      return res
+        .json()
+        .catch(function () {
+          return {};
+        })
+        .then(function (data) {
+          if (!res.ok) {
+            var err = new Error((data && data.error) || "OTP xətası");
+            err.status = res.status;
+            throw err;
+          }
+          return data;
+        });
+    });
+  }
+
   window.BizdeAdminAPI = {
     baseUrl: API_BASE,
 
@@ -53,49 +84,25 @@
     },
 
     requestOtp: function (email, password) {
-      var body = { email: email };
+      var body = { action: "request", email: email };
       if (password) body.password = password;
-      // Satıcı OTP kimi: PHP SMTP göndərir (Java yalnız kodu saxlayır)
-      var phpUrl = (function () {
-        try {
-          var path = window.location.pathname || "";
-          if (path.indexOf("/adminpanel") >= 0) return "../api/admin-otp.php";
-        } catch (e) {}
-        return "/api/admin-otp.php";
-      })();
-      return fetch(phpUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify(body),
-      }).then(function (res) {
-        return res
-          .json()
-          .catch(function () {
-            return {};
-          })
-          .then(function (data) {
-            if (!res.ok) {
-              var err = new Error((data && data.error) || "OTP göndərilmədi");
-              err.status = res.status;
-              throw err;
-            }
-            return data;
-          });
-      });
+      return phpOtp(body);
     },
 
     verifyOtp: function (email, code) {
-      return request("/auth/admin/verify-otp", { method: "POST", body: { email: email, code: code } }).then(function (data) {
+      return phpOtp({ action: "verify", email: email, code: code }).then(function (data) {
         if (data.logged_in) return assertAdminSession(data);
         return data;
       });
     },
 
     setPassword: function (email, code, password, passwordConfirm) {
-      return request("/auth/admin/set-password", {
-        method: "POST",
-        body: { email: email, code: code, password: password, password_confirm: passwordConfirm },
+      return phpOtp({
+        action: "set-password",
+        email: email,
+        code: code,
+        password: password,
+        password_confirm: passwordConfirm,
       }).then(assertAdminSession);
     },
 
