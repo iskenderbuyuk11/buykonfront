@@ -2239,6 +2239,17 @@ body.dark .wheel-note {
   border-radius: 16px;
   background: var(--surface, #fff);
   overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.22s ease, transform 0.22s ease;
+}
+
+.settings-block:hover {
+  border-color: rgba(234, 88, 12, 0.28);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.settings-block.is-open {
+  border-color: rgba(234, 88, 12, 0.35);
+  box-shadow: 0 12px 28px rgba(234, 88, 12, 0.08);
 }
 
 .settings-block__toggle {
@@ -2254,11 +2265,11 @@ body.dark .wheel-note {
   text-align: left;
   font: inherit;
   color: var(--text);
-  transition: background 0.15s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .settings-block__toggle:hover {
-  background: #f1f5f9;
+  background: #fff7ed;
 }
 
 .settings-block.is-open .settings-block__toggle {
@@ -2276,6 +2287,12 @@ body.dark .wheel-note {
 .settings-block__titles strong {
   font-size: 17px;
   font-weight: 800;
+  transition: color 0.2s ease;
+}
+
+.settings-block__toggle:hover .settings-block__titles strong,
+.settings-block.is-open .settings-block__titles strong {
+  color: #c2410c;
 }
 
 .settings-block__titles small {
@@ -2285,22 +2302,48 @@ body.dark .wheel-note {
 }
 
 .settings-block__chevron {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
   color: var(--muted);
-  transition: transform 0.18s ease;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
   flex-shrink: 0;
+}
+
+.settings-block__toggle:hover .settings-block__chevron {
+  border-color: rgba(234, 88, 12, 0.35);
+  color: #ea580c;
 }
 
 .settings-block.is-open .settings-block__chevron {
   transform: rotate(180deg);
   color: #ea580c;
+  background: #fff7ed;
+  border-color: rgba(234, 88, 12, 0.4);
 }
 
 .settings-block__body {
   padding: 16px 18px 18px;
+  animation: settingsBodyIn 0.28s ease both;
 }
 
 .settings-block__body[hidden] {
   display: none !important;
+}
+
+@keyframes settingsBodyIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .settings-block__toolbar {
@@ -2308,6 +2351,16 @@ body.dark .wheel-note {
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-block,
+  .settings-block__toggle,
+  .settings-block__chevron,
+  .settings-block__body {
+    transition: none;
+    animation: none;
+  }
 }
 
 .terms-meta {

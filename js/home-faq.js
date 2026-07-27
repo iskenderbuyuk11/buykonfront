@@ -11,6 +11,35 @@
       .replace(/"/g, "&quot;");
   }
 
+  function setOpen(item, open) {
+    if (!item) return;
+    var btn = item.querySelector(".home-faq__q");
+    item.classList.toggle("is-open", open);
+    if (btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function bindAccordion(list) {
+    list.querySelectorAll(".home-faq__q").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var item = btn.closest(".home-faq__item");
+        var willOpen = !item.classList.contains("is-open");
+        list.querySelectorAll(".home-faq__item.is-open").forEach(function (openItem) {
+          if (openItem !== item) setOpen(openItem, false);
+        });
+        setOpen(item, willOpen);
+      });
+    });
+  }
+
+  function playEnter(root) {
+    root.classList.remove("is-ready");
+    // reflow — stagger animasiyanı yenidən işə salır
+    void root.offsetWidth;
+    requestAnimationFrame(function () {
+      root.classList.add("is-ready");
+    });
+  }
+
   function render(data) {
     var root = document.getElementById("homeFaq");
     var list = document.getElementById("homeFaqList");
@@ -34,6 +63,7 @@
 
     if (!faq.items || !faq.items.length) {
       root.hidden = true;
+      root.classList.remove("is-ready");
       return;
     }
 
@@ -43,7 +73,9 @@
         return (
           '<div class="home-faq__item" id="home-faq-' +
           i +
-          '">' +
+          '" style="--i:' +
+          i +
+          '" role="listitem">' +
           '<button type="button" class="home-faq__q" aria-expanded="false" aria-controls="home-faq-a-' +
           i +
           '">' +
@@ -51,32 +83,16 @@
           "</button>" +
           '<div class="home-faq__a" id="home-faq-a-' +
           i +
-          '" hidden><p>' +
+          '"><div class="home-faq__a-inner"><p>' +
           esc(item.a) +
-          "</p></div>" +
+          "</p></div></div>" +
           "</div>"
         );
       })
       .join("");
 
-    list.querySelectorAll(".home-faq__q").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var item = btn.closest(".home-faq__item");
-        var panel = item.querySelector(".home-faq__a");
-        var willOpen = !item.classList.contains("is-open");
-        list.querySelectorAll(".home-faq__item.is-open").forEach(function (openItem) {
-          if (openItem === item) return;
-          openItem.classList.remove("is-open");
-          var ob = openItem.querySelector(".home-faq__q");
-          var op = openItem.querySelector(".home-faq__a");
-          if (ob) ob.setAttribute("aria-expanded", "false");
-          if (op) op.hidden = true;
-        });
-        item.classList.toggle("is-open", willOpen);
-        btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
-        if (panel) panel.hidden = !willOpen;
-      });
-    });
+    bindAccordion(list);
+    playEnter(root);
   }
 
   function fromApiPayload(payload) {
