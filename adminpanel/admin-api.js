@@ -55,7 +55,34 @@
     requestOtp: function (email, password) {
       var body = { email: email };
       if (password) body.password = password;
-      return request("/auth/admin/request-otp", { method: "POST", body: body });
+      // Satıcı OTP kimi: PHP SMTP göndərir (Java yalnız kodu saxlayır)
+      var phpUrl = (function () {
+        try {
+          var path = window.location.pathname || "";
+          if (path.indexOf("/adminpanel") >= 0) return "../api/admin-otp.php";
+        } catch (e) {}
+        return "/api/admin-otp.php";
+      })();
+      return fetch(phpUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(body),
+      }).then(function (res) {
+        return res
+          .json()
+          .catch(function () {
+            return {};
+          })
+          .then(function (data) {
+            if (!res.ok) {
+              var err = new Error((data && data.error) || "OTP göndərilmədi");
+              err.status = res.status;
+              throw err;
+            }
+            return data;
+          });
+      });
     },
 
     verifyOtp: function (email, code) {

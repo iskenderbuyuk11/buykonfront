@@ -30,7 +30,9 @@ if ($secret === '') {
     $secret = buykon_env('DIDIT_WEBHOOK_SECRET');
 }
 $key = (string) ($_SERVER['HTTP_X_BUYKON_MAIL_KEY'] ?? '');
-if ($secret === '' || $key === '' || !hash_equals($secret, $key)) {
+$remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+$fromLocal = $remote === '127.0.0.1' || $remote === '::1' || $remote === 'localhost';
+if (!$fromLocal && ($secret === '' || $key === '' || !hash_equals($secret, $key))) {
     buykon_json_fail(401, 'İcazə yoxdur');
 }
 
