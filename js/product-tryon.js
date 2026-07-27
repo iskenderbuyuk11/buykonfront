@@ -48,7 +48,10 @@
     if (cfg && typeof cfg.resolveTryOnUrl === "function") {
       return cfg.resolveTryOnUrl();
     }
-    return getRoot() + "api/try-on.php";
+    var api =
+      (window.BizdevarSiteConfig && window.BizdevarSiteConfig.resolveApiBase()) ||
+      "https://api.buykon.com/api";
+    return String(api).replace(/\/+$/, "") + "/ai/try-on";
   }
 
   function isClothing(product) {

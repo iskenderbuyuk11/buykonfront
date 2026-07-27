@@ -13,19 +13,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="../sellerpanel/seller.css" />
-    <link rel="stylesheet" href="register-simple.css?v=2" />
-    <script src="../sellerpanel/seller-api.js?v=13"></script>
+    <link rel="stylesheet" href="register-simple.css?v=3" />
+    <script src="../sellerpanel/seller-api.js?v=14"></script>
   </head>
   <body class="login-page" data-root="../">
     <div class="login-wrap">
       <section class="login-hero">
         <div class="login-hero__badge"><i class="fa-solid fa-store"></i> Satıcı mərkəzi</div>
         <h1>Buykon ilə satışa başlayın</h1>
-        <p>Sadə qeydiyyat — e-poçt təsdiqi, şəxsiyyət yoxlaması və admin təsdiqindən sonra mağazanız aktiv olur.</p>
+        <p>Sadə qeydiyyat — e-poçt təsdiqi və admin təsdiqindən sonra mağazanız aktiv olur.</p>
         <ul class="login-hero__list">
           <li><i class="fa-solid fa-id-card"></i> VÖEN-li və ya VÖEN-siz hesab</li>
           <li><i class="fa-solid fa-envelope-circle-check"></i> E-poçt OTP təsdiqi</li>
-          <li><i class="fa-solid fa-fingerprint"></i> Didit şəxsiyyət təsdiqi (KYC)</li>
           <li><i class="fa-solid fa-shield-halved"></i> Admin təsdiqindən sonra giriş</li>
         </ul>
       </section>
@@ -147,7 +146,7 @@
             </div>
           </div>
           <button class="btn btn--primary btn--block" type="button" id="btnVerifyOtp">
-            <i class="fa-solid fa-fingerprint"></i> Təsdiqlə və şəxsiyyət yoxlamasına keç
+            <i class="fa-solid fa-paper-plane"></i> Təsdiqlə və müraciət göndər
           </button>
           <button class="btn btn--ghost btn--block" type="button" id="btnResendOtp" style="margin-top:8px" disabled>
             Yenidən göndər <span id="otpTimer"></span>
@@ -155,31 +154,7 @@
           <button class="btn btn--ghost btn--block" type="button" id="btnBackDetails" style="margin-top:8px">Geri</button>
         </div>
 
-        <!-- 4. KYC status -->
-        <div class="modal-form" id="stepKyc" hidden>
-          <div class="reg-kyc-card" id="kycCard">
-            <div class="reg-kyc-card__head">
-              <span class="reg-kyc-card__icon" id="kycStatusIcon"><i class="fa-solid fa-id-card"></i></span>
-              <div>
-                <strong id="kycStatusTitle">Şəxsiyyət təsdiqi</strong>
-                <p id="kycStatusText">Didit yoxlamasının nəticəsi gözlənilir…</p>
-              </div>
-            </div>
-            <p class="reg-kyc-reason" id="kycReason" hidden></p>
-            <button class="btn btn--primary btn--block" type="button" id="btnSubmitApp" disabled>
-              <i class="fa-solid fa-paper-plane"></i> Müraciəti göndər
-            </button>
-            <button class="btn btn--ghost btn--block" type="button" id="btnKycRefresh" style="margin-top:8px">
-              <i class="fa-solid fa-arrows-rotate"></i> Statusu yenilə
-            </button>
-            <button class="btn btn--ghost btn--block" type="button" id="btnKycRetry" style="margin-top:8px" hidden>
-              <i class="fa-solid fa-fingerprint"></i> Yenidən yoxla
-            </button>
-            <button class="btn btn--ghost btn--block" type="button" id="btnBackFromKyc" style="margin-top:8px">Geri</button>
-          </div>
-        </div>
-
-        <!-- 5. Success -->
+        <!-- 4. Success -->
         <div class="modal-form" id="stepSuccess" hidden>
           <div class="reg-success">
             <span class="reg-success__icon"><i class="fa-solid fa-circle-check"></i></span>
@@ -201,6 +176,6 @@
       </form>
     </div>
 
-    <script src="register.js?v=14"></script>
+    <script src="register.js?v=15"></script>
   </body>
 </html>

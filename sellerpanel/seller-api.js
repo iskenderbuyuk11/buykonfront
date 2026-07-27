@@ -172,86 +172,6 @@
     });
   }
 
-  /** Same-origin PHP OTP — Java 404 olduqda SMTP ilə göndərir */
-  function resolveLocalOtpUrl() {
-    var body = typeof document !== "undefined" ? document.body : null;
-    var root = body && body.getAttribute("data-root");
-    if (root != null) {
-      root = String(root);
-      if (root && root.slice(-1) !== "/") root += "/";
-      return root + "api/seller-otp.php";
-    }
-    var path = (typeof window !== "undefined" && window.location && window.location.pathname) || "/";
-    var m = path.match(/^(.*?)\/(buykonbusiness|sellerpanel|adminpanel)(\/|$)/i);
-    if (m) return m[1] + "/api/seller-otp.php";
-    return "/api/seller-otp.php";
-  }
-
-  function resolveLocalKycUrl() {
-    return String(resolveLocalOtpUrl()).replace(/seller-otp\.php$/i, "seller-kyc.php");
-  }
-
-  function localRegisterOtp(action, email, code) {
-    var body = { action: action, email: email, purpose: "seller_register" };
-    if (code) body.code = code;
-    return fetch(resolveLocalOtpUrl(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      credentials: "same-origin",
-      body: JSON.stringify(body),
-    }).then(function (res) {
-      return res
-        .json()
-        .catch(function () {
-          return {};
-        })
-        .then(function (data) {
-          if (!res.ok || (data && data.ok === false)) {
-            var err = new Error((data && data.error) || "OTP xətası");
-            err.status = res.status;
-            err.payload = data;
-            throw err;
-          }
-          return data;
-        });
-    });
-  }
-
-  function localSellerKyc(action, payload) {
-    var body = Object.assign({ action: action }, payload || {});
-    var url = resolveLocalKycUrl();
-    var opts = {
-      method: action === "status" ? "GET" : "POST",
-      headers: { Accept: "application/json" },
-      credentials: "same-origin",
-    };
-    if (action === "status") {
-      url +=
-        (url.indexOf("?") >= 0 ? "&" : "?") +
-        "action=status&token=" +
-        encodeURIComponent((payload && payload.token) || "");
-    } else {
-      opts.headers["Content-Type"] = "application/json";
-      opts.body = JSON.stringify(body);
-    }
-    return fetch(url, opts).then(function (res) {
-      return res
-        .json()
-        .catch(function () {
-          return {};
-        })
-        .then(function (data) {
-          if (!res.ok || (data && data.ok === false && !data.url && !data.kyc_token)) {
-            var err = new Error((data && data.error) || "KYC xətası");
-            err.status = res.status;
-            err.payload = data;
-            throw err;
-          }
-          return data;
-        });
-    });
-  }
-
   window.BuykonSellerAPI = window.BizdeSellerAPI = {
     baseUrl: API_BASE,
     loginUrl: sellerLoginUrl,
@@ -331,95 +251,20 @@
       return request("/auth/seller-register", { method: "POST", body: payload });
     },
 
-    /** Satıcı Didit KYC — Java əvvəl, 404/offline olsa PHP Didit */
-    createSellerKycSession: function (email, otpProof) {
-      var body = { email: email };
-      if (otpProof) body.otp_proof = otpProof;
-      return request("/auth/seller/kyc/session", {
-        method: "POST",
-        body: body,
-      }).catch(function (javaErr) {
-        return localSellerKyc("session", body).catch(function (phpErr) {
-          var msg = (phpErr && phpErr.message) || (javaErr && javaErr.message) || "KYC sessiyası açılmadı";
-          if (/tapilmadi|not found|404/i.test(String(msg))) {
-            msg = "KYC servisi cavab vermədi. Səhifəni yeniləyib yenidən yoxlayın (seller-api / seller-kyc).";
-          }
-          var err = new Error(msg);
-          err.status = (phpErr && phpErr.status) || (javaErr && javaErr.status);
-          throw err;
-        });
-      });
-    },
-
-    /** Satıcı Didit KYC status — PHP (Didit decision pull) + Java; təsdiqlənmişi üstün tut */
-    sellerKycStatus: function (token) {
-      function statusRank(data) {
-        var s = String((data && (data.status || data.kyc_status)) || "")
-          .toLowerCase()
-          .replace(/[\s-]+/g, "_");
-        if (s === "approved" || s === "verified" || s === "completed" || s === "complete") return 4;
-        if (s === "declined" || s === "rejected" || s === "failed" || s === "abandoned") return 4;
-        if (s.indexOf("review") >= 0) return 3;
-        if (s === "expired" || s === "kyc_expired") return 3;
-        if (s === "in_progress" || s === "awaiting_user" || s === "resubmitted") return 2;
-        return 1;
-      }
-      var phpP = localSellerKyc("status", { token: token }).catch(function () {
-        return null;
-      });
-      var javaP = request("/auth/seller/kyc/status?token=" + encodeURIComponent(token || "")).catch(function () {
-        return null;
-      });
-      return Promise.all([phpP, javaP]).then(function (pair) {
-        var phpData = pair[0];
-        var javaData = pair[1];
-        if (!phpData && !javaData) {
-          var err = new Error("KYC statusu alınmadı");
-          throw err;
-        }
-        if (!phpData) return javaData;
-        if (!javaData) return phpData;
-        return statusRank(phpData) >= statusRank(javaData) ? phpData : javaData;
-      });
-    },
-
-    /** PHP KYC-ni Java MySQL-ə yaz (admin + register üçün) */
-    importSellerKyc: function (payload) {
-      return request("/auth/seller/kyc/import", {
-        method: "POST",
-        body: payload || {},
-      }).catch(function (javaErr) {
-        return localSellerKyc("import-java", {
-          token: (payload && (payload.token || payload.kyc_token)) || "",
-        }).catch(function () {
-          throw javaErr;
-        });
-      });
-    },
-
     /**
-     * Satıcı qeydiyyatı e-poçt OTP
-     * PHP eyni SMTP ilə göndərir; içində Java API-yə cəhd + 404 fallback var
+     * Satıcı qeydiyyatı e-poçt OTP — Java /auth/email/*
      */
     requestRegisterOtp: function (email) {
-      return localRegisterOtp("send", email).catch(function (phpErr) {
-        return request("/auth/email/request-otp", {
-          method: "POST",
-          body: { email: email, purpose: "seller_register" },
-        }).catch(function () {
-          throw phpErr;
-        });
+      return request("/auth/email/request-otp", {
+        method: "POST",
+        body: { email: email, purpose: "seller_register" },
       });
     },
 
     verifyRegisterOtp: function (email, code) {
-      return localRegisterOtp("verify", email, code).catch(function (phpErr) {
-        return request("/auth/email/verify-otp", {
-          method: "POST",
-          body: { email: email, code: code, purpose: "seller_register" },
-        }).catch(function () {
-          throw phpErr;
-        });
+      return request("/auth/email/verify-otp", {
+        method: "POST",
+        body: { email: email, code: code, purpose: "seller_register" },
       });
     },
 

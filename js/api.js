@@ -343,14 +343,6 @@
       return request("/profile");
     },
 
-    kycStatus: function () {
-      return request("/kyc/status");
-    },
-
-    kycCreateSession: function () {
-      return request("/kyc/session", { method: "POST", body: {} });
-    },
-
     profileUpdate: function (payload) {
       return request("/profile", { method: "PUT", body: payload });
     },

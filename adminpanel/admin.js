@@ -320,31 +320,6 @@
       alerts += '<div class="product-alert product-alert--danger"><i class="fa-solid fa-circle-xmark"></i><div><strong>Rədd səbəbi</strong><span>' + esc(v.rejection_reason) + "</span></div></div>";
     }
 
-    var kyc = v.kyc || {};
-    var kycMissing = !kyc.status || kyc.status === "missing";
-    var kycRows = kycMissing
-      ? metaRow("Status", badge("KYC yoxdur", "danger")) +
-        '<div class="empty-inline" style="grid-column:1/-1;padding:8px 0">Didit şəxsiyyət məlumatı tapılmadı — satıcı KYC tamamlamayıb və ya token bağlanmayıb.</div>'
-      : metaRow("Status", badge(normalizeLabel(kyc.status_label || kyc.status || "—"), kyc.status_type || "info")) +
-        metaRow("Didit status", esc(kyc.didit_status || "—")) +
-        metaRow("Ad", esc(kyc.first_name || "—")) +
-        metaRow("Soyad", esc(kyc.last_name || "—")) +
-        metaRow("Tam ad", esc(kyc.full_name || "—")) +
-        metaRow("Doğum tarixi", esc(kyc.date_of_birth || "—")) +
-        metaRow("Sənəd növü", esc(kyc.document_type || "—")) +
-        metaRow("Sənəd nömrəsi", esc(kyc.document_number || "—")) +
-        metaRow("Milliyyət", esc(kyc.nationality || "—")) +
-        metaRow("Cins", esc(kyc.gender || "—")) +
-        metaRow("Verən ölkə", esc(kyc.issuing_state_name || kyc.issuing_state || "—")) +
-        metaRow("Verilmə tarixi", esc(kyc.date_of_issue || "—")) +
-        metaRow("Bitmə tarixi", esc(kyc.expiration_date || "—")) +
-        metaRow("Doğulduğu yer", esc(kyc.place_of_birth || "—")) +
-        metaRow("Ünvan", esc(kyc.address || "—")) +
-        (kyc.liveness_score != null ? metaRow("Liveness", esc(String(kyc.liveness_score))) : metaRow("Liveness", "—")) +
-        (kyc.face_match_score != null ? metaRow("Face match", esc(String(kyc.face_match_score))) : metaRow("Face match", "—")) +
-        metaRow("Təsdiq tarixi", esc(kyc.verified_at || "—")) +
-        metaRow("Didit session", esc(kyc.session_id || "—"));
-
     var voenDisplay = v.voen || "—";
     if ((v.store_type === "voenli" || /voen/i.test(String(v.store_type_label || ""))) && !v.voen) {
       voenDisplay = "— (daxil edilməyib)";
@@ -357,7 +332,6 @@
       '<div class="product-detail__badges">' +
       badge(normalizeLabel(v.status_label || v.status), v.status_type || "info") +
       badge(normalizeLabel(v.verification_label || v.verification_status), v.verification_type || "warning") +
-      badge(normalizeLabel(kyc.status_label || "KYC"), kyc.status_type || "info") +
       "</div>" +
       "<h3 class=\"product-detail__name\">" + esc(v.name || "—") + "</h3>" +
       '<p class="vendor-detail__sub">' + esc(v.store_type_label || v.store_type || "—") + " · " + esc(v.category || "—") + "</p>" +
@@ -378,9 +352,6 @@
         '<a href="' + esc(v.login_url || "https://buykon.com/sellerpanel/login.html") +
         '" target="_blank" rel="noopener">buykon.com/sellerpanel/login.html</a>') +
       (v.store_slug ? metaRow("Mağaza slug", esc(v.store_slug)) : "") +
-      "</dl></section>" +
-      '<section class="vendor-detail__card vendor-detail__card--wide"><h3><i class="fa-solid fa-fingerprint"></i> Şəxsiyyət təsdiqi (Didit)</h3><dl class="product-meta">' +
-      kycRows +
       "</dl></section>" +
       '<section class="vendor-detail__card"><h3><i class="fa-solid fa-store"></i> Mağaza məlumatları</h3><dl class="product-meta">' +
       metaRow("Mağaza adı", esc(v.name || "—")) +
@@ -1861,47 +1832,7 @@
       return;
     }
     if (action === "vendor-detail" && id) {
-      var loadVendor = function (forceSync) {
-        var start = forceSync
-          ? Promise.resolve(null)
-          : BizdeAdminAPI.vendor(id);
-        return start.then(function (r) {
-          var v = (r && r.vendor) || {};
-          var kyc = v.kyc || {};
-          var missing = !v.id || !kyc.status || kyc.status === "missing"
-            || (!kyc.first_name && !kyc.document_number && kyc.status !== "approved");
-          if (!forceSync && v.id && missing) {
-            // 1) PHP storage-dan e-poçt ilə tap
-            var email = v.email && v.email !== "—" ? v.email : "";
-            var phpLookup = email
-              ? fetch("../api/seller-kyc.php?action=by-email&email=" + encodeURIComponent(email), {
-                  credentials: "same-origin",
-                  headers: { Accept: "application/json" },
-                })
-                  .then(function (res) {
-                    return res.json().catch(function () { return {}; }).then(function (data) {
-                      return res.ok ? data : null;
-                    });
-                  })
-                  .catch(function () { return null; })
-              : Promise.resolve(null);
-
-            return phpLookup.then(function (phpData) {
-              var body = {};
-              if (phpData) {
-                if (phpData.kyc_token || phpData.token) body.token = phpData.kyc_token || phpData.token;
-                if (phpData.session_id) body.session_id = phpData.session_id;
-              }
-              return BizdeAdminAPI.syncVendorKyc(id, body).catch(function () {
-                return BizdeAdminAPI.vendor(id);
-              });
-            });
-          }
-          return r || BizdeAdminAPI.vendor(id);
-        });
-      };
-
-      loadVendor(false)
+      BizdeAdminAPI.vendor(id)
         .then(function (r) {
           var v = (r && r.vendor) || {};
           if (!v.id) {
@@ -1921,66 +1852,11 @@
               '" target="_blank" rel="noopener"><i class="fa-solid fa-right-to-bracket"></i> Satıcı girişi</a>' +
               '<button type="button" class="btn btn--ghost" data-action="resend-vendor-mail" data-id="' +
               esc(String(v.id)) +
-              '"><i class="fa-solid fa-envelope"></i> Mail göndər</button>' +
-              '<button type="button" class="btn btn--ghost" data-action="sync-vendor-kyc" data-id="' +
-              esc(String(v.id)) +
-              '"><i class="fa-solid fa-fingerprint"></i> KYC yenilə</button>',
+              '"><i class="fa-solid fa-envelope"></i> Mail göndər</button>',
           });
         })
         .catch(function (err) {
           toast("Xəta", err.message, true);
-        });
-      return;
-    }
-    if (action === "sync-vendor-kyc" && id) {
-      toast("KYC", "Didit məlumatı yenilənir…");
-      BizdeAdminAPI.vendor(id)
-        .then(function (r) {
-          var v = (r && r.vendor) || {};
-          var emailHint = v.email && v.email !== "—" ? v.email : "";
-          return emailHint
-            ? fetch("../api/seller-kyc.php?action=by-email&email=" + encodeURIComponent(emailHint), {
-                credentials: "same-origin",
-                headers: { Accept: "application/json" },
-              })
-                .then(function (res) {
-                  return res.json().catch(function () { return {}; }).then(function (data) {
-                    return res.ok ? data : null;
-                  });
-                })
-                .catch(function () { return null; })
-            : Promise.resolve(null);
-        })
-        .then(function (phpData) {
-          var body = {};
-          if (phpData) {
-            if (phpData.kyc_token || phpData.token) body.token = phpData.kyc_token || phpData.token;
-            if (phpData.session_id) body.session_id = phpData.session_id;
-          }
-          return BizdeAdminAPI.syncVendorKyc(id, body);
-        })
-        .then(function (r) {
-          var v = (r && r.vendor) || {};
-          if (!v.id) {
-            toast("Xəta", "Mağaza tapılmadı", true);
-            return;
-          }
-          var sync = r.kyc_sync || {};
-          if (sync.ok === false && sync.status === "missing") {
-            toast("KYC", sync.error || "KYC tapılmadı — satıcı yenidən Didit keçməlidir", true);
-          } else {
-            toast("Uğurlu", "KYC məlumatı yeniləndi");
-          }
-          openModal("Mağaza haqqında", renderVendorDetailHtml(v), {
-            variant: "vendor",
-            footer:
-              '<button type="button" class="btn btn--ghost" data-action="sync-vendor-kyc" data-id="' +
-              esc(String(v.id)) +
-              '"><i class="fa-solid fa-fingerprint"></i> KYC yenilə</button>',
-          });
-        })
-        .catch(function (err) {
-          toast("Xəta", err.message || "KYC yenilənmədi", true);
         });
       return;
     }

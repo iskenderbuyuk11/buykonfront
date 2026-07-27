@@ -1081,7 +1081,10 @@
     if (cfg && typeof cfg.resolveVisualSearchUrl === "function") {
       return cfg.resolveVisualSearchUrl();
     }
-    return getRoot() + "api/visual-search.php";
+    var api =
+      (window.BizdevarSiteConfig && window.BizdevarSiteConfig.resolveApiBase()) ||
+      "https://api.buykon.com/api";
+    return String(api).replace(/\/+$/, "") + "/ai/visual-search";
   }
 
   function analyzeImageWithGemini(base64, mime, products) {
@@ -1115,7 +1118,7 @@
         msg.indexOf("Load failed") !== -1
       ) {
         throw new Error(
-          "AI serverə çatılmadı. XAMPP-də PHP işləyirmi və api/visual-search.php mövcuddurmu?"
+          "AI serverə çatılmadı. api.buykon.com / Java backend işləyirmi?"
         );
       }
       throw err;

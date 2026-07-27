@@ -106,36 +106,14 @@
   }
 
   /**
-   * Şəkillə axtarış endpoint (Gemini açarı server .env-də qalır)
+   * Şəkillə axtarış — Java /api/ai/visual-search
    */
   function resolveVisualSearchUrl() {
-    var root = "";
-    if (global.document && global.document.body) {
-      var attr = global.document.body.getAttribute("data-root");
-      if (attr != null) root = String(attr);
-    }
-    if (root && root.slice(-1) !== "/" && root !== "") root += "/";
-    return root + "api/visual-search.php";
-  }
-
-  function resolveKycSessionUrl() {
-    var root = "";
-    if (global.document && global.document.body) {
-      var attr = global.document.body.getAttribute("data-root");
-      if (attr != null) root = String(attr);
-    }
-    if (root && root.slice(-1) !== "/" && root !== "") root += "/";
-    return root + "api/kyc-session.php";
+    return resolveApiBase().replace(/\/+$/, "") + "/ai/visual-search";
   }
 
   function resolveTryOnUrl() {
-    var root = "";
-    if (global.document && global.document.body) {
-      var attr = global.document.body.getAttribute("data-root");
-      if (attr != null) root = String(attr);
-    }
-    if (root && root.slice(-1) !== "/" && root !== "") root += "/";
-    return root + "api/try-on.php";
+    return resolveApiBase().replace(/\/+$/, "") + "/ai/try-on";
   }
 
   global.BizdevarSiteConfig = {
@@ -149,7 +127,6 @@
     productSlug: productSlug,
     productPageUrl: productPageUrl,
     resolveVisualSearchUrl: resolveVisualSearchUrl,
-    resolveKycSessionUrl: resolveKycSessionUrl,
     resolveTryOnUrl: resolveTryOnUrl,
   };
 

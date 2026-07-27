@@ -45,37 +45,6 @@
     return data;
   }
 
-  function phpOtpUrl() {
-    try {
-      var path = window.location.pathname || "";
-      if (path.indexOf("/adminpanel") >= 0) return "../api/admin-otp.php";
-    } catch (e) {}
-    return "/api/admin-otp.php";
-  }
-
-  function phpOtp(body) {
-    return fetch(phpOtpUrl(), {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      credentials: "include",
-      body: JSON.stringify(body || {}),
-    }).then(function (res) {
-      return res
-        .json()
-        .catch(function () {
-          return {};
-        })
-        .then(function (data) {
-          if (!res.ok) {
-            var err = new Error((data && data.error) || "OTP xətası");
-            err.status = res.status;
-            throw err;
-          }
-          return data;
-        });
-    });
-  }
-
   window.BizdeAdminAPI = {
     baseUrl: API_BASE,
 
@@ -84,25 +53,22 @@
     },
 
     requestOtp: function (email, password) {
-      var body = { action: "request", email: email };
+      var body = { email: email };
       if (password) body.password = password;
-      return phpOtp(body);
+      return request("/auth/admin/request-otp", { method: "POST", body: body });
     },
 
     verifyOtp: function (email, code) {
-      return phpOtp({ action: "verify", email: email, code: code }).then(function (data) {
+      return request("/auth/admin/verify-otp", { method: "POST", body: { email: email, code: code } }).then(function (data) {
         if (data.logged_in) return assertAdminSession(data);
         return data;
       });
     },
 
     setPassword: function (email, code, password, passwordConfirm) {
-      return phpOtp({
-        action: "set-password",
-        email: email,
-        code: code,
-        password: password,
-        password_confirm: passwordConfirm,
+      return request("/auth/admin/set-password", {
+        method: "POST",
+        body: { email: email, code: code, password: password, password_confirm: passwordConfirm },
       }).then(assertAdminSession);
     },
 
@@ -144,14 +110,6 @@
 
     vendor: function (id) {
       return request("/admin/vendors/" + id);
-    },
-
-    /** PHP/Didit KYC-ni MySQL-ə gətir və satıcıya bağla */
-    syncVendorKyc: function (id, payload) {
-      return request("/admin/vendors/" + id + "/sync-kyc", {
-        method: "POST",
-        body: payload || {},
-      });
     },
 
     approveVendor: function (id) {

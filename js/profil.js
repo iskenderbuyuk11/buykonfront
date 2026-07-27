@@ -624,39 +624,12 @@
     renderAddresses();
   }
 
-  function syncKycStatus(kyc) {
-    var badge = document.getElementById("profil-kyc-badge");
-    var desc = document.getElementById("profil-kyc-desc");
-    var link = document.getElementById("profil-kyc-link");
-    if (!badge) return;
-    var status = (kyc && kyc.status) || "not_started";
-    var labels = {
-      approved: ["Təsdiqlənib", "#ecfdf5", "#047857", "fa-circle-check"],
-      declined: ["Rədd edilib", "#fef2f2", "#b91c1c", "fa-circle-xmark"],
-      pending_review: ["Yoxlanılır", "#fff7ed", "#c2410c", "fa-clock"],
-      in_progress: ["Davam edir", "#fff7ed", "#c2410c", "fa-clock"],
-      not_started: ["Başlanmayıb", "#f1f5f9", "#475569", "fa-id-card"],
-    };
-    var item = labels[status] || labels.not_started;
-    badge.style.background = item[1];
-    badge.style.color = item[2];
-    badge.innerHTML = '<i class="fa-solid ' + item[3] + '"></i> ' + item[0];
-    if (desc && status === "approved") {
-      desc.textContent = "Şəxsiyyət təsdiqiniz uğurla tamamlanıb.";
-    }
-    if (link && status === "approved") {
-      link.textContent = "Təsdiq məlumatları";
-      link.style.opacity = "0.85";
-    }
-  }
-
   function loadProfileFromAPI() {
     if (typeof BizdevarAPI === "undefined") return Promise.resolve();
     return BizdevarAPI.session()
       .then(function (data) {
         if (!data || !data.logged_in) return null;
         if (data.user) {
-          if (data.user.kyc) syncKycStatus(data.user.kyc);
           if (data.user.name) {
             var parts = data.user.name.trim().split(/\s+/);
             state.firstName = parts[0] || state.firstName;
@@ -669,11 +642,6 @@
       })
       .then(function (p) {
         if (p) applyProfile(p);
-        if (typeof BizdevarAPI.kycStatus === "function") {
-          return BizdevarAPI.kycStatus().then(function (d) {
-            if (d && d.kyc) syncKycStatus(d.kyc);
-          });
-        }
       })
       .catch(function () {});
   }
