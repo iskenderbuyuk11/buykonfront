@@ -102,6 +102,7 @@
     settings: function () {
       return BizdeAdminAPI.settings().then(function (d) {
         var terms = window.BuykonTerms ? BuykonTerms.getDefault() : null;
+        var faq = window.BuykonHomeFaq ? BuykonHomeFaq.getDefault() : null;
         var rows = (d && d.settings) || [];
         var row = rows.find(function (s) {
           return s && (s.key === "terms_of_use" || s.key === "legal_terms");
@@ -113,7 +114,18 @@
           var local = BuykonTerms.readLocal();
           if (local) terms = local;
         }
+        var faqRow = rows.find(function (s) {
+          return s && s.key === "homepage_faq";
+        });
+        if (faqRow && faqRow.value && window.BuykonHomeFaq) {
+          var faqParsed = BuykonHomeFaq.parseMaybeJson(faqRow.value);
+          if (faqParsed) faq = BuykonHomeFaq.normalize(faqParsed);
+        } else if (window.BuykonHomeFaq) {
+          var faqLocal = BuykonHomeFaq.readLocal();
+          if (faqLocal) faq = faqLocal;
+        }
         d.terms = terms;
+        d.faq = faq;
         return d;
       });
     },
@@ -929,6 +941,14 @@
     return BuykonTerms.getDefault();
   }
 
+  function getFaqState() {
+    if (!window.BuykonHomeFaq) {
+      return { title: "Tez-tez verilən suallar", subtitle: "", items: [] };
+    }
+    if (state.data && state.data.faq) return BuykonHomeFaq.normalize(state.data.faq);
+    return BuykonHomeFaq.getDefault();
+  }
+
   function persistTerms(terms, successMsg) {
     var normalized = BuykonTerms.normalize(terms);
     state.data.terms = normalized;
@@ -945,10 +965,49 @@
       });
   }
 
+  function persistFaq(faq, successMsg) {
+    var normalized = BuykonHomeFaq.normalize(faq);
+    state.data.faq = normalized;
+    BuykonHomeFaq.writeLocal(normalized);
+    return BizdeAdminAPI.saveHomepageFaq(normalized)
+      .then(function () {
+        toast("Uğurlu", successMsg || "FAQ yadda saxlandı");
+        loadRoute("settings");
+      })
+      .catch(function (err) {
+        toast("Yadda saxlandı", "Lokal olaraq yeniləndi. Server: " + (err.message || "əlçatan deyil"));
+        workspace.innerHTML = renderPage();
+      });
+  }
+
+  function settingsBlock(id, title, hint, bodyHtml, openByDefault) {
+    return (
+      '<section class="settings-block' + (openByDefault ? " is-open" : "") + '" data-settings-block="' + esc(id) + '">' +
+      '<button type="button" class="settings-block__toggle" data-action="toggle-settings-block" data-block="' + esc(id) + '" aria-expanded="' + (openByDefault ? "true" : "false") + '">' +
+      '<span class="settings-block__titles"><strong>' + esc(title) + "</strong>" +
+      (hint ? "<small>" + esc(hint) + "</small>" : "") +
+      "</span>" +
+      '<i class="fa-solid fa-chevron-down settings-block__chevron" aria-hidden="true"></i>' +
+      "</button>" +
+      '<div class="settings-block__body"' + (openByDefault ? "" : " hidden") + ">" +
+      bodyHtml +
+      "</div></section>"
+    );
+  }
+
   function renderSettingsPage(d) {
     var terms = BuykonTerms.normalize((d && d.terms) || BuykonTerms.getDefault());
+    var faq = window.BuykonHomeFaq
+      ? BuykonHomeFaq.normalize((d && d.faq) || BuykonHomeFaq.getDefault())
+      : { title: "Tez-tez verilən suallar", subtitle: "", items: [] };
+    var hiddenKeys = {
+      terms_of_use: 1,
+      legal_terms: 1,
+      homepage_faq: 1,
+      wheel_config: 1
+    };
     var otherSettings = ((d && d.settings) || []).filter(function (s) {
-      return s && s.key !== "terms_of_use" && s.key !== "legal_terms";
+      return s && !hiddenKeys[s.key];
     });
 
     var sectionRows = terms.sections.map(function (sec, i) {
@@ -959,13 +1018,12 @@
       ];
     });
 
-    var termsPanel =
-      '<section class="data-table terms-panel">' +
-      '<div class="data-table__head"><h2>İstifadə şərtləri</h2><div class="table-actions">' +
+    var termsBody =
+      '<div class="settings-block__toolbar">' +
       '<button class="btn" type="button" data-action="terms-edit-meta"><i class="fa-solid fa-pen-to-square"></i> Başlıq / tarix</button> ' +
       '<button class="btn btn--primary" type="button" data-action="terms-add-section"><i class="fa-solid fa-plus"></i> Bölmə əlavə et</button> ' +
       '<button class="btn btn--icon-outline" type="button" data-action="terms-reset" title="Standart müqaviləyə qaytar" aria-label="Sıfırla"><i class="fa-solid fa-rotate-left"></i></button>' +
-      "</div></div>" +
+      "</div>" +
       '<div class="terms-meta">' +
       "<div><span>Sənəd</span><strong>" + esc(terms.title) + "</strong></div>" +
       "<div><span>Son yenilənmə</span><strong>" + esc(terms.updated_at) + "</strong></div>" +
@@ -977,33 +1035,105 @@
         ? sectionRows.map(function (r) { return "<tr>" + r.map(function (c) { return "<td>" + c + "</td>"; }).join("") + "</tr>"; }).join("")
         : '<tr><td colspan="3">Bölmə yoxdur</td></tr>') +
       "</tbody></table></div>" +
-      '<div class="terms-panel__foot"><a class="btn" href="../pages/istifade-sertleri/" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Səhifəyə bax</a></div>' +
-      "</section>";
+      '<div class="terms-panel__foot"><a class="btn" href="../pages/istifade-sertleri/" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Səhifəyə bax</a></div>';
 
-    var otherTable = otherSettings.length
-      ? table(
-          "Digər ayarlar",
-          ["Parametr", "Dəyər", "Status", ""],
-          otherSettings.map(function (s) {
-            return [
-              entity(s.key, s.group),
-              esc(String(s.value || "").slice(0, 80)),
-              badge(s.status || "Aktiv", "success"),
-              '<button class="btn" type="button" data-action="edit-setting" data-key="' +
-                esc(s.key) +
-                '" data-value="' +
-                esc(s.value) +
-                '" data-label="' +
-                esc(s.key) +
-                '"><i class="fa-solid fa-pen"></i> Dəyiş</button>'
-            ];
+    var faqRows = (faq.items || []).map(function (item, i) {
+      return [
+        '<span class="terms-index">' + (i + 1) + "</span>",
+        entity(item.q, (item.a || "").slice(0, 90)),
+        rowActionBtns("faq-edit-item", "faq-delete-item", "data-index", i)
+      ];
+    });
+
+    var faqBody =
+      '<div class="settings-block__toolbar">' +
+      '<button class="btn" type="button" data-action="faq-edit-meta"><i class="fa-solid fa-pen-to-square"></i> Başlıq</button> ' +
+      '<button class="btn btn--primary" type="button" data-action="faq-add-item"><i class="fa-solid fa-plus"></i> Sual əlavə et</button> ' +
+      '<button class="btn btn--icon-outline" type="button" data-action="faq-reset" title="Standart suallara qaytar" aria-label="Sıfırla"><i class="fa-solid fa-rotate-left"></i></button>' +
+      "</div>" +
+      '<div class="terms-meta">' +
+      "<div><span>Başlıq</span><strong>" + esc(faq.title) + "</strong></div>" +
+      "<div><span>Sual sayı</span><strong>" + (faq.items || []).length + "</strong></div>" +
+      "<div><span>Görünüş</span><strong>Ana səhifə</strong></div>" +
+      "</div>" +
+      (faq.subtitle
+        ? '<p class="terms-intro-preview">' + esc(faq.subtitle) + "</p>"
+        : "") +
+      '<div class="table-wrap"><table><thead><tr><th>#</th><th>Sual / cavab</th><th></th></tr></thead><tbody>' +
+      (faqRows.length
+        ? faqRows.map(function (r) { return "<tr>" + r.map(function (c) { return "<td>" + c + "</td>"; }).join("") + "</tr>"; }).join("")
+        : '<tr><td colspan="3">Sual yoxdur</td></tr>') +
+      "</tbody></table></div>" +
+      '<div class="terms-panel__foot"><a class="btn" href="../index.html#homeFaq" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ana səhifədə bax</a></div>';
+
+    var otherBody = otherSettings.length
+      ? '<div class="table-wrap"><table><thead><tr><th>Parametr</th><th>Dəyər</th><th>Status</th><th></th></tr></thead><tbody>' +
+        otherSettings
+          .map(function (s) {
+            return (
+              "<tr><td>" +
+              entity(s.key, s.group) +
+              "</td><td>" +
+              esc(String(s.value || "").slice(0, 80)) +
+              "</td><td>" +
+              badge(s.status || "Aktiv", "success") +
+              '</td><td><button class="btn" type="button" data-action="edit-setting" data-key="' +
+              esc(s.key) +
+              '" data-value="' +
+              esc(s.value) +
+              '" data-label="' +
+              esc(s.key) +
+              '"><i class="fa-solid fa-pen"></i> Dəyiş</button></td></tr>'
+            );
           })
-        )
-      : "";
+          .join("") +
+        "</tbody></table></div>"
+      : '<p class="empty-inline">Əlavə parametr yoxdur</p>';
 
-    return pageHead("Ayarlar", "Marketplace konfiqurasiyası və hüquqi sənədlər.", reloadBtn()) +
-      termsPanel +
-      otherTable;
+    return (
+      pageHead("Ayarlar", "Marketplace konfiqurasiyası. Bölməni açmaq üçün başlığa klik edin.", reloadBtn()) +
+      settingsBlock("faq", "Tez-tez verilən suallar", "Ana səhifədə footer üstündə göstərilir", faqBody, false) +
+      settingsBlock("terms", "İstifadə şərtləri", "Hüquqi sənəd bölmələri", termsBody, false) +
+      settingsBlock("other", "Digər ayarlar", "Sistem parametrləri", otherBody, false)
+    );
+  }
+
+  function openFaqMetaModal() {
+    var faq = getFaqState();
+    openFormModal({
+      title: "FAQ başlığı",
+      desc: "Ana səhifədə görünən başlıq və qısa təsvir.",
+      submitLabel: "Yadda saxla",
+      fields: [
+        { name: "title", label: "Başlıq", required: true, value: faq.title },
+        { name: "subtitle", label: "Alt mətn", type: "textarea", value: faq.subtitle || "", placeholder: "Qısa izah (istəyə bağlı)" }
+      ],
+      onSubmit: function (data) {
+        faq.title = data.title;
+        faq.subtitle = data.subtitle || "";
+        return persistFaq(faq, "FAQ başlığı yeniləndi");
+      }
+    });
+  }
+
+  function openFaqItemModal(cfg) {
+    var item = cfg.item || { q: "", a: "" };
+    openFormModal({
+      title: cfg.title || "FAQ sualı",
+      desc: cfg.desc || "Sual və cavabı daxil edin.",
+      submitLabel: cfg.submitLabel || "Yadda saxla",
+      fields: [
+        { name: "q", label: "Sual", required: true, value: item.q || "", placeholder: "Məs: Sifarişi necə izləyə bilərəm?" },
+        { name: "a", label: "Cavab", type: "textarea", required: true, value: item.a || "", placeholder: "Qısa və aydın cavab yazın" }
+      ],
+      onSubmit: function (data) {
+        var faq = getFaqState();
+        var out = { q: data.q, a: data.a };
+        if (cfg.index == null) faq.items.push(out);
+        else faq.items[cfg.index] = out;
+        return persistFaq(faq, cfg.successMsg || "FAQ yadda saxlandı");
+      }
+    });
   }
 
   function openTermsMetaModal() {
@@ -1611,6 +1741,73 @@
         }],
         onSubmit: function (data) { return BizdeAdminAPI.updateSetting(key, data.value); },
         onSuccess: function () { toast("Uğurlu", "Ayar yeniləndi"); loadRoute("settings"); }
+      });
+      return;
+    }
+    if (action === "toggle-settings-block") {
+      var blockId = el.getAttribute("data-block");
+      var block = workspace.querySelector('[data-settings-block="' + blockId + '"]');
+      if (!block) return;
+      var body = block.querySelector(".settings-block__body");
+      var willOpen = !block.classList.contains("is-open");
+      block.classList.toggle("is-open", willOpen);
+      el.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      if (body) body.hidden = !willOpen;
+      return;
+    }
+    if (action === "faq-edit-meta") {
+      openFaqMetaModal();
+      return;
+    }
+    if (action === "faq-add-item") {
+      openFaqItemModal({
+        title: "Yeni sual",
+        desc: "Ana səhifə FAQ siyahısına yeni sual əlavə edin.",
+        submitLabel: "Əlavə et",
+        successMsg: "Sual əlavə edildi"
+      });
+      return;
+    }
+    if (action === "faq-edit-item") {
+      var faqEditIdx = Number(el.getAttribute("data-index"));
+      var faqEdit = getFaqState();
+      if (!faqEdit.items[faqEditIdx]) {
+        toast("Xəta", "Sual tapılmadı", true);
+        return;
+      }
+      openFaqItemModal({
+        title: "Sualı redaktə et",
+        submitLabel: "Yadda saxla",
+        index: faqEditIdx,
+        item: faqEdit.items[faqEditIdx],
+        successMsg: "Sual yeniləndi"
+      });
+      return;
+    }
+    if (action === "faq-delete-item") {
+      var faqDelIdx = Number(el.getAttribute("data-index"));
+      openConfirmModal({
+        title: "Sual silinsin?",
+        message: "Bu sual ana səhifə FAQ siyahısından silinəcək.",
+        confirmLabel: "Bəli, sil",
+        danger: true,
+        onConfirm: function () {
+          var f = getFaqState();
+          f.items.splice(faqDelIdx, 1);
+          return persistFaq(f, "Sual silindi");
+        }
+      });
+      return;
+    }
+    if (action === "faq-reset") {
+      openConfirmModal({
+        title: "Standart suallara qayıtsın?",
+        message: "Bütün əl ilə edilən FAQ dəyişiklikləri silinəcək və default suallar yüklənəcək.",
+        confirmLabel: "Bəli, sıfırla",
+        danger: true,
+        onConfirm: function () {
+          return persistFaq(BuykonHomeFaq.getDefault(), "Standart FAQ bərpa olundu");
+        }
       });
       return;
     }

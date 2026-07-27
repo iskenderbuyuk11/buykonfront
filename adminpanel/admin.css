@@ -2232,6 +2232,84 @@ body.dark .wheel-note {
   margin-bottom: 20px;
 }
 
+/* Ayarlar — yığılmış bölmələr */
+.settings-block {
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface, #fff);
+  overflow: hidden;
+}
+
+.settings-block__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border: none;
+  background: var(--surface-2, #f8fafc);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  transition: background 0.15s ease;
+}
+
+.settings-block__toggle:hover {
+  background: #f1f5f9;
+}
+
+.settings-block.is-open .settings-block__toggle {
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+
+.settings-block__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.settings-block__titles strong {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.settings-block__titles small {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settings-block__chevron {
+  color: var(--muted);
+  transition: transform 0.18s ease;
+  flex-shrink: 0;
+}
+
+.settings-block.is-open .settings-block__chevron {
+  transform: rotate(180deg);
+  color: #ea580c;
+}
+
+.settings-block__body {
+  padding: 16px 18px 18px;
+}
+
+.settings-block__body[hidden] {
+  display: none !important;
+}
+
+.settings-block__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
 .terms-meta {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

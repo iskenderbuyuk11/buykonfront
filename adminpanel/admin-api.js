@@ -284,6 +284,14 @@
       });
     },
 
+    saveHomepageFaq: function (payload) {
+      var value = typeof payload === "string" ? payload : JSON.stringify(payload);
+      return request("/admin/settings/" + encodeURIComponent("homepage_faq"), {
+        method: "PATCH",
+        body: { value: value },
+      });
+    },
+
     supportTickets: function () {
       return request("/admin/support/tickets");
     },
