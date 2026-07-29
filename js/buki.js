@@ -102,17 +102,74 @@
     },
     {
       id: "desktop",
-      keys: ["masaüstü", "masaustu", "desktop", "oyun komput", "oyun pc", "sistem bloku"],
-      cats: ["elektronika"],
-      nameHints: ["desktop", "gaming pc", "masaüstü", "sistem bloku", "pc "],
+      keys: [
+        "masaüstü",
+        "masaustu",
+        "desktop",
+        "oyun komput",
+        "oyun pc",
+        "sistem bloku",
+        "pc topla",
+        "pc yig",
+        "pc yığ",
+        "komputer topla",
+        "kompüter topla",
+        "sistem yig",
+        "sistem yığ",
+        "gaming pc",
+        "oyun kompüter",
+      ],
+      cats: ["elektronika", "komputer", "pc"],
+      nameHints: [
+        "desktop",
+        "gaming pc",
+        "masaüstü",
+        "sistem bloku",
+        "pc build",
+        "tower",
+        "rtx",
+        "işlemçi",
+        "processor",
+        "motherboard",
+      ],
+      excludeHints: [
+        "iphone",
+        "smartphone",
+        "telefon",
+        "geyim",
+        "hoodie",
+        "t-shirt",
+        "paltar",
+        "airpods",
+        "qulaqlıq",
+      ],
       mustMatch: true,
       label: "masaüstü kompüter",
     },
     {
       id: "computer",
-      keys: ["komputer", "kompüter", "komputer"],
-      cats: ["elektronika"],
-      nameHints: ["komputer", "kompüter", "pc", "desktop", "laptop", "noutbuk"],
+      keys: ["komputer", "kompüter", " pc", "pc ", "pc", "toplanmis", "toplanmış"],
+      cats: ["elektronika", "komputer", "pc"],
+      nameHints: [
+        "komputer",
+        "kompüter",
+        " pc",
+        "desktop",
+        "gaming",
+        "sistem bloku",
+        "rtx",
+        "ssd",
+      ],
+      excludeHints: [
+        "iphone",
+        "smartphone",
+        "telefon qutusu",
+        "geyim",
+        "hoodie",
+        "t-shirt",
+        "paltar",
+        "ayaqqabı",
+      ],
       mustMatch: true,
       label: "kompüter",
     },
@@ -151,7 +208,7 @@
     if (document.querySelector('link[data-buki-css]')) return;
     var link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = rootPath() + "css/buki.css?v=2";
+    link.href = rootPath() + "css/buki.css?v=3";
     link.setAttribute("data-buki-css", "1");
     document.head.appendChild(link);
   }
@@ -286,18 +343,43 @@
 
   function detectIntentRule(text) {
     var t = fold(text);
+    // «pc topla / mene pc» — birbaşa masaüstü / kompüter
+    if (
+      /\bpc\b/.test(t) ||
+      /komp[uü]ter/.test(t) ||
+      /sistem\s*y[iı][gğ]/.test(t) ||
+      /desktop/.test(t) ||
+      /masa\s*ustu/.test(t)
+    ) {
+      if (/noutbuk|notebook|laptop|macbook/.test(t)) {
+        return INTENT_RULES.filter(function (r) {
+          return r.id === "laptop";
+        })[0];
+      }
+      if (/oyun|gaming|topla|yig|yığ|sistem|masa/.test(t) || /\bpc\b/.test(t)) {
+        return (
+          INTENT_RULES.filter(function (r) {
+            return r.id === "desktop";
+          })[0] ||
+          INTENT_RULES.filter(function (r) {
+            return r.id === "computer";
+          })[0]
+        );
+      }
+    }
+
     var best = null;
-    var bestPos = 9999;
+    var bestScore = -1;
     INTENT_RULES.forEach(function (rule) {
       rule.keys.forEach(function (key) {
         if (!hasIntentKey(t, key)) return;
-        var pos = t.indexOf(fold(key));
-        if (pos !== -1 && pos <= bestPos) {
-          // Daha spesifik qaydalar (laptop vs computer) — daha uzun key üstün
-          if (pos < bestPos || (best && fold(key).length > 3)) {
-            bestPos = pos;
-            best = rule;
-          }
+        var k = fold(key);
+        var pos = t.indexOf(k);
+        // Uzun / spesifik açar sözlər üstün
+        var score = k.length * 10 - (pos >= 0 ? pos : 50);
+        if (score > bestScore) {
+          bestScore = score;
+          best = rule;
         }
       });
     });
@@ -482,13 +564,22 @@
   }
 
   function slimCatalog(products) {
-    return (products || []).slice(0, 80).map(function (p) {
+    return (products || []).slice(0, 140).map(function (p) {
+      var specs = "";
+      if (p.specs && typeof p.specs === "object") {
+        try {
+          specs = JSON.stringify(p.specs).slice(0, 180);
+        } catch (e) {
+          specs = "";
+        }
+      }
       return {
         id: p.id,
         name: p.name,
         price: p.price,
         cat: p.cat || p.category || "",
         category: p.category_name || p.cat || "",
+        specs: specs,
       };
     });
   }
@@ -522,7 +613,7 @@
           } catch (e) {
             /* ignore */
           }
-        }, 12000)
+        }, 48000)
       : null;
 
     return fetch(url, {
@@ -580,20 +671,42 @@
     var javaUrl = cfg && typeof cfg.resolveBukiUrl === "function" ? cfg.resolveBukiUrl() : "";
     var phpUrl = rootPath() + "api/buki.php";
 
-    // Əvvəl lokal Gemini proxy, sonra Java API
-    return fetchBukiJson(phpUrl, message, products).catch(function () {
-      if (!javaUrl) throw new Error("no ai");
-      return fetchBukiJson(javaUrl, message, products);
-    }).then(function (data) {
-      return applyAiResult(data, message, products);
-    });
+    // Gemini (.env) əsas yol — Java yalnız ehtiyat
+    return fetchBukiJson(phpUrl, message, products)
+      .catch(function (err) {
+        var msg = (err && err.message) || "";
+        if (msg === "NO_GEMINI_KEY") throw err;
+        if (!javaUrl) throw err || new Error("no ai");
+        return fetchBukiJson(javaUrl, message, products);
+      })
+      .then(function (data) {
+        return applyAiResult(data, message, products);
+      });
   }
 
   function recommend(message) {
     return loadCatalog().then(function (products) {
-      // Əvvəl lokal kateqoriya aşkarla — AI gələnə qədər də doğru filtr
-      return recommendViaAi(message, products).catch(function () {
-        return recommendLocal(message, products);
+      return recommendViaAi(message, products).catch(function (err) {
+        var msg = (err && err.message) || "";
+        if (msg === "NO_GEMINI_KEY") {
+          return {
+            reply:
+              "Buki üçün GEMINI_API_KEY lazımdır. Layihə kökündə .env faylına GEMINI_API_KEY əlavə edin.",
+            products: [],
+            intent: parseIntent(message),
+            source: "error",
+          };
+        }
+        // AI işləməsə — lokal, amma yalnız aşkar kateqoriya varsa
+        var local = recommendLocal(message, products);
+        if (local.intent && local.intent.rule) return local;
+        return {
+          reply:
+            "Süni intellektə çatılmadı. Daha dəqiq yazın — məsələn: «büdcəm 2000 AZN, oyun PC topla».",
+          products: [],
+          intent: local.intent,
+          source: "error",
+        };
       });
     });
   }

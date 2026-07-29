@@ -766,7 +766,7 @@
       return;
     }
     var s = document.createElement("script");
-    s.src = getLayoutRoot() + "js/search-ui.js?v=23";
+    s.src = getLayoutRoot() + "js/search-ui.js?v=24";
     s.onload = function () {
       if (done) done();
     };
@@ -789,7 +789,7 @@
       return;
     }
     var s = document.createElement("script");
-    s.src = getLayoutRoot() + "js/buki.js?v=3";
+    s.src = getLayoutRoot() + "js/buki.js?v=4";
     s.onload = function () {
       if (window.BuykonBuki && BuykonBuki.bindTriggers) BuykonBuki.bindTriggers();
       if (done) done();

@@ -206,6 +206,31 @@
     renderIdleState();
   }
 
+  function withTimeout(promise, ms, label) {
+    return new Promise(function (resolve, reject) {
+      var done = false;
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        reject(new Error(label || "Vaxt bitdi"));
+      }, ms);
+      promise.then(
+        function (v) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          resolve(v);
+        },
+        function (e) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          reject(e);
+        }
+      );
+    });
+  }
+
   function getProducts() {
     if (productsCache) return Promise.resolve(productsCache);
     if (productsLoading) {
@@ -216,9 +241,9 @@
           if (productsCache) {
             clearInterval(timer);
             resolve(productsCache);
-          } else if (tries > 40) {
+          } else if (tries > 160) {
             clearInterval(timer);
-            resolve(normalizeProducts(FALLBACK_PRODUCTS));
+            resolve(normalizeProducts(getLocalProducts()));
           }
         }, 50);
       });
@@ -226,26 +251,33 @@
 
     productsLoading = true;
 
-    if (window.BizdevarAPI && typeof BizdevarAPI.products === "function") {
-      return BizdevarAPI.products("all")
-        .then(function (data) {
-          productsCache = normalizeProducts((data && data.products) || []);
-          vocabCache = null;
-          productsLoading = false;
-          return productsCache;
-        })
-        .catch(function () {
-          productsCache = normalizeProducts(getLocalProducts());
-          vocabCache = null;
-          productsLoading = false;
-          return productsCache;
-        });
-    }
+    var load = function () {
+      if (window.BizdevarAPI && typeof BizdevarAPI.products === "function") {
+        return withTimeout(BizdevarAPI.products("all"), 10000, "Kataloq yüklənmədi").then(
+          function (data) {
+            return normalizeProducts((data && data.products) || []);
+          },
+          function () {
+            return normalizeProducts(getLocalProducts());
+          }
+        );
+      }
+      return Promise.resolve(normalizeProducts(getLocalProducts()));
+    };
 
-    productsCache = normalizeProducts(getLocalProducts());
-    vocabCache = null;
-    productsLoading = false;
-    return Promise.resolve(productsCache);
+    return load()
+      .then(function (list) {
+        productsCache = list;
+        vocabCache = null;
+        productsLoading = false;
+        return productsCache;
+      })
+      .catch(function () {
+        productsCache = normalizeProducts(getLocalProducts());
+        vocabCache = null;
+        productsLoading = false;
+        return productsCache;
+      });
   }
 
   function getLocalProducts() {
@@ -1090,35 +1122,43 @@
 
   function blobToJpegBase64(blob, maxSide) {
     maxSide = maxSide || 896;
-    return new Promise(function (resolve, reject) {
-      var url = URL.createObjectURL(blob);
-      var img = new Image();
-      img.onload = function () {
-        try {
-          var w = img.naturalWidth || img.width;
-          var h = img.naturalHeight || img.height;
-          var scale = Math.min(1, maxSide / Math.max(w, h));
-          var cw = Math.max(1, Math.round(w * scale));
-          var ch = Math.max(1, Math.round(h * scale));
-          var canvas = document.createElement("canvas");
-          canvas.width = cw;
-          canvas.height = ch;
-          canvas.getContext("2d").drawImage(img, 0, 0, cw, ch);
-          var dataUrl = canvas.toDataURL("image/jpeg", 0.78);
+    return withTimeout(
+      new Promise(function (resolve, reject) {
+        var url = URL.createObjectURL(blob);
+        var img = new Image();
+        img.onload = function () {
+          try {
+            var w = img.naturalWidth || img.width;
+            var h = img.naturalHeight || img.height;
+            var scale = Math.min(1, maxSide / Math.max(w, h));
+            var cw = Math.max(1, Math.round(w * scale));
+            var ch = Math.max(1, Math.round(h * scale));
+            var canvas = document.createElement("canvas");
+            canvas.width = cw;
+            canvas.height = ch;
+            canvas.getContext("2d").drawImage(img, 0, 0, cw, ch);
+            var dataUrl = canvas.toDataURL("image/jpeg", 0.78);
+            URL.revokeObjectURL(url);
+            var base64 = dataUrl.split(",")[1] || "";
+            if (!base64) {
+              reject(new Error("Şəkil hazırlanmadı"));
+              return;
+            }
+            resolve({ base64: base64, previewUrl: dataUrl, mime: "image/jpeg" });
+          } catch (e) {
+            URL.revokeObjectURL(url);
+            reject(e);
+          }
+        };
+        img.onerror = function () {
           URL.revokeObjectURL(url);
-          var base64 = dataUrl.split(",")[1] || "";
-          resolve({ base64: base64, previewUrl: dataUrl, mime: "image/jpeg" });
-        } catch (e) {
-          URL.revokeObjectURL(url);
-          reject(e);
-        }
-      };
-      img.onerror = function () {
-        URL.revokeObjectURL(url);
-        reject(new Error("Şəkil oxunmadı"));
-      };
-      img.src = url;
-    });
+          reject(new Error("Şəkil oxunmadı"));
+        };
+        img.src = url;
+      }),
+      15000,
+      "Şəkil hazırlanması vaxtı bitdi"
+    );
   }
 
   function buildCatalogDigest(products) {
@@ -1197,7 +1237,11 @@
     return hits >= 1;
   }
 
-  function getVisualSearchUrl() {
+  function getVisualSearchPhpUrl() {
+    return getRoot() + "api/visual-search.php";
+  }
+
+  function getVisualSearchJavaUrl() {
     var cfg = window.BizdevarSiteConfig;
     if (cfg && typeof cfg.resolveVisualSearchUrl === "function") {
       return cfg.resolveVisualSearchUrl();
@@ -1208,9 +1252,17 @@
     return String(api).replace(/\/+$/, "") + "/ai/visual-search";
   }
 
-  function analyzeImageWithGemini(base64, mime, products) {
-    var catalog = buildCatalogDigest(products || []);
-    var url = getVisualSearchUrl();
+  function postVisualSearch(url, base64, mime, catalog) {
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = ctrl
+      ? setTimeout(function () {
+          try {
+            ctrl.abort();
+          } catch (e) {
+            /* ignore */
+          }
+        }, 55000)
+      : null;
 
     return fetch(url, {
       method: "POST",
@@ -1220,29 +1272,48 @@
         mime: mime || "image/jpeg",
         catalog: catalog,
       }),
-    }).then(function (res) {
-      return res.json().then(function (data) {
-        if (!res.ok || !data || !data.ok) {
-          var msg =
-            (data && data.error) ||
-            "AI xətası (" + res.status + ")";
-          throw new Error(msg);
-        }
-        if (!data.analysis) throw new Error("AI cavabı oxunmadı");
-        return data.analysis;
+      signal: ctrl ? ctrl.signal : undefined,
+    })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok || !data || !data.ok) {
+            var msg =
+              (data && data.error) || "AI xətası (" + res.status + ")";
+            throw new Error(msg);
+          }
+          if (!data.analysis) throw new Error("AI cavabı oxunmadı");
+          return data.analysis;
+        });
+      })
+      .finally(function () {
+        if (timer) clearTimeout(timer);
       });
-    }).catch(function (err) {
+  }
+
+  function analyzeImageWithGemini(base64, mime, products) {
+    var catalog = buildCatalogDigest(products || []);
+    var phpUrl = getVisualSearchPhpUrl();
+    var javaUrl = getVisualSearchJavaUrl();
+
+    // Əvvəl lokal Gemini (.env), sonra Java API
+    return postVisualSearch(phpUrl, base64, mime, catalog).catch(function (err) {
       var msg = (err && err.message) || "";
-      if (
-        msg.indexOf("Failed to fetch") !== -1 ||
-        msg.indexOf("NetworkError") !== -1 ||
-        msg.indexOf("Load failed") !== -1
-      ) {
-        throw new Error(
-          "AI serverə çatılmadı. api.buykon.com / Java backend işləyirmi?"
-        );
-      }
-      throw err;
+      if (msg === "NO_GEMINI_KEY") throw err;
+      return postVisualSearch(javaUrl, base64, mime, catalog).catch(function (err2) {
+        var m2 = (err2 && err2.message) || msg || "";
+        if (
+          m2.indexOf("Failed to fetch") !== -1 ||
+          m2.indexOf("NetworkError") !== -1 ||
+          m2.indexOf("Load failed") !== -1 ||
+          m2.indexOf("AbortError") !== -1 ||
+          /aborted/i.test(m2)
+        ) {
+          throw new Error(
+            "AI serverə çatılmadı. .env-də GEMINI_API_KEY və XAMPP/PHP yoxlayın."
+          );
+        }
+        throw err2;
+      });
     });
   }
 
