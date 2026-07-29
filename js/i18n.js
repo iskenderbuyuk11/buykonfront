@@ -761,7 +761,573 @@
     },
   };
 
+  /* Ana səhifə + ümumi səhifə mətnləri */
+  var PAGE = {
+    az: {
+      "home.popular": "Populyar məhsullar",
+      "home.sale": "Endirimli məhsullar",
+      "home.all_products": "Bütün məhsullar",
+      "home.categories": "Kateqoriyalar",
+      "home.view_all": "Hamısına bax",
+      "home.sort": "Sırala",
+      "home.sort_popular": "Populyar",
+      "home.sort_price_asc": "Qiymət: aşağıdan yuxarı",
+      "home.sort_price_desc": "Qiymət: yuxarıdan aşağı",
+      "home.scroll_prev": "Geriyə sürüşdür",
+      "home.scroll_next": "İrəli sürüşdür",
+      "home.why_badge": "Niyə biz?",
+      "home.why_title_1": "Güvən və",
+      "home.why_title_2": "şəffaflıq",
+      "home.why_lead": "Seçilmiş məhsullar, aydın qiymətlər və hər addımda dəstək — alış-verişi sadələşdiririk.",
+      "home.why_ship": "Sürətli çatdırılma",
+      "home.why_ship_text": "Sifarişlərinizi qısa müddətdə emal edirik; Bakı üzrə çevik çatdırılma seçimləri.",
+      "home.why_pay": "Təhlükəsiz ödəniş",
+      "home.why_pay_text": "Ödəniş məlumatlarınız qorunur; tanınmış üsullarla rahat ödəniş.",
+      "home.why_price": "Sərfəli qiymət",
+      "home.why_price_text": "Kampaniya və endirimlərlə seçilmiş məhsulları əlverişli təklif edirik.",
+      "home.why_support": "Müştəri dəstəyi",
+      "home.why_support_text": "Suallarınız üçün komandamız həmişə yanınızdadır.",
+      "home.faq": "Tez-tez verilən suallar",
+      "home.faq_sub": "Alış-veriş, çatdırılma və hesab barədə ən çox soruşulanlar.",
+      "home.spin_title": "Fırlat. Qazan.Təkrar et.",
+      "home.spin_sub": "Həftəlik şərtləri tamamla, çarxı fırlat və premium endirim, kupon və bonus balans qazan.",
+      "home.spin_btn": "Fırlat",
+      "home.spin_need": "Fırlatmaq üçün bütün şərtləri tamamla",
+      "cat.electronics": "Elektronika",
+      "cat.clothing": "Geyim",
+      "cat.home_life": "Ev & yaşam",
+      "cat.accessories": "Aksesuarlar",
+      "cat.appliances": "Məişət texnikası",
+      "cat.laptops": "Notbuklar",
+      "cat.sport": "İdman",
+      "cat.children": "Uşaqlar",
+      "cat.games": "Oyun",
+      "cat.entertainment": "Əyləncə",
+      "cat.women_link": "Qadın",
+      "cat.men_link": "Kişi",
+      "page.about": "Haqqımızda",
+      "page.delivery": "Çatdırılma",
+      "page.return": "Qaytarılma",
+      "page.contact": "Əlaqə",
+      "page.login": "Giriş",
+      "page.register": "Qeydiyyat",
+      "page.cart": "Səbət",
+      "page.favorites": "Sevimlilər",
+      "page.orders": "Sifarişlərim",
+      "page.profile": "Profil",
+      "page.privacy": "Məxfilik qaydaları",
+      "page.terms": "İstifadə şərtləri",
+      "page.support": "Dəstək",
+      "ui.add_cart": "Səbətə əlavə et",
+      "ui.buy_now": "İndi al",
+      "ui.free_ship": "Pulsuz çatdırılma",
+      "ui.empty_cart": "Səbətiniz boşdur",
+      "ui.empty_fav": "Sevimlilər siyahısı boşdur",
+      "ui.loading": "Yüklənir...",
+      "ui.search_ph": "Məhsul, brend və ya kateqoriya axtar...",
+      "ui.continue": "Davam et",
+      "ui.save": "Yadda saxla",
+      "ui.cancel": "Ləğv et",
+      "ui.send": "Göndər",
+      "ui.details": "Ətraflı",
+      "ui.back_home": "Ana səhifəyə qayıt",
+    },
+    tr: {
+      "home.popular": "Popüler ürünler",
+      "home.sale": "İndirimli ürünler",
+      "home.all_products": "Tüm ürünler",
+      "home.categories": "Kategoriler",
+      "home.view_all": "Tümünü gör",
+      "home.sort": "Sırala",
+      "home.sort_popular": "Popüler",
+      "home.sort_price_asc": "Fiyat: düşükten yükseğe",
+      "home.sort_price_desc": "Fiyat: yüksekten düşüğe",
+      "home.scroll_prev": "Geri kaydır",
+      "home.scroll_next": "İleri kaydır",
+      "home.why_badge": "Neden biz?",
+      "home.why_title_1": "Güven ve",
+      "home.why_title_2": "şeffaflık",
+      "home.why_lead": "Seçilmiş ürünler, net fiyatlar ve her adımda destek — alışverişi sadeleştiriyoruz.",
+      "home.why_ship": "Hızlı teslimat",
+      "home.why_ship_text": "Siparişlerinizi kısa sürede işliyoruz; esnek teslimat seçenekleri.",
+      "home.why_pay": "Güvenli ödeme",
+      "home.why_pay_text": "Ödeme bilgileriniz korunur; bilinen yöntemlerle rahat ödeme.",
+      "home.why_price": "Uygun fiyat",
+      "home.why_price_text": "Kampanya ve indirimlerle seçilmiş ürünleri uygun sunuyoruz.",
+      "home.why_support": "Müşteri desteği",
+      "home.why_support_text": "Sorularınız için ekibimiz her zaman yanınızda.",
+      "home.faq": "Sık sorulan sorular",
+      "home.faq_sub": "Alışveriş, teslimat ve hesap hakkında en çok sorulanlar.",
+      "home.spin_title": "Çevir. Kazan. Tekrar et.",
+      "home.spin_sub": "Haftalık şartları tamamla, çarkı çevir ve premium indirim, kupon ve bonus bakiye kazan.",
+      "home.spin_btn": "Çevir",
+      "home.spin_need": "Çevirmek için tüm şartları tamamla",
+      "cat.electronics": "Elektronik",
+      "cat.clothing": "Giyim",
+      "cat.home_life": "Ev & yaşam",
+      "cat.accessories": "Aksesuarlar",
+      "cat.appliances": "Ev aletleri",
+      "cat.laptops": "Dizüstü bilgisayarlar",
+      "cat.sport": "Spor",
+      "cat.children": "Çocuklar",
+      "cat.games": "Oyun",
+      "cat.entertainment": "Eğlence",
+      "cat.women_link": "Kadın",
+      "cat.men_link": "Erkek",
+      "page.about": "Hakkımızda",
+      "page.delivery": "Teslimat",
+      "page.return": "İade",
+      "page.contact": "İletişim",
+      "page.login": "Giriş",
+      "page.register": "Kayıt",
+      "page.cart": "Sepet",
+      "page.favorites": "Favoriler",
+      "page.orders": "Siparişlerim",
+      "page.profile": "Profil",
+      "page.privacy": "Gizlilik politikası",
+      "page.terms": "Kullanım şartları",
+      "page.support": "Destek",
+      "ui.add_cart": "Sepete ekle",
+      "ui.buy_now": "Şimdi al",
+      "ui.free_ship": "Ücretsiz kargo",
+      "ui.empty_cart": "Sepetiniz boş",
+      "ui.empty_fav": "Favori listesi boş",
+      "ui.loading": "Yükleniyor...",
+      "ui.search_ph": "Ürün, marka veya kategori ara...",
+      "ui.continue": "Devam et",
+      "ui.save": "Kaydet",
+      "ui.cancel": "İptal",
+      "ui.send": "Gönder",
+      "ui.details": "Detaylar",
+      "ui.back_home": "Ana sayfaya dön",
+    },
+    zh: {
+      "home.popular": "热门商品",
+      "home.sale": "折扣商品",
+      "home.all_products": "全部商品",
+      "home.categories": "分类",
+      "home.view_all": "查看全部",
+      "home.sort": "排序",
+      "home.sort_popular": "热门",
+      "home.sort_price_asc": "价格：从低到高",
+      "home.sort_price_desc": "价格：从高到低",
+      "home.scroll_prev": "向后滑动",
+      "home.scroll_next": "向前滑动",
+      "home.why_badge": "为什么选择我们？",
+      "home.why_title_1": "信任与",
+      "home.why_title_2": "透明",
+      "home.why_lead": "精选商品、清晰价格、全程支持——让购物更简单。",
+      "home.why_ship": "快速配送",
+      "home.why_ship_text": "我们快速处理订单，并提供灵活的配送选择。",
+      "home.why_pay": "安全支付",
+      "home.why_pay_text": "支付信息受保护，可通过常用方式轻松付款。",
+      "home.why_price": "实惠价格",
+      "home.why_price_text": "通过活动和折扣提供精选优惠商品。",
+      "home.why_support": "客户支持",
+      "home.why_support_text": "我们的团队随时为您解答问题。",
+      "home.faq": "常见问题",
+      "home.faq_sub": "关于购物、配送和账户的常见问题。",
+      "home.spin_title": "旋转。赢取。再来。",
+      "home.spin_sub": "完成每周条件，转动转盘，赢取高级折扣、优惠券和奖励余额。",
+      "home.spin_btn": "旋转",
+      "home.spin_need": "完成所有条件后即可旋转",
+      "cat.electronics": "电子产品",
+      "cat.clothing": "服装",
+      "cat.home_life": "家居生活",
+      "cat.accessories": "配件",
+      "cat.appliances": "家电",
+      "cat.laptops": "笔记本电脑",
+      "cat.sport": "运动",
+      "cat.children": "儿童",
+      "cat.games": "游戏",
+      "cat.entertainment": "娱乐",
+      "cat.women_link": "女装",
+      "cat.men_link": "男装",
+      "page.about": "关于我们",
+      "page.delivery": "配送",
+      "page.return": "退货",
+      "page.contact": "联系",
+      "page.login": "登录",
+      "page.register": "注册",
+      "page.cart": "购物车",
+      "page.favorites": "收藏",
+      "page.orders": "我的订单",
+      "page.profile": "个人中心",
+      "page.privacy": "隐私政策",
+      "page.terms": "使用条款",
+      "page.support": "支持",
+      "ui.add_cart": "加入购物车",
+      "ui.buy_now": "立即购买",
+      "ui.free_ship": "免费配送",
+      "ui.empty_cart": "购物车是空的",
+      "ui.empty_fav": "收藏列表为空",
+      "ui.loading": "加载中...",
+      "ui.search_ph": "搜索商品、品牌或分类...",
+      "ui.continue": "继续",
+      "ui.save": "保存",
+      "ui.cancel": "取消",
+      "ui.send": "发送",
+      "ui.details": "详情",
+      "ui.back_home": "返回首页",
+    },
+    ka: {
+      "home.popular": "პოპულარული პროდუქტები",
+      "home.sale": "ფასდაკლებული პროდუქტები",
+      "home.all_products": "ყველა პროდუქტი",
+      "home.categories": "კატეგორიები",
+      "home.view_all": "ყველას ნახვა",
+      "home.sort": "დალაგება",
+      "home.sort_popular": "პოპულარული",
+      "home.sort_price_asc": "ფასი: დაბლიდან მაღლა",
+      "home.sort_price_desc": "ფასი: მაღლიდან დაბლა",
+      "home.scroll_prev": "უკან გადაადგილება",
+      "home.scroll_next": "წინ გადაადგილება",
+      "home.why_badge": "რატომ ჩვენ?",
+      "home.why_title_1": "ნდობა და",
+      "home.why_title_2": "გამჭვირვალობა",
+      "home.why_lead": "შერჩეული პროდუქტები, ნათელი ფასები და მხარდაჭერა ყოველ ნაბიჯზე.",
+      "home.why_ship": "სწრაფი მიწოდება",
+      "home.why_ship_text": "შეკვეთებს სწრაფად ვამუშავებთ; მოქნილი მიწოდების ვარიანტები.",
+      "home.why_pay": "უსაფრთხო გადახდა",
+      "home.why_pay_text": "გადახდის მონაცემები დაცულია; მოსახერხებელი გადახდა.",
+      "home.why_price": "ხელსაყრელი ფასი",
+      "home.why_price_text": "აქციებითა და ფასდაკლებებით შერჩეულ პროდუქტებს გთავაზობთ.",
+      "home.why_support": "მხარდაჭერა",
+      "home.why_support_text": "ჩვენი გუნდი ყოველთვის თქვენს გვერდითაა.",
+      "home.faq": "ხშირად დასმული კითხვები",
+      "home.faq_sub": "შოპინგი, მიწოდება და ანგარიში.",
+      "home.spin_title": "დაატრიალე. მოიგე. გაიმეორე.",
+      "home.spin_sub": "შეასრულე ყოველკვირეული პირობები და მოიგე პრემიუმ ფასდაკლება.",
+      "home.spin_btn": "დატრიალება",
+      "home.spin_need": "დასატრიალებლად შეასრულე ყველა პირობა",
+      "cat.electronics": "ელექტრონიკა",
+      "cat.clothing": "ტანსაცმელი",
+      "cat.home_life": "სახლი და ცხოვრება",
+      "cat.accessories": "აქსესუარები",
+      "cat.appliances": "საყოფაცხოვრებო ტექნიკა",
+      "cat.laptops": "ნოუთბუქები",
+      "cat.sport": "სპორტი",
+      "cat.children": "ბავშვები",
+      "cat.games": "თამაშები",
+      "cat.entertainment": "გართობა",
+      "cat.women_link": "ქალი",
+      "cat.men_link": "კაცი",
+      "page.about": "ჩვენს შესახებ",
+      "page.delivery": "მიწოდება",
+      "page.return": "დაბრუნება",
+      "page.contact": "კონტაქტი",
+      "page.login": "შესვლა",
+      "page.register": "რეგისტრაცია",
+      "page.cart": "კალათა",
+      "page.favorites": "რჩეულები",
+      "page.orders": "ჩემი შეკვეთები",
+      "page.profile": "პროფილი",
+      "page.privacy": "კონფიდენციალურობა",
+      "page.terms": "გამოყენების პირობები",
+      "page.support": "მხარდაჭერა",
+      "ui.add_cart": "კალათაში დამატება",
+      "ui.buy_now": "ახლა იყიდე",
+      "ui.free_ship": "უფასო მიწოდება",
+      "ui.empty_cart": "კალათა ცარიელია",
+      "ui.empty_fav": "რჩეულები ცარიელია",
+      "ui.loading": "იტვირთება...",
+      "ui.search_ph": "მოძებნე პროდუქტი, ბრენდი ან კატეგორია...",
+      "ui.continue": "გაგრძელება",
+      "ui.save": "შენახვა",
+      "ui.cancel": "გაუქმება",
+      "ui.send": "გაგზავნა",
+      "ui.details": "დეტალები",
+      "ui.back_home": "მთავარზე დაბრუნება",
+    },
+    kk: {
+      "home.popular": "Танымал тауарлар",
+      "home.sale": "Жеңілдікті тауарлар",
+      "home.all_products": "Барлық тауарлар",
+      "home.categories": "Санаттар",
+      "home.view_all": "Барлығын көру",
+      "home.sort": "Сұрыптау",
+      "home.sort_popular": "Танымал",
+      "home.sort_price_asc": "Баға: төменнен жоғары",
+      "home.sort_price_desc": "Баға: жоғарыдан төмен",
+      "home.scroll_prev": "Артқа жылжыту",
+      "home.scroll_next": "Алға жылжыту",
+      "home.why_badge": "Неге біз?",
+      "home.why_title_1": "Сенім және",
+      "home.why_title_2": "ашықтық",
+      "home.why_lead": "Таңдалған тауарлар, анық бағалар және әр қадамда қолдау.",
+      "home.why_ship": "Жылдам жеткізу",
+      "home.why_ship_text": "Тапсырыстарды қысқа мерзімде өңдейміз; икемді жеткізу.",
+      "home.why_pay": "Қауіпсіз төлем",
+      "home.why_pay_text": "Төлем деректеріңіз қорғалады; ыңғайлы төлем әдістері.",
+      "home.why_price": "Қолайлы баға",
+      "home.why_price_text": "Науқан мен жеңілдіктермен таңдалған тауарларды ұсынамыз.",
+      "home.why_support": "Клиенттерді қолдау",
+      "home.why_support_text": "Сұрақтарыңыз үшін командамыз әрдайым жаныңызда.",
+      "home.faq": "Жиі қойылатын сұрақтар",
+      "home.faq_sub": "Сатып алу, жеткізу және есептік жазба туралы.",
+      "home.spin_title": "Айналдыр. Ұт. Қайтала.",
+      "home.spin_sub": "Апталық шарттарды орындап, доңғалақты айналдырып жүлде ұтыңыз.",
+      "home.spin_btn": "Айналдыру",
+      "home.spin_need": "Айналдыру үшін барлық шарттарды орындаңыз",
+      "cat.electronics": "Электроника",
+      "cat.clothing": "Киім",
+      "cat.home_life": "Үй және өмір",
+      "cat.accessories": "Аксессуарлар",
+      "cat.appliances": "Тұрмыстық техника",
+      "cat.laptops": "Ноутбуктер",
+      "cat.sport": "Спорт",
+      "cat.children": "Балалар",
+      "cat.games": "Ойын",
+      "cat.entertainment": "Ойын-сауық",
+      "cat.women_link": "Әйел",
+      "cat.men_link": "Ер",
+      "page.about": "Біз туралы",
+      "page.delivery": "Жеткізу",
+      "page.return": "Қайтару",
+      "page.contact": "Байланыс",
+      "page.login": "Кіру",
+      "page.register": "Тіркелу",
+      "page.cart": "Себет",
+      "page.favorites": "Таңдаулылар",
+      "page.orders": "Тапсырыстарым",
+      "page.profile": "Профиль",
+      "page.privacy": "Құпиялылық саясаты",
+      "page.terms": "Пайдалану шарттары",
+      "page.support": "Қолдау",
+      "ui.add_cart": "Себетке қосу",
+      "ui.buy_now": "Қазір сатып алу",
+      "ui.free_ship": "Тегін жеткізу",
+      "ui.empty_cart": "Себет бос",
+      "ui.empty_fav": "Таңдаулылар бос",
+      "ui.loading": "Жүктелуде...",
+      "ui.search_ph": "Тауар, бренд немесе санат іздеу...",
+      "ui.continue": "Жалғастыру",
+      "ui.save": "Сақтау",
+      "ui.cancel": "Бас тарту",
+      "ui.send": "Жіберу",
+      "ui.details": "Толығырақ",
+      "ui.back_home": "Басты бетке оралу",
+    },
+    uz: {
+      "home.popular": "Ommabop mahsulotlar",
+      "home.sale": "Chegirmali mahsulotlar",
+      "home.all_products": "Barcha mahsulotlar",
+      "home.categories": "Kategoriyalar",
+      "home.view_all": "Hammasini ko‘rish",
+      "home.sort": "Saralash",
+      "home.sort_popular": "Ommabop",
+      "home.sort_price_asc": "Narx: pastdan yuqoriga",
+      "home.sort_price_desc": "Narx: yuqoridan pastga",
+      "home.scroll_prev": "Orqaga surish",
+      "home.scroll_next": "Oldinga surish",
+      "home.why_badge": "Nega biz?",
+      "home.why_title_1": "Ishonch va",
+      "home.why_title_2": "shaffoflik",
+      "home.why_lead": "Tanlangan mahsulotlar, aniq narxlar va har qadamda yordam.",
+      "home.why_ship": "Tez yetkazib berish",
+      "home.why_ship_text": "Buyurtmalarni qisqa muddatda qayta ishlaymiz; moslashuvchan yetkazib berish.",
+      "home.why_pay": "Xavfsiz to‘lov",
+      "home.why_pay_text": "To‘lov ma’lumotlaringiz himoyalangan; qulay to‘lov usullari.",
+      "home.why_price": "Qulay narx",
+      "home.why_price_text": "Aksiya va chegirmalar bilan tanlangan mahsulotlarni taklif qilamiz.",
+      "home.why_support": "Mijozlarga yordam",
+      "home.why_support_text": "Savollaringiz uchun jamoamiz doimo yoningizda.",
+      "home.faq": "Ko‘p so‘raladigan savollar",
+      "home.faq_sub": "Xarid, yetkazib berish va hisob haqida.",
+      "home.spin_title": "Aylantir. Yut. Takrorla.",
+      "home.spin_sub": "Haftalik shartlarni bajaring, g‘ildirakni aylantiring va mukofot yuting.",
+      "home.spin_btn": "Aylantirish",
+      "home.spin_need": "Aylantirish uchun barcha shartlarni bajaring",
+      "cat.electronics": "Elektronika",
+      "cat.clothing": "Kiyim",
+      "cat.home_life": "Uy va hayot",
+      "cat.accessories": "Aksessuarlar",
+      "cat.appliances": "Maishiy texnika",
+      "cat.laptops": "Noutbuklar",
+      "cat.sport": "Sport",
+      "cat.children": "Bolalar",
+      "cat.games": "O‘yin",
+      "cat.entertainment": "Ko‘ngilochar",
+      "cat.women_link": "Ayol",
+      "cat.men_link": "Erkak",
+      "page.about": "Biz haqimizda",
+      "page.delivery": "Yetkazib berish",
+      "page.return": "Qaytarish",
+      "page.contact": "Aloqa",
+      "page.login": "Kirish",
+      "page.register": "Ro‘yxatdan o‘tish",
+      "page.cart": "Savat",
+      "page.favorites": "Sevimlilar",
+      "page.orders": "Buyurtmalarim",
+      "page.profile": "Profil",
+      "page.privacy": "Maxfiylik siyosati",
+      "page.terms": "Foydalanish shartlari",
+      "page.support": "Yordam",
+      "ui.add_cart": "Savatga qo‘shish",
+      "ui.buy_now": "Hozir sotib olish",
+      "ui.free_ship": "Bepul yetkazib berish",
+      "ui.empty_cart": "Savat bo‘sh",
+      "ui.empty_fav": "Sevimlilar bo‘sh",
+      "ui.loading": "Yuklanmoqda...",
+      "ui.search_ph": "Mahsulot, brend yoki kategoriya qidirish...",
+      "ui.continue": "Davom etish",
+      "ui.save": "Saqlash",
+      "ui.cancel": "Bekor qilish",
+      "ui.send": "Yuborish",
+      "ui.details": "Batafsil",
+      "ui.back_home": "Bosh sahifaga qaytish",
+    },
+    ar: {
+      "home.popular": "المنتجات الشائعة",
+      "home.sale": "منتجات مخفّضة",
+      "home.all_products": "كل المنتجات",
+      "home.categories": "الفئات",
+      "home.view_all": "عرض الكل",
+      "home.sort": "ترتيب",
+      "home.sort_popular": "شائع",
+      "home.sort_price_asc": "السعر: من الأقل للأعلى",
+      "home.sort_price_desc": "السعر: من الأعلى للأقل",
+      "home.scroll_prev": "تمرير للخلف",
+      "home.scroll_next": "تمرير للأمام",
+      "home.why_badge": "لماذا نحن؟",
+      "home.why_title_1": "الثقة و",
+      "home.why_title_2": "الشفافية",
+      "home.why_lead": "منتجات مختارة وأسعار واضحة ودعم في كل خطوة.",
+      "home.why_ship": "توصيل سريع",
+      "home.why_ship_text": "نعالج طلباتك بسرعة مع خيارات توصيل مرنة.",
+      "home.why_pay": "دفع آمن",
+      "home.why_pay_text": "معلومات الدفع محمية؛ ادفع بسهولة عبر الوسائل المعروفة.",
+      "home.why_price": "سعر مناسب",
+      "home.why_price_text": "نقدم منتجات مختارة بعروض وتخفيضات.",
+      "home.why_support": "دعم العملاء",
+      "home.why_support_text": "فريقنا دائماً معك للإجابة عن أسئلتك.",
+      "home.faq": "الأسئلة الشائعة",
+      "home.faq_sub": "حول التسوق والتوصيل والحساب.",
+      "home.spin_title": "أدر. اربح. كرر.",
+      "home.spin_sub": "أكمل الشروط الأسبوعية وأدر العجلة واربح مكافآت.",
+      "home.spin_btn": "أدر",
+      "home.spin_need": "أكمل كل الشروط للدوران",
+      "cat.electronics": "إلكترونيات",
+      "cat.clothing": "ملابس",
+      "cat.home_life": "المنزل والحياة",
+      "cat.accessories": "إكسسوارات",
+      "cat.appliances": "أجهزة منزلية",
+      "cat.laptops": "حواسيب محمولة",
+      "cat.sport": "رياضة",
+      "cat.children": "أطفال",
+      "cat.games": "ألعاب",
+      "cat.entertainment": "ترفيه",
+      "cat.women_link": "نساء",
+      "cat.men_link": "رجال",
+      "page.about": "من نحن",
+      "page.delivery": "التوصيل",
+      "page.return": "الإرجاع",
+      "page.contact": "تواصل",
+      "page.login": "دخول",
+      "page.register": "تسجيل",
+      "page.cart": "السلة",
+      "page.favorites": "المفضلة",
+      "page.orders": "طلباتي",
+      "page.profile": "الملف",
+      "page.privacy": "سياسة الخصوصية",
+      "page.terms": "شروط الاستخدام",
+      "page.support": "الدعم",
+      "ui.add_cart": "أضف إلى السلة",
+      "ui.buy_now": "اشترِ الآن",
+      "ui.free_ship": "توصيل مجاني",
+      "ui.empty_cart": "سلتك فارغة",
+      "ui.empty_fav": "قائمة المفضلة فارغة",
+      "ui.loading": "جارٍ التحميل...",
+      "ui.search_ph": "ابحث عن منتج أو علامة أو فئة...",
+      "ui.continue": "متابعة",
+      "ui.save": "حفظ",
+      "ui.cancel": "إلغاء",
+      "ui.send": "إرسال",
+      "ui.details": "التفاصيل",
+      "ui.back_home": "العودة للرئيسية",
+    },
+    en: {
+      "home.popular": "Popular products",
+      "home.sale": "Sale products",
+      "home.all_products": "All products",
+      "home.categories": "Categories",
+      "home.view_all": "View all",
+      "home.sort": "Sort",
+      "home.sort_popular": "Popular",
+      "home.sort_price_asc": "Price: low to high",
+      "home.sort_price_desc": "Price: high to low",
+      "home.scroll_prev": "Scroll back",
+      "home.scroll_next": "Scroll forward",
+      "home.why_badge": "Why us?",
+      "home.why_title_1": "Trust and",
+      "home.why_title_2": "transparency",
+      "home.why_lead": "Selected products, clear prices and support at every step — we simplify shopping.",
+      "home.why_ship": "Fast delivery",
+      "home.why_ship_text": "We process your orders quickly with flexible delivery options.",
+      "home.why_pay": "Secure payment",
+      "home.why_pay_text": "Your payment details are protected; pay easily with trusted methods.",
+      "home.why_price": "Great prices",
+      "home.why_price_text": "We offer selected products with campaigns and discounts.",
+      "home.why_support": "Customer support",
+      "home.why_support_text": "Our team is always here for your questions.",
+      "home.faq": "Frequently asked questions",
+      "home.faq_sub": "Most asked questions about shopping, delivery and accounts.",
+      "home.spin_title": "Spin. Win. Repeat.",
+      "home.spin_sub": "Complete weekly goals, spin the wheel and win premium discounts, coupons and bonus balance.",
+      "home.spin_btn": "Spin",
+      "home.spin_need": "Complete all goals to spin",
+      "cat.electronics": "Electronics",
+      "cat.clothing": "Clothing",
+      "cat.home_life": "Home & living",
+      "cat.accessories": "Accessories",
+      "cat.appliances": "Appliances",
+      "cat.laptops": "Laptops",
+      "cat.sport": "Sports",
+      "cat.children": "Kids",
+      "cat.games": "Games",
+      "cat.entertainment": "Entertainment",
+      "cat.women_link": "Women",
+      "cat.men_link": "Men",
+      "page.about": "About",
+      "page.delivery": "Delivery",
+      "page.return": "Returns",
+      "page.contact": "Contact",
+      "page.login": "Log in",
+      "page.register": "Sign up",
+      "page.cart": "Cart",
+      "page.favorites": "Favorites",
+      "page.orders": "My orders",
+      "page.profile": "Profile",
+      "page.privacy": "Privacy policy",
+      "page.terms": "Terms of use",
+      "page.support": "Support",
+      "ui.add_cart": "Add to cart",
+      "ui.buy_now": "Buy now",
+      "ui.free_ship": "Free shipping",
+      "ui.empty_cart": "Your cart is empty",
+      "ui.empty_fav": "Favorites list is empty",
+      "ui.loading": "Loading...",
+      "ui.search_ph": "Search product, brand or category...",
+      "ui.continue": "Continue",
+      "ui.save": "Save",
+      "ui.cancel": "Cancel",
+      "ui.send": "Send",
+      "ui.details": "Details",
+      "ui.back_home": "Back to home",
+    },
+  };
+
+  Object.keys(PAGE).forEach(function (lang) {
+    if (!DICT[lang]) DICT[lang] = {};
+    Object.keys(PAGE[lang]).forEach(function (k) {
+      DICT[lang][k] = PAGE[lang][k];
+    });
+  });
+
   var currentLang = DEFAULT_LANG;
+  var reverseIndex = null;
+  var observer = null;
+  var applying = false;
 
   function normalize(code) {
     var c = String(code || "").toLowerCase().trim();
@@ -845,19 +1411,156 @@
     if (htmlKey) el.innerHTML = t(htmlKey);
   }
 
-  function apply(root) {
-    var scope = root || document;
-    var nodes = scope.querySelectorAll("[data-i18n], [data-i18n-html]");
-    for (var i = 0; i < nodes.length; i++) applyNode(nodes[i]);
-    // marquee duplicated spans
-    var marqueeItems = scope.querySelectorAll(".site-alert-marquee__item");
-    for (var m = 0; m < marqueeItems.length; m++) {
-      var txt = t("marquee.test");
-      marqueeItems[m].innerHTML =
-        '<i class="site-alert-marquee__dot" aria-hidden="true"></i>' + txt;
+  function normText(s) {
+    return String(s || "")
+      .replace(/\u00a0/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function rebuildReverseIndex() {
+    reverseIndex = Object.create(null);
+    Object.keys(DICT).forEach(function (lang) {
+      var pack = DICT[lang] || {};
+      Object.keys(pack).forEach(function (key) {
+        var val = normText(pack[key]);
+        if (val && val.length >= 2) reverseIndex[val] = key;
+      });
+    });
+  }
+
+  function lookupKey(text) {
+    if (!reverseIndex) rebuildReverseIndex();
+    return reverseIndex[normText(text)] || null;
+  }
+
+  function shouldSkipEl(el) {
+    if (!el || el.nodeType !== 1) return true;
+    var tag = el.tagName;
+    if (
+      tag === "SCRIPT" ||
+      tag === "STYLE" ||
+      tag === "NOSCRIPT" ||
+      tag === "TEXTAREA" ||
+      tag === "CODE" ||
+      tag === "PRE" ||
+      tag === "SVG" ||
+      tag === "PATH"
+    ) {
+      return true;
     }
-    var vh = scope.querySelector(".site-alert-marquee .visually-hidden");
-    if (vh) vh.textContent = t("marquee.test");
+    if (el.closest && el.closest("[data-lang-switch], .lang-switch, [contenteditable='true']")) {
+      return true;
+    }
+    return false;
+  }
+
+  function translateTextNodes(root) {
+    if (!root) return;
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (node) {
+        if (!node || !node.nodeValue || !normText(node.nodeValue)) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        var parent = node.parentElement;
+        if (shouldSkipEl(parent)) return NodeFilter.FILTER_REJECT;
+        if (parent && parent.getAttribute && parent.getAttribute("data-i18n")) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    nodes.forEach(function (node) {
+      var raw = node.nodeValue;
+      var trimmed = normText(raw);
+      var key = lookupKey(trimmed);
+      if (!key) return;
+      var translated = t(key);
+      if (!translated || translated === trimmed) return;
+      var lead = raw.match(/^\s*/)[0] || "";
+      var trail = raw.match(/\s*$/)[0] || "";
+      node.nodeValue = lead + translated + trail;
+    });
+  }
+
+  function translateAttributes(root) {
+    if (!root || !root.querySelectorAll) return;
+    var attrs = ["placeholder", "aria-label", "title", "alt"];
+    root.querySelectorAll("*").forEach(function (el) {
+      if (shouldSkipEl(el)) return;
+      attrs.forEach(function (name) {
+        if (!el.hasAttribute(name)) return;
+        if (el.getAttribute("data-i18n-attr") && el.getAttribute("data-i18n-attr").indexOf(name) !== -1) {
+          return;
+        }
+        var val = el.getAttribute(name);
+        var key = lookupKey(val);
+        if (key) el.setAttribute(name, t(key));
+      });
+    });
+  }
+
+  function apply(root) {
+    if (applying) return;
+    applying = true;
+    try {
+      var scope = root || document;
+      var nodes = scope.querySelectorAll
+        ? scope.querySelectorAll("[data-i18n], [data-i18n-html]")
+        : [];
+      for (var i = 0; i < nodes.length; i++) applyNode(nodes[i]);
+
+      var marqueeRoot = scope.querySelector
+        ? scope.querySelector(".site-alert-marquee") || scope
+        : scope;
+      var marqueeItems =
+        marqueeRoot.querySelectorAll
+          ? marqueeRoot.querySelectorAll(".site-alert-marquee__item")
+          : [];
+      for (var m = 0; m < marqueeItems.length; m++) {
+        var txt = t("marquee.test");
+        marqueeItems[m].innerHTML =
+          '<i class="site-alert-marquee__dot" aria-hidden="true"></i>' + txt;
+      }
+      var vh =
+        marqueeRoot.querySelector &&
+        marqueeRoot.querySelector(".site-alert-marquee .visually-hidden");
+      if (vh) vh.textContent = t("marquee.test");
+
+      translateTextNodes(scope.body || scope);
+      translateAttributes(scope.body || scope);
+    } finally {
+      applying = false;
+    }
+  }
+
+  function positionMenu(wrap) {
+    var btn = wrap.querySelector(".lang-switch__btn");
+    var menu = wrap.querySelector(".lang-switch__menu");
+    if (!btn || !menu) return;
+    var rect = btn.getBoundingClientRect();
+    var width = Math.min(280, window.innerWidth - 24);
+    var left = rect.left;
+    if (document.documentElement.dir === "rtl") {
+      left = rect.right - width;
+    }
+    if (left + width > window.innerWidth - 12) left = window.innerWidth - width - 12;
+    if (left < 12) left = 12;
+    var top = rect.bottom + 8;
+    var maxH = Math.min(window.innerHeight * 0.7, 420);
+    if (top + Math.min(maxH, 280) > window.innerHeight - 8) {
+      top = Math.max(8, rect.top - 8 - Math.min(maxH, 280));
+    }
+    menu.style.position = "fixed";
+    menu.style.top = Math.round(top) + "px";
+    menu.style.left = Math.round(left) + "px";
+    menu.style.right = "auto";
+    menu.style.width = width + "px";
+    menu.style.zIndex = "400000";
   }
 
   function setLang(code, opts) {
@@ -992,6 +1695,7 @@
       if (!btn || !menu) return;
 
       btn.addEventListener("click", function (e) {
+        e.preventDefault();
         e.stopPropagation();
         var open = !wrap.classList.contains("is-open");
         closeAllMenus();
@@ -999,6 +1703,7 @@
           wrap.classList.add("is-open");
           menu.removeAttribute("hidden");
           btn.setAttribute("aria-expanded", "true");
+          positionMenu(wrap);
         }
       });
 
@@ -1039,6 +1744,26 @@
     bindSwitcher(container);
   }
 
+  function startObserver() {
+    if (observer || typeof MutationObserver === "undefined") return;
+    observer = new MutationObserver(function (mutations) {
+      if (applying) return;
+      var needs = false;
+      for (var i = 0; i < mutations.length; i++) {
+        if (mutations[i].addedNodes && mutations[i].addedNodes.length) {
+          needs = true;
+          break;
+        }
+      }
+      if (!needs) return;
+      if (startObserver._timer) clearTimeout(startObserver._timer);
+      startObserver._timer = setTimeout(function () {
+        apply(document);
+      }, 80);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   function init() {
     var stored = null;
     try {
@@ -1049,7 +1774,6 @@
     if (stored) {
       currentLang = normalize(stored);
     } else {
-      // Ölkə seçilibsə, dilini oradan götür
       try {
         var country = JSON.parse(localStorage.getItem("buykon_country") || "null");
         if (country && country.code) {
@@ -1062,9 +1786,11 @@
         currentLang = DEFAULT_LANG;
       }
     }
+    rebuildReverseIndex();
     applyDocumentLang(currentLang);
     apply(document);
     bindSwitcher(document);
+    startObserver();
 
     if (!document.documentElement.dataset.langClickBound) {
       document.documentElement.dataset.langClickBound = "1";
@@ -1074,6 +1800,12 @@
       document.addEventListener("keydown", function (e) {
         if (e.key === "Escape") closeAllMenus();
       });
+      window.addEventListener("resize", function () {
+        document.querySelectorAll(".lang-switch.is-open").forEach(positionMenu);
+      });
+      window.addEventListener("scroll", function () {
+        document.querySelectorAll(".lang-switch.is-open").forEach(positionMenu);
+      }, true);
     }
 
     document.addEventListener("BuykonOnboardingDone", function (e) {
@@ -1081,6 +1813,11 @@
       if (!country || !country.code) return;
       var mapped = langFromCountry(country.code);
       if (mapped) setLang(mapped, { fromCountry: true });
+    });
+
+    document.addEventListener("BizdevarLayoutLoaded", function () {
+      apply(document);
+      bindSwitcher(document);
     });
   }
 

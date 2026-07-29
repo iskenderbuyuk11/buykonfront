@@ -60,7 +60,7 @@
     }
     return new Promise(function (resolve) {
       var s = document.createElement("script");
-      s.src = root + "js/i18n.js?v=1";
+    s.src = root + "js/i18n.js?v=2";
       s.onload = function () {
         resolve();
       };

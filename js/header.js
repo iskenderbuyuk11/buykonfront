@@ -724,9 +724,7 @@
       if (window.BuykonI18n) {
         BuykonI18n.mountDesktop(document.getElementById("lang-switch-desktop-host"));
         BuykonI18n.mountMobileBar(document.getElementById("lang-switch-mobile-host"));
-        BuykonI18n.apply(document.getElementById("site-header"));
-        BuykonI18n.apply(document.getElementById("site-footer"));
-        BuykonI18n.apply(document.getElementById("site-bottom-nav"));
+        BuykonI18n.apply(document);
       }
       var menuSheet = document.getElementById("mobile-menu-sheet");
       if (menuSheet) {
