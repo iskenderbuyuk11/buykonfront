@@ -69,7 +69,39 @@
   }
 
   function mapLang(code) {
-    return LANG_MAP[String(code || "az").toLowerCase()] || "en";
+    var c = String(code || "az").toLowerCase();
+    if (c === "auto") return "auto";
+    return LANG_MAP[c] || "en";
+  }
+
+  function sourceLangFor(text) {
+    var s = String(text || "");
+    if (/[\u4e00-\u9fff\u3400-\u4dbf]/.test(s)) return "zh-CN";
+    if (/[\u0600-\u06FF]/.test(s)) return "ar";
+    if (/[\u10A0-\u10FF]/.test(s)) return "ka";
+    if (/[\u0400-\u04FF]/.test(s)) return "kk";
+    return "auto";
+  }
+
+  function sameLangFamily(a, b) {
+    var x = mapLang(a);
+    var y = mapLang(b);
+    if (x === y) return true;
+    if (String(x).indexOf("zh") === 0 && String(y).indexOf("zh") === 0) return true;
+    return false;
+  }
+
+  /** Mətn seçilmiş dilə uyğundurmu, yoxsa tərcümə lazımdır? */
+  function needsTranslate(text, toLang) {
+    var raw = norm(text);
+    if (!raw) return false;
+    var to = mapLang(toLang || currentLang());
+    var from = sourceLangFor(raw);
+    if (from === "auto") {
+      // Latın/AZ mətn — yalnız hədəf AZ deyilsə tərcümə et
+      return to !== "az";
+    }
+    return !sameLangFamily(from, to);
   }
 
   function norm(s) {
@@ -392,11 +424,16 @@
     var original = norm(product.name || product.title || "");
     if (!original) return "";
     var lang = currentLang();
-    if (lang === "az") return original;
+    if (!needsTranslate(original, lang)) return original;
     var id = product.id != null ? String(product.id) : "";
     var key = lang + ":" + (id || original.toLowerCase());
     if (productNameCache[key]) return productNameCache[key];
-    var hit = getCached(original, mapLang(lang), "az");
+    var from = sourceLangFor(original);
+    if (from === "auto") from = "az";
+    var hit =
+      getCached(original, mapLang(lang), from) ||
+      getCached(original, mapLang(lang), "auto") ||
+      getCached(original, mapLang(lang), "az");
     if (hit) {
       productNameCache[key] = hit;
       return hit;
@@ -410,19 +447,22 @@
     if (!original) return;
     var id = product.id != null ? String(product.id) : "";
     productNameCache[lang + ":" + (id || original.toLowerCase())] = translated;
-    product._name_az = product._name_az || original;
+    product._name_src = product._name_src || original;
     product._name_i18n = translated;
   }
 
   function warmProducts(products, toLang, onChunk) {
     var lang = toLang || currentLang();
-    if (lang === "az") return Promise.resolve(products || []);
     var list = products || [];
     var names = list
       .map(function (p) {
         return norm(p && (p.name || p.title));
       })
-      .filter(Boolean);
+      .filter(function (n) {
+        return n && needsTranslate(n, lang);
+      });
+
+    if (!names.length) return Promise.resolve(list);
 
     var paintScheduled = false;
     function schedulePaint() {
@@ -434,6 +474,7 @@
       raf(function () {
         paintScheduled = false;
         updateProductNameNodes(document);
+        updateAiTextNodes(document);
         if (typeof onChunk === "function") {
           try {
             onChunk(list);
@@ -456,7 +497,8 @@
       schedulePaint();
     }
 
-    return translateMany(names, lang, "az", applyMap).then(function (map) {
+    // API mətnləri müxtəlif dildə ola bilər — auto
+    return translateMany(names, lang, "auto", applyMap).then(function (map) {
       applyMap(map);
       return list;
     });
@@ -469,13 +511,19 @@
     scope.querySelectorAll("[data-ai-product-name]").forEach(function (el) {
       var original = norm(el.getAttribute("data-ai-product-name") || el.textContent);
       if (!original) return;
-      if (lang === "az") {
+      if (!needsTranslate(original, lang)) {
         if (el.textContent !== original) el.textContent = original;
         return;
       }
       var id = el.getAttribute("data-ai-product-id") || "";
       var key = lang + ":" + (id || original.toLowerCase());
-      var hit = productNameCache[key] || getCached(original, mapLang(lang), "az");
+      var from = sourceLangFor(original);
+      if (from === "auto") from = "az";
+      var hit =
+        productNameCache[key] ||
+        getCached(original, mapLang(lang), from) ||
+        getCached(original, mapLang(lang), "auto") ||
+        getCached(original, mapLang(lang), "az");
       if (hit) {
         productNameCache[key] = hit;
         if (el.textContent !== hit) el.textContent = hit;
@@ -484,12 +532,12 @@
       missing.push({ el: el, original: original, key: key });
     });
 
-    if (!missing.length || lang === "az") return;
+    if (!missing.length) return;
 
     var texts = missing.map(function (m) {
       return m.original;
     });
-    translateMany(texts, lang, "az", function (partial) {
+    translateMany(texts, lang, "auto", function (partial) {
       if (currentLang() !== lang) return;
       missing.forEach(function (m) {
         var tr = partial[m.original] || partial[m.original.toLowerCase()];
@@ -498,6 +546,45 @@
         if (m.el.textContent !== tr) m.el.textContent = tr;
       });
     });
+  }
+
+  /** Ümumi data-ai-text (kateqoriya və s.) */
+  function updateAiTextNodes(root) {
+    var scope = root || document;
+    var lang = currentLang();
+    var missing = [];
+    scope.querySelectorAll("[data-ai-text]").forEach(function (el) {
+      var original = norm(el.getAttribute("data-ai-text") || "");
+      if (!original) return;
+      if (!needsTranslate(original, lang)) {
+        if (el.textContent !== original) el.textContent = original;
+        return;
+      }
+      var hit =
+        getCached(original, mapLang(lang), sourceLangFor(original)) ||
+        getCached(original, mapLang(lang), "auto") ||
+        getCached(original, mapLang(lang), "az");
+      if (hit) {
+        if (el.textContent !== hit) el.textContent = hit;
+        return;
+      }
+      missing.push({ el: el, original: original });
+    });
+    if (!missing.length) return;
+    translateMany(
+      missing.map(function (m) {
+        return m.original;
+      }),
+      lang,
+      "auto",
+      function (partial) {
+        if (currentLang() !== lang) return;
+        missing.forEach(function (m) {
+          var tr = partial[m.original] || partial[m.original.toLowerCase()];
+          if (tr && m.el.textContent !== tr) m.el.textContent = tr;
+        });
+      }
+    );
   }
 
   function looksTranslatable(text) {
@@ -592,22 +679,24 @@
     return items;
   }
 
-  function applyLiveItem(item, tr, lang) {
-    if (!tr) return;
+  function applyLiveItem(item, tr) {
+    if (tr == null || tr === "") return;
     if (item.type === "text") {
       var node = item.node;
       if (!node || !node.parentElement) return;
       var raw = node.nodeValue || "";
       var lead = raw.match(/^\s*/)[0] || "";
       var trail = raw.match(/\s*$/)[0] || "";
-      var next = lang === "az" ? item.orig : tr;
-      node.nodeValue = lead + next + trail;
+      node.nodeValue = lead + tr + trail;
       return;
     }
     if (item.type === "attr" && item.el) {
-      item.el.setAttribute(item.name, lang === "az" ? item.orig : tr);
+      item.el.setAttribute(item.name, tr);
     }
   }
+
+  var liveBusy = false;
+  var liveQueued = false;
 
   function translateLiveDom(root) {
     var lang = currentLang();
@@ -615,33 +704,57 @@
     if (!scope) return Promise.resolve();
 
     var token = ++liveDomToken;
+    liveBusy = true;
     var items = collectLiveTargets(scope);
-    if (!items.length) return Promise.resolve();
 
-    if (lang === "az") {
-      items.forEach(function (item) {
-        applyLiveItem(item, item.orig, "az");
-      });
+    function finish() {
+      liveBusy = false;
+      if (liveQueued) {
+        liveQueued = false;
+        scheduleLiveDom(scope);
+      }
+    }
+
+    updateAiTextNodes(scope);
+
+    if (!items.length) {
+      finish();
       return Promise.resolve();
     }
 
-    var texts = items.map(function (it) {
+    var toTranslate = [];
+    items.forEach(function (item) {
+      if (needsTranslate(item.orig, lang)) {
+        toTranslate.push(item);
+      } else {
+        applyLiveItem(item, item.orig);
+      }
+    });
+
+    if (!toTranslate.length) {
+      finish();
+      return Promise.resolve();
+    }
+
+    var texts = toTranslate.map(function (it) {
       return it.orig;
     });
 
-    return translateMany(texts, lang, "az", function (partial) {
+    return translateMany(texts, lang, "auto", function (partial) {
       if (token !== liveDomToken || currentLang() !== lang) return;
-      items.forEach(function (item) {
+      toTranslate.forEach(function (item) {
         var tr = partial[item.orig] || partial[item.orig.toLowerCase()];
-        if (tr) applyLiveItem(item, tr, lang);
+        if (tr) applyLiveItem(item, tr);
       });
-    }).then(function (map) {
-      if (token !== liveDomToken || currentLang() !== lang) return;
-      items.forEach(function (item) {
-        var tr = map[item.orig] || map[item.orig.toLowerCase()] || item.orig;
-        applyLiveItem(item, tr, lang);
-      });
-    });
+    })
+      .then(function (map) {
+        if (token !== liveDomToken || currentLang() !== lang) return;
+        toTranslate.forEach(function (item) {
+          var tr = map[item.orig] || map[item.orig.toLowerCase()] || item.orig;
+          applyLiveItem(item, tr);
+        });
+      })
+      .then(finish, finish);
   }
 
   function scheduleLiveDom(root) {
@@ -649,11 +762,12 @@
     liveDomTimer = setTimeout(function () {
       liveDomTimer = null;
       translateLiveDom(root || document.body);
-    }, 60);
+    }, 80);
   }
 
   function onLangChanged() {
     updateProductNameNodes(document);
+    updateAiTextNodes(document);
     scheduleLiveDom(document.body);
     document.dispatchEvent(
       new CustomEvent("BuykonAITranslateReady", { detail: { lang: currentLang() } })
@@ -664,7 +778,10 @@
   function bindObserver() {
     if (!global.MutationObserver || !document.body) return;
     var mo = new MutationObserver(function (mutations) {
-      if (currentLang() === "az") return;
+      if (liveBusy) {
+        liveQueued = true;
+        return;
+      }
       var relevant = false;
       for (var i = 0; i < mutations.length; i++) {
         if (mutations[i].addedNodes && mutations[i].addedNodes.length) {
@@ -677,8 +794,9 @@
       mutationTimer = setTimeout(function () {
         mutationTimer = null;
         updateProductNameNodes(document);
+        updateAiTextNodes(document);
         scheduleLiveDom(document.body);
-      }, 180);
+      }, 220);
     });
     mo.observe(document.body, { childList: true, subtree: true });
   }
@@ -690,11 +808,13 @@
     document.addEventListener("BizdevarLayoutLoaded", function () {
       setTimeout(function () {
         updateProductNameNodes(document);
+        updateAiTextNodes(document);
         scheduleLiveDom(document.body);
       }, 20);
     });
     setTimeout(function () {
       updateProductNameNodes(document);
+      updateAiTextNodes(document);
       scheduleLiveDom(document.body);
       bindObserver();
     }, 80);
@@ -706,9 +826,11 @@
     displayName: displayName,
     warmProducts: warmProducts,
     updateProductNameNodes: updateProductNameNodes,
+    updateAiTextNodes: updateAiTextNodes,
     translateLiveDom: translateLiveDom,
     scheduleLiveDom: scheduleLiveDom,
     onLangChanged: onLangChanged,
+    needsTranslate: needsTranslate,
     CACHE_KEY: CACHE_KEY,
   };
 

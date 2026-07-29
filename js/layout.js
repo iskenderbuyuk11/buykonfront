@@ -65,10 +65,10 @@
 
     var chain = Promise.resolve();
     if (!window.BuykonI18n) chain = chain.then(function () {
-      return loadScript("js/i18n.js?v=4");
+      return loadScript("js/i18n.js?v=5");
     });
     if (!window.BuykonAITranslate) chain = chain.then(function () {
-      return loadScript("js/ai-translate.js?v=4");
+      return loadScript("js/ai-translate.js?v=5");
     });
     return chain.then(function () {
       return new Promise(function (resolve) {

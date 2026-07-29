@@ -615,7 +615,20 @@
       var seller = getSellerName(product);
       var bullets = ["<li>Satıcı: <strong>" + esc(seller) + "</strong></li>"];
       if (product.category_name) {
-        bullets.push("<li>Kateqoriya: <strong>" + esc(product.category_name) + "</strong></li>");
+        bullets.push(
+          '<li>Kateqoriya: <strong data-ai-text="' +
+            escAttr(product.category_name) +
+            '">' +
+            esc(
+              window.BuykonAITranslate && BuykonAITranslate.displayName
+                ? BuykonAITranslate.displayName({
+                    id: "cat-" + (product.cat || ""),
+                    name: product.category_name,
+                  })
+                : product.category_name
+            ) +
+            "</strong></li>"
+        );
       }
       if (isInStock(product)) {
         bullets.push(
@@ -975,14 +988,28 @@
   function initAddToCart(productId, product) {
     var btn = $("pd-add-cart");
     if (!btn) return;
+    var labelEl = btn.querySelector("[data-i18n], span:last-of-type") || null;
+
+    function setBtnLabel(text) {
+      if (labelEl) labelEl.textContent = text;
+      else btn.textContent = text;
+    }
+
+    function defaultCartLabel() {
+      if (window.BuykonI18n && typeof BuykonI18n.t === "function") {
+        return BuykonI18n.t("ui.add_cart");
+      }
+      return "Səbətə əlavə et";
+    }
+
     var available = !product || isInStock(product);
     if (!available) {
       btn.disabled = true;
-      btn.textContent = "Stokda yoxdur";
+      setBtnLabel("Stokda yoxdur");
       btn.classList.add("pd-btn--disabled");
       return;
     }
-    var defaultLabel = btn.textContent;
+    setBtnLabel(defaultCartLabel());
     btn.addEventListener("click", function () {
       if (!API || !API.cartAdd) {
         alert("Səbət funksiyası üçün sayt API-si tələb olunur.");
@@ -993,8 +1020,10 @@
       API.cartAdd(productId, qty)
         .then(function (d) {
           if (window.BizdevarHeader) BizdevarHeader.setCartBadge(d.total_qty);
-          btn.textContent = "Səbətə əlavə olundu ✓";
-          window.setTimeout(function () { btn.textContent = defaultLabel; }, 1600);
+          setBtnLabel("Səbətə əlavə olundu ✓");
+          window.setTimeout(function () {
+            setBtnLabel(defaultCartLabel());
+          }, 1600);
         })
         .catch(function (e) {
           alert((e && e.message) || "Səbətə əlavə olunmadı");
@@ -1624,7 +1653,12 @@
       chip.setAttribute("hidden", "");
       return;
     }
-    chip.textContent = name;
+    var shown =
+      window.BuykonAITranslate && BuykonAITranslate.displayName
+        ? BuykonAITranslate.displayName({ id: "cat-" + (product.cat || ""), name: name })
+        : name;
+    chip.setAttribute("data-ai-text", name);
+    chip.textContent = shown;
     chip.href = "../../index.html#catalog";
     chip.removeAttribute("hidden");
   }
@@ -1874,10 +1908,20 @@
         if (!currentProduct || currentProduct.id !== product.id) return;
         applyHeader(product);
         if (titleEl) titleEl.textContent = productDisplayName(product);
+        renderCategoryChip(product);
         if (typeof BuykonAITranslate.updateProductNameNodes === "function") {
           BuykonAITranslate.updateProductNameNodes(document);
         }
+        if (typeof BuykonAITranslate.updateAiTextNodes === "function") {
+          BuykonAITranslate.updateAiTextNodes(document);
+        }
       });
+    }
+    if (window.BuykonI18n && typeof BuykonI18n.apply === "function") {
+      BuykonI18n.apply(document.querySelector(".product-page") || document);
+    }
+    if (window.BuykonAITranslate && typeof BuykonAITranslate.scheduleLiveDom === "function") {
+      BuykonAITranslate.scheduleLiveDom(document.querySelector(".product-page") || document.body);
     }
   }
 
