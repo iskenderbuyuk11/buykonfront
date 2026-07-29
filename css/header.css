@@ -109,10 +109,11 @@ body {
 .top-banner {
     background: #ff660000;
     border-bottom: 1px solid #e5e7eb;
-    max-height: 48px;
-    overflow: hidden;
+    max-height: none;
+    overflow: visible;
+    position: relative;
+    z-index: 16000;
     transition:
-        max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
         opacity 0.3s ease,
         border-color 0.3s ease;
 }
@@ -124,6 +125,7 @@ body {
     justify-content: space-between;
     gap: 18px;
     font-size: 13px;
+    overflow: visible;
 }
 
 .top-banner__start {
@@ -131,17 +133,21 @@ body {
     align-items: center;
     gap: 12px;
     flex-shrink: 0;
+    position: relative;
+    z-index: 16001;
+    overflow: visible;
 }
 
 .top-banner__lang {
     position: relative;
-    z-index: 40;
+    z-index: 16002;
+    overflow: visible;
 }
 
 /* ===== Language switcher ===== */
 .lang-switch {
     position: relative;
-    z-index: 50;
+    z-index: 16003;
 }
 
 .lang-switch__btn {
@@ -191,20 +197,25 @@ body {
 }
 
 .lang-switch__menu {
-    position: absolute;
-    top: calc(100% + 8px);
+    position: fixed;
+    top: 0;
     left: 0;
-    width: min(260px, calc(100vw - 24px));
+    width: min(280px, calc(100vw - 24px));
     padding: 10px;
     border: 1px solid #e8ecf2;
     border-radius: 16px;
     background: #fff;
-    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
     display: flex;
     flex-direction: column;
     gap: 4px;
     max-height: min(70vh, 420px);
     overflow: auto;
+    z-index: 400000;
+}
+
+.lang-switch__menu[hidden] {
+    display: none !important;
 }
 
 .lang-switch__title {
