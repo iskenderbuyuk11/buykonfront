@@ -1434,6 +1434,19 @@
     return reverseIndex[normText(text)] || null;
   }
 
+  function isManagedText(text) {
+    var n = normText(text);
+    if (!n) return false;
+    if (lookupKey(n)) return true;
+    var pack = DICT[currentLang] || {};
+    for (var k in pack) {
+      if (Object.prototype.hasOwnProperty.call(pack, k) && normText(pack[k]) === n) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   function shouldSkipEl(el) {
     if (!el || el.nodeType !== 1) return true;
     var tag = el.tagName;
@@ -1457,6 +1470,9 @@
 
   function translateTextNodes(root) {
     if (!root) return;
+    if (!translateTextNodes._orig) translateTextNodes._orig = new WeakMap();
+    var origMap = translateTextNodes._orig;
+
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: function (node) {
         if (!node || !node.nodeValue || !normText(node.nodeValue)) {
@@ -1465,6 +1481,9 @@
         var parent = node.parentElement;
         if (shouldSkipEl(parent)) return NodeFilter.FILTER_REJECT;
         if (parent && parent.getAttribute && parent.getAttribute("data-i18n")) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        if (parent && parent.closest && parent.closest("[data-ai-product-name]")) {
           return NodeFilter.FILTER_REJECT;
         }
         return NodeFilter.FILTER_ACCEPT;
@@ -1477,10 +1496,15 @@
     nodes.forEach(function (node) {
       var raw = node.nodeValue;
       var trimmed = normText(raw);
-      var key = lookupKey(trimmed);
+      var src = origMap.get(node);
+      if (!src) {
+        src = trimmed;
+        origMap.set(node, src);
+      }
+      var key = lookupKey(src);
       if (!key) return;
-      var translated = t(key);
-      if (!translated || translated === trimmed) return;
+      var translated = currentLang === DEFAULT_LANG ? src : t(key);
+      if (!translated) return;
       var lead = raw.match(/^\s*/)[0] || "";
       var trail = raw.match(/\s*$/)[0] || "";
       node.nodeValue = lead + translated + trail;
@@ -1489,6 +1513,8 @@
 
   function translateAttributes(root) {
     if (!root || !root.querySelectorAll) return;
+    if (!translateAttributes._orig) translateAttributes._orig = new WeakMap();
+    var origMap = translateAttributes._orig;
     var attrs = ["placeholder", "aria-label", "title", "alt"];
     root.querySelectorAll("*").forEach(function (el) {
       if (shouldSkipEl(el)) return;
@@ -1498,8 +1524,16 @@
           return;
         }
         var val = el.getAttribute(name);
-        var key = lookupKey(val);
-        if (key) el.setAttribute(name, t(key));
+        var bag = origMap.get(el);
+        if (!bag) {
+          bag = Object.create(null);
+          origMap.set(el, bag);
+        }
+        if (!bag[name]) bag[name] = val;
+        var src = bag[name];
+        var key = lookupKey(src);
+        if (!key) return;
+        el.setAttribute(name, currentLang === DEFAULT_LANG ? src : t(key));
       });
     });
   }
@@ -1829,6 +1863,7 @@
     setLang: setLang,
     langFromCountry: langFromCountry,
     apply: apply,
+    isManagedText: isManagedText,
     buildSwitcherHtml: buildSwitcherHtml,
     mountDesktop: mountDesktop,
     mountMobileBar: mountMobileBar,

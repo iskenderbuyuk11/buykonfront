@@ -253,7 +253,7 @@
     if (window.BuykonAITranslate) return Promise.resolve();
     return new Promise(function (resolve) {
       var s = document.createElement("script");
-      s.src = "/js/ai-translate.js?v=3";
+      s.src = "/js/ai-translate.js?v=4";
       s.onload = function () {
         resolve();
       };

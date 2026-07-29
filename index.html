@@ -226,6 +226,7 @@
             <h2
               class="catalog__title catalog__title--fixed"
               id="catalog-popular-title"
+              data-i18n="home.popular"
             >
               Populyar məhsullar
             </h2>
@@ -249,7 +250,7 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
               <button type="button" class="catalog__more" id="popular-toggle">
-                <span>Hamısına bax</span>
+                <span data-i18n="home.view_all">Hamısına bax</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
             </div>
@@ -263,26 +264,26 @@
           aria-labelledby="cat-showcase-title"
         >
           <div class="catalog__head cat-showcase__head">
-            <h2 class="catalog__title" id="cat-showcase-title">Kateqoriyalar</h2>
-            <a href="#kateqoriyalar" class="cat-showcase__link">Hamısına bax</a>
+            <h2 class="catalog__title" id="cat-showcase-title" data-i18n="home.categories">Kateqoriyalar</h2>
+            <a href="#kateqoriyalar" class="cat-showcase__link" data-i18n="home.view_all">Hamısına bax</a>
           </div>
           <div class="cat-showcase__grid">
             <a href="#catalog" class="cat-tile" data-cat="elektronika">
-              <span class="cat-tile__label">Elektronika</span>
+              <span class="cat-tile__label" data-i18n="cat.electronics">Elektronika</span>
               <img class="cat-tile__img" src="images/categories/elektronika.png" alt="" loading="lazy" onerror="this.closest('.cat-tile').classList.add('cat-tile--noimg');this.remove()" />
               <span class="cat-tile__icon" aria-hidden="true">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
               </span>
             </a>
             <a href="#catalog" class="cat-tile" data-cat="geyim">
-              <span class="cat-tile__label">Geyim</span>
+              <span class="cat-tile__label" data-i18n="cat.clothing">Geyim</span>
               <img class="cat-tile__img" src="images/categories/geyim.png" alt="" loading="lazy" onerror="this.closest('.cat-tile').classList.add('cat-tile--noimg');this.remove()" />
               <span class="cat-tile__icon" aria-hidden="true">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20.38 3.46L16 2 12 5 8 2 3.62 3.46 2 7l4 2v11h12V9l4-2-2-3.54z"/></svg>
               </span>
             </a>
             <a href="#catalog" class="cat-tile" data-cat="ev">
-              <span class="cat-tile__label">Ev &amp; yaşam</span>
+              <span class="cat-tile__label" data-i18n="cat.home_life">Ev &amp; yaşam</span>
               <img class="cat-tile__img" src="images/categories/ev.png" alt="" loading="lazy" onerror="this.closest('.cat-tile').classList.add('cat-tile--noimg');this.remove()" />
               <span class="cat-tile__icon" aria-hidden="true">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 22V12h6v10"/></svg>
@@ -296,42 +297,42 @@
               </span>
             </a>
             <a href="#catalog" class="cat-tile" data-cat="aksesuar">
-              <span class="cat-tile__label">Aksesuarlar</span>
+              <span class="cat-tile__label" data-i18n="cat.accessories">Aksesuarlar</span>
               <img class="cat-tile__img" src="images/categories/aksesuar.png" alt="" loading="lazy" onerror="this.closest('.cat-tile').classList.add('cat-tile--noimg');this.remove()" />
               <span class="cat-tile__icon" aria-hidden="true">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="7"/><path d="M12 9v3l2 2"/></svg>
               </span>
             </a>
             <a href="#catalog" class="cat-tile" data-cat="texnika">
-              <span class="cat-tile__label">Məişət texnikası</span>
+              <span class="cat-tile__label" data-i18n="cat.appliances">Məişət texnikası</span>
               <img class="cat-tile__img" src="images/categories/texnika.png" alt="" loading="lazy" onerror="this.closest('.cat-tile').classList.add('cat-tile--noimg');this.remove()" />
               <span class="cat-tile__icon" aria-hidden="true">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M8 21h8"/></svg>
               </span>
             </a>
             <a href="#catalog" class="cat-tile" data-cat="notbuk">
-              <span class="cat-tile__label">Notbuklar</span>
+              <span class="cat-tile__label" data-i18n="cat.laptops">Notbuklar</span>
               <img class="cat-tile__img" src="images/categories/notbuk.png" alt="" loading="lazy" onerror="this.closest('.cat-tile').classList.add('cat-tile--noimg');this.remove()" />
               <span class="cat-tile__icon" aria-hidden="true">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M2 20h20"/></svg>
               </span>
             </a>
             <a href="#catalog" class="cat-tile" data-cat="idman">
-              <span class="cat-tile__label">İdman</span>
+              <span class="cat-tile__label" data-i18n="cat.sport">İdman</span>
               <img class="cat-tile__img" src="images/categories/idman.png" alt="" loading="lazy" onerror="this.closest('.cat-tile').classList.add('cat-tile--noimg');this.remove()" />
               <span class="cat-tile__icon" aria-hidden="true">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20"/></svg>
               </span>
             </a>
             <a href="#catalog" class="cat-tile" data-cat="usaqlar">
-              <span class="cat-tile__label">Uşaqlar</span>
+              <span class="cat-tile__label" data-i18n="cat.children">Uşaqlar</span>
               <img class="cat-tile__img" src="images/categories/usaqlar.png" alt="" loading="lazy" onerror="this.closest('.cat-tile').classList.add('cat-tile--noimg');this.remove()" />
               <span class="cat-tile__icon" aria-hidden="true">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a6 6 0 0 1 12 0v2"/></svg>
               </span>
             </a>
             <a href="#catalog" class="cat-tile" data-cat="oyun">
-              <span class="cat-tile__label">Oyun</span>
+              <span class="cat-tile__label" data-i18n="cat.games">Oyun</span>
               <img class="cat-tile__img" src="images/categories/oyun.png" alt="" loading="lazy" onerror="this.closest('.cat-tile').classList.add('cat-tile--noimg');this.remove()" />
               <span class="cat-tile__icon" aria-hidden="true">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/><rect x="2" y="6" width="20" height="12" rx="2"/></svg>
@@ -346,7 +347,7 @@
           aria-labelledby="catalog-sale-title"
         >
           <div class="catalog__head catalog__head--sale">
-            <h2 class="catalog__title" id="catalog-sale-title">
+            <h2 class="catalog__title" id="catalog-sale-title" data-i18n="home.sale">
               Endirimli məhsullar
             </h2>
             <div class="catalog__actions">
@@ -369,7 +370,7 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
               <button type="button" class="catalog__more" id="sale-toggle">
-                <span>Hamısına bax</span>
+                <span data-i18n="home.view_all">Hamısına bax</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
             </div>
@@ -493,13 +494,13 @@
           aria-labelledby="catalog-title"
         >
           <div class="catalog__head">
-            <h2 class="catalog__title" id="catalog-title">Bütün məhsullar</h2>
+            <h2 class="catalog__title" id="catalog-title" data-i18n="home.all_products">Bütün məhsullar</h2>
             <div class="catalog__sort">
-              <label for="sort">Sırala</label>
+              <label for="sort" data-i18n="home.sort">Sırala</label>
               <select id="sort" class="select">
-                <option value="popular">Populyar</option>
-                <option value="price-asc">Qiymət: aşağıdan yuxarı</option>
-                <option value="price-desc">Qiymət: yuxarıdan aşağı</option>
+                <option value="popular" data-i18n="home.sort_popular">Populyar</option>
+                <option value="price-asc" data-i18n="home.sort_price_asc">Qiymət: aşağıdan yuxarı</option>
+                <option value="price-desc" data-i18n="home.sort_price_desc">Qiymət: yuxarıdan aşağı</option>
               </select>
             </div>
           </div>
@@ -621,7 +622,7 @@
     <script src="js/stories.js?v=7"></script>
     <script src="js/favorites-store.js"></script>
     <script src="js/cart-store.js"></script>
-    <script src="js/main.js?v=10"></script>
+    <script src="js/main.js?v=11"></script>
     <script src="js/search-ui.js?v=23"></script>
     <script src="js/header.js?v=5"></script>
     <script src="js/footer.js"></script>

@@ -7,9 +7,9 @@
 
   var CACHE_KEY = "buykon_ai_tr_v2";
   var MAX_CACHE = 3000;
-  var BATCH_SIZE = 25;
-  var CONCURRENCY = 6;
-  var SEP = "\n⟦⟧\n";
+  var BATCH_SIZE = 18;
+  var CONCURRENCY = 8;
+  var SEP = "\n";
   var LANG_MAP = {
     az: "az",
     tr: "tr",
@@ -157,25 +157,43 @@
       });
     }
 
+    var marked = texts
+      .map(function (t, i) {
+        return "[" + i + "]" + t;
+      })
+      .join("\n");
+
+    function parseMarked(raw) {
+      var out = new Array(texts.length);
+      var re = /\[(\d+)\]([\s\S]*?)(?=\[\d+\]|$)/g;
+      var m;
+      var found = 0;
+      while ((m = re.exec(String(raw || ""))) !== null) {
+        var idx = parseInt(m[1], 10);
+        if (idx >= 0 && idx < texts.length) {
+          out[idx] = norm(m[2]);
+          found += 1;
+        }
+      }
+      if (found < Math.ceil(texts.length * 0.6)) return null;
+      for (var i = 0; i < texts.length; i++) {
+        if (!out[i]) out[i] = texts[i];
+      }
+      return out;
+    }
+
     return fetchApiBatch(texts, to, from)
       .catch(function () {
-        var joined = texts.join(SEP);
-        return fetchGtxJoined(joined, to, from).then(function (out) {
-          var raw = String(out || "");
-          var parts = raw.split(SEP);
-          if (parts.length !== texts.length) {
-            // Fallback: parallel single (small batches only)
-            return Promise.all(
-              texts.map(function (t) {
-                return fetchGtxJoined(t, to, from).then(function (x) {
-                  return norm(x) || t;
-                });
-              })
-            );
-          }
-          return parts.map(function (p, i) {
-            return norm(p) || texts[i];
-          });
+        return fetchGtxJoined(marked, to, from).then(function (raw) {
+          var parsed = parseMarked(raw);
+          if (parsed) return parsed;
+          return Promise.all(
+            texts.map(function (t) {
+              return fetchGtxJoined(t, to, from).then(function (x) {
+                return norm(x) || t;
+              });
+            })
+          );
         });
       })
       .then(function (outs) {
@@ -484,22 +502,41 @@
 
   function looksTranslatable(text) {
     var s = norm(text);
-    if (s.length < 3 || s.length > 160) return false;
+    if (s.length < 2 || s.length > 280) return false;
     if (/^https?:\/\//i.test(s)) return false;
-    if (/^[\d\s.,:%₼$€+\-]+$/.test(s)) return false;
-    if (/^[A-Z0-9_\-./]+$/.test(s) && s.length < 12) return false;
+    if (/^[\d\s.,:%₼$€+\-×÷]+$/.test(s)) return false;
+    if (/^[A-Z0-9_\-./]+$/.test(s) && s.length < 8) return false;
+    if (/^[⊞›⚡📦❤️]+$/.test(s)) return false;
     return true;
   }
 
-  function translateLiveDom(root) {
-    var lang = currentLang();
-    if (lang === "az") return Promise.resolve();
-    var scope = root || document.body;
-    if (!scope) return Promise.resolve();
+  function isManagedByI18n(text) {
+    return !!(global.BuykonI18n && typeof BuykonI18n.isManagedText === "function" && BuykonI18n.isManagedText(text));
+  }
 
-    var token = ++liveDomToken;
-    var texts = [];
-    var nodes = [];
+  var textOrigMap = typeof WeakMap !== "undefined" ? new WeakMap() : null;
+  var attrOrigMap = typeof WeakMap !== "undefined" ? new WeakMap() : null;
+
+  function getTextOrig(node) {
+    if (textOrigMap && textOrigMap.has(node)) return textOrigMap.get(node);
+    var v = norm(node.nodeValue);
+    if (textOrigMap) textOrigMap.set(node, v);
+    return v;
+  }
+
+  function getAttrOrig(el, name) {
+    if (!attrOrigMap) return el.getAttribute(name);
+    var bag = attrOrigMap.get(el);
+    if (!bag) {
+      bag = Object.create(null);
+      attrOrigMap.set(el, bag);
+    }
+    if (!bag[name]) bag[name] = el.getAttribute(name);
+    return bag[name];
+  }
+
+  function collectLiveTargets(scope) {
+    var items = [];
     var walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
       acceptNode: function (node) {
         if (!node || !norm(node.nodeValue)) return NodeFilter.FILTER_REJECT;
@@ -511,42 +548,98 @@
           tag === "STYLE" ||
           tag === "TEXTAREA" ||
           tag === "CODE" ||
-          tag === "NOSCRIPT"
+          tag === "NOSCRIPT" ||
+          tag === "SVG" ||
+          tag === "PATH"
         ) {
           return NodeFilter.FILTER_REJECT;
         }
         if (parent.closest("[data-lang-switch], .lang-switch, [data-ai-skip], [data-ai-product-name]")) {
           return NodeFilter.FILTER_REJECT;
         }
-        if (parent.getAttribute("data-i18n")) return NodeFilter.FILTER_REJECT;
-        if (parent.closest(".product-card__title, .store-card__title, .cart-item__name, .rec-card__name, .search-popup__result-name")) {
+        if (parent.getAttribute("data-i18n") || parent.getAttribute("data-i18n-html")) {
           return NodeFilter.FILTER_REJECT;
         }
-        if (!looksTranslatable(node.nodeValue)) return NodeFilter.FILTER_REJECT;
+        if (parent.closest(".product-card__title, .store-card__title, .cart-item__name, .rec-card__name, .search-popup__result-name, #pd-title")) {
+          return NodeFilter.FILTER_REJECT;
+        }
+        var orig = getTextOrig(node);
+        if (!looksTranslatable(orig)) return NodeFilter.FILTER_REJECT;
+        if (isManagedByI18n(orig)) return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       },
     });
 
-    var limit = 80;
-    while (walker.nextNode() && nodes.length < limit) {
-      var n = walker.currentNode;
-      nodes.push(n);
-      texts.push(norm(n.nodeValue));
+    while (walker.nextNode()) {
+      items.push({ type: "text", node: walker.currentNode, orig: getTextOrig(walker.currentNode) });
     }
 
-    if (!texts.length) return Promise.resolve();
+    var attrs = ["placeholder", "aria-label", "title"];
+    if (scope.querySelectorAll) {
+      scope.querySelectorAll("input, textarea, button, a, [aria-label], [placeholder], [title]").forEach(function (el) {
+        if (el.closest("[data-lang-switch], .lang-switch, [data-ai-skip]")) return;
+        if (el.getAttribute("data-i18n") || el.getAttribute("data-i18n-attr")) return;
+        attrs.forEach(function (name) {
+          if (!el.hasAttribute(name)) return;
+          var orig = norm(getAttrOrig(el, name));
+          if (!looksTranslatable(orig)) return;
+          if (isManagedByI18n(orig)) return;
+          items.push({ type: "attr", el: el, name: name, orig: orig });
+        });
+      });
+    }
+
+    return items;
+  }
+
+  function applyLiveItem(item, tr, lang) {
+    if (!tr) return;
+    if (item.type === "text") {
+      var node = item.node;
+      if (!node || !node.parentElement) return;
+      var raw = node.nodeValue || "";
+      var lead = raw.match(/^\s*/)[0] || "";
+      var trail = raw.match(/\s*$/)[0] || "";
+      var next = lang === "az" ? item.orig : tr;
+      node.nodeValue = lead + next + trail;
+      return;
+    }
+    if (item.type === "attr" && item.el) {
+      item.el.setAttribute(item.name, lang === "az" ? item.orig : tr);
+    }
+  }
+
+  function translateLiveDom(root) {
+    var lang = currentLang();
+    var scope = root || document.body;
+    if (!scope) return Promise.resolve();
+
+    var token = ++liveDomToken;
+    var items = collectLiveTargets(scope);
+    if (!items.length) return Promise.resolve();
+
+    if (lang === "az") {
+      items.forEach(function (item) {
+        applyLiveItem(item, item.orig, "az");
+      });
+      return Promise.resolve();
+    }
+
+    var texts = items.map(function (it) {
+      return it.orig;
+    });
 
     return translateMany(texts, lang, "az", function (partial) {
       if (token !== liveDomToken || currentLang() !== lang) return;
-      nodes.forEach(function (node) {
-        if (!node || !node.parentElement) return;
-        var raw = node.nodeValue;
-        var trimmed = norm(raw);
-        var tr = partial[trimmed] || partial[trimmed.toLowerCase()];
-        if (!tr || tr === trimmed) return;
-        var lead = raw.match(/^\s*/)[0] || "";
-        var trail = raw.match(/\s*$/)[0] || "";
-        node.nodeValue = lead + tr + trail;
+      items.forEach(function (item) {
+        var tr = partial[item.orig] || partial[item.orig.toLowerCase()];
+        if (tr) applyLiveItem(item, tr, lang);
+      });
+    }).then(function (map) {
+      if (token !== liveDomToken || currentLang() !== lang) return;
+      items.forEach(function (item) {
+        var tr = map[item.orig] || map[item.orig.toLowerCase()] || item.orig;
+        applyLiveItem(item, tr, lang);
       });
     });
   }
@@ -556,11 +649,10 @@
     liveDomTimer = setTimeout(function () {
       liveDomTimer = null;
       translateLiveDom(root || document.body);
-    }, 120);
+    }, 60);
   }
 
   function onLangChanged() {
-    // Cache saxlanılır — eyni dilə qayıdanda ani olur
     updateProductNameNodes(document);
     scheduleLiveDom(document.body);
     document.dispatchEvent(
@@ -568,23 +660,44 @@
     );
   }
 
+  var mutationTimer = null;
+  function bindObserver() {
+    if (!global.MutationObserver || !document.body) return;
+    var mo = new MutationObserver(function (mutations) {
+      if (currentLang() === "az") return;
+      var relevant = false;
+      for (var i = 0; i < mutations.length; i++) {
+        if (mutations[i].addedNodes && mutations[i].addedNodes.length) {
+          relevant = true;
+          break;
+        }
+      }
+      if (!relevant) return;
+      if (mutationTimer) clearTimeout(mutationTimer);
+      mutationTimer = setTimeout(function () {
+        mutationTimer = null;
+        updateProductNameNodes(document);
+        scheduleLiveDom(document.body);
+      }, 180);
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+  }
+
   function init() {
     document.addEventListener("BuykonLangChanged", function () {
-      // Məhsul adları əvvəl — DOM tərcüməsi sonra
       setTimeout(onLangChanged, 0);
     });
     document.addEventListener("BizdevarLayoutLoaded", function () {
       setTimeout(function () {
         updateProductNameNodes(document);
-        if (currentLang() !== "az") scheduleLiveDom(document.body);
+        scheduleLiveDom(document.body);
       }, 20);
     });
-    if (currentLang() !== "az") {
-      setTimeout(function () {
-        updateProductNameNodes(document);
-        scheduleLiveDom(document.body);
-      }, 60);
-    }
+    setTimeout(function () {
+      updateProductNameNodes(document);
+      scheduleLiveDom(document.body);
+      bindObserver();
+    }, 80);
   }
 
   global.BuykonAITranslate = {
@@ -594,6 +707,7 @@
     warmProducts: warmProducts,
     updateProductNameNodes: updateProductNameNodes,
     translateLiveDom: translateLiveDom,
+    scheduleLiveDom: scheduleLiveDom,
     onLangChanged: onLangChanged,
     CACHE_KEY: CACHE_KEY,
   };

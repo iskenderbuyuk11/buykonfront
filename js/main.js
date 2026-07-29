@@ -282,9 +282,13 @@
 
     paint(sorted);
 
-    if (window.BuykonAITranslate && typeof BuykonAITranslate.warmProducts === "function") {
-      // Tam yenidən paint yox — adlar batch gəldikcə DOM-da yenilənir
-      BuykonAITranslate.warmProducts(sorted);
+    if (window.BuykonAITranslate) {
+      if (typeof BuykonAITranslate.warmProducts === "function") {
+        BuykonAITranslate.warmProducts(sorted);
+      }
+      if (typeof BuykonAITranslate.scheduleLiveDom === "function") {
+        BuykonAITranslate.scheduleLiveDom(container);
+      }
     }
   }
 
