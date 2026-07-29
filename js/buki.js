@@ -11,20 +11,135 @@
   var busy = false;
 
   var QUICK = [
-    "Büdcəm 2000 AZN, oyun üçün masaüstü kompüter tövsiyə et",
-    "Büdcəm 2000 AZN, gündəlik istifadə üçün telefon",
-    "16GB RAM və yaxşı video kartlı noutbuk",
+    "Paltar almaq istəyirəm",
+    "Büdcəm 2000 AZN, oyun üçün masaüstü kompüter",
+    "Büdcəm 2000 AZN, gündəlik telefon tövsiyə et",
     "Ucuz qulaqlıq tövsiyə et",
   ];
 
-  var CAT_HINTS = [
-    { keys: ["telefon", "smartphone", "iphone", "samsung", "xiaomi", "smartfon"], cats: ["elektronika", "telefon"], boost: ["telefon", "phone", "iphone", "galaxy", "redmi"] },
-    { keys: ["komputer", "kompüter", "masaüstü", "masaustu", "desktop", "pc", "oyun komput"], cats: ["elektronika"], boost: ["desktop", "pc", "gaming", "masaüstü", "komputer", "ryzen", "intel"] },
-    { keys: ["noutbuk", "notebook", "laptop", "macbook"], cats: ["elektronika", "notbuklar"], boost: ["laptop", "noutbuk", "notebook", "macbook"] },
-    { keys: ["televizor", "tv"], cats: ["elektronika"], boost: ["tv", "televizor", "oled", "smart tv"] },
-    { keys: ["qulaqlıq", "qulaqliq", "airpods", "headphone"], cats: ["aksesuar", "elektronika"], boost: ["qulaqlıq", "airpods", "headphone", "earbud"] },
-    { keys: ["geyim", "t-shirt", "köynək", "koynək", "hoodie"], cats: ["geyim"], boost: ["geyim", "hoodie", "köynək", "shirt"] },
-    { keys: ["kosmetika", "krem"], cats: ["kosmetika"], boost: ["krem", "kosmetika"] },
+  /**
+   * mustMatch: true → yalnız bu kateqoriya/işarələr keçir (digərləri atılır)
+   */
+  var INTENT_RULES = [
+    {
+      id: "clothing",
+      keys: [
+        "paltar",
+        "geyim",
+        "koynək",
+        "köynək",
+        "koynək",
+        "don",
+        "şalvar",
+        "salvar",
+        "cin",
+        "jeans",
+        "hoodie",
+        "sviter",
+        "jaket",
+        "jacket",
+        "palto",
+        "ətək",
+        "etek",
+        "köynək",
+        "tshirt",
+        "t-shirt",
+        "shirt",
+        "ayaqqabi",
+        "ayaqqabı",
+        "krossovka",
+        "corab",
+        "moda",
+        "geymek",
+        "geyinmek",
+        "clothing",
+        "apparel",
+        "服装",
+        "衣服",
+        "裤子",
+        "裙",
+      ],
+      cats: ["geyim", "clothing", "fashion", "apparel", "moda"],
+      nameHints: [
+        "geyim",
+        "paltar",
+        "hoodie",
+        "shirt",
+        "t-shirt",
+        "jeans",
+        "köynək",
+        "koynək",
+        "jacket",
+        "dress",
+        "pants",
+        "clothing",
+        "恤",
+        "裤",
+        "裤",
+        "鞋",
+        "帽",
+      ],
+      excludeHints: ["iphone", "samsung galaxy", "laptop", "noutbuk", "rtx", "ssd", "ram ", "televizor", "airpods"],
+      mustMatch: true,
+      label: "geyim / paltar",
+    },
+    {
+      id: "phone",
+      keys: ["telefon", "smartphone", "iphone", "smartfon", "mobil"],
+      cats: ["elektronika", "telefon", "phone"],
+      nameHints: ["telefon", "phone", "iphone", "galaxy", "redmi", "xiaomi", "pixel", "smartphone"],
+      excludeHints: ["qulaqlıq", "case only", "kabəl"],
+      mustMatch: true,
+      label: "telefon",
+    },
+    {
+      id: "laptop",
+      keys: ["noutbuk", "notebook", "laptop", "macbook"],
+      cats: ["elektronika", "notbuklar", "laptop"],
+      nameHints: ["laptop", "noutbuk", "notebook", "macbook", "ultrabook"],
+      mustMatch: true,
+      label: "noutbuk",
+    },
+    {
+      id: "desktop",
+      keys: ["masaüstü", "masaustu", "desktop", "oyun komput", "oyun pc", "sistem bloku"],
+      cats: ["elektronika"],
+      nameHints: ["desktop", "gaming pc", "masaüstü", "sistem bloku", "pc "],
+      mustMatch: true,
+      label: "masaüstü kompüter",
+    },
+    {
+      id: "computer",
+      keys: ["komputer", "kompüter", "komputer"],
+      cats: ["elektronika"],
+      nameHints: ["komputer", "kompüter", "pc", "desktop", "laptop", "noutbuk"],
+      mustMatch: true,
+      label: "kompüter",
+    },
+    {
+      id: "tv",
+      keys: ["televizor", " tv", "smart tv"],
+      cats: ["elektronika"],
+      nameHints: ["televizor", "tv", "oled", "smart tv"],
+      mustMatch: true,
+      label: "televizor",
+    },
+    {
+      id: "headphones",
+      keys: ["qulaqlıq", "qulaqliq", "airpods", "headphone", "earbud"],
+      cats: ["aksesuar", "elektronika", "aksesuarlar"],
+      nameHints: ["qulaqlıq", "airpods", "headphone", "earbud", "buds"],
+      mustMatch: true,
+      label: "qulaqlıq",
+    },
+    {
+      id: "cosmetics",
+      keys: ["kosmetika", "krem", "makiyaj", "parfum"],
+      cats: ["kosmetika"],
+      nameHints: ["krem", "kosmetika", "parfum", "serum"],
+      mustMatch: true,
+      label: "kosmetika",
+    },
   ];
 
   function rootPath() {
@@ -86,7 +201,7 @@
       .replace(/ş/g, "s")
       .replace(/ç/g, "c")
       .replace(/ğ/g, "g")
-      .replace(/[^a-z0-9\s.]/g, " ")
+      .replace(/[^a-z0-9\u4e00-\u9fff\s.]/g, " ")
       .replace(/\s+/g, " ")
       .trim();
   }
@@ -94,7 +209,9 @@
   function productBlob(p) {
     var specs = p.specs && typeof p.specs === "object" ? JSON.stringify(p.specs) : "";
     return fold(
-      [p.name, p.cat, p.category_name, p.description, p.vendor_name, specs].filter(Boolean).join(" ")
+      [p.name, p.cat, p.category, p.category_name, p.description, p.vendor_name, specs]
+        .filter(Boolean)
+        .join(" ")
     );
   }
 
@@ -148,70 +265,114 @@
       var unit = (ssd[2] || ssd[4] || "gb").toLowerCase();
       specs.ssdGb = unit === "tb" ? val * 1024 : val;
     }
-    var gpu = t.match(/(rtx\s*)?(\d{3,4})\s*(ti|super)?|(gtx\s*\d{3,4})|(rx\s*\d{3,4})|5060|4060|4070|4080|4090|3060|3070/);
+    var gpu = t.match(
+      /(rtx\s*)?(\d{3,4})\s*(ti|super)?|(gtx\s*\d{3,4})|(rx\s*\d{3,4})|5060|4060|4070|4080|4090|3060|3070/
+    );
     if (gpu) specs.gpu = fold(gpu[0]);
     if (/oyun|gaming|game/.test(t)) specs.gaming = true;
     if (/gundelik|gunluk|daily|adi istifade|ise|ofis/.test(t)) specs.daily = true;
     return specs;
   }
 
-  function detectCategory(text) {
+  function hasIntentKey(hay, key) {
+    var k = fold(key);
+    if (!k) return false;
+    if (/[\u4e00-\u9fff]/.test(k)) return hay.indexOf(k) !== -1;
+    // "paltar" ≠ "paltaryuyan"
+    if (k === "paltar" && /paltaryuyan/.test(hay)) return false;
+    var re = new RegExp("(^|[^a-z0-9])" + k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z0-9]|$)");
+    return re.test(hay);
+  }
+
+  function detectIntentRule(text) {
     var t = fold(text);
-    for (var i = 0; i < CAT_HINTS.length; i++) {
-      var h = CAT_HINTS[i];
-      for (var k = 0; k < h.keys.length; k++) {
-        if (t.indexOf(fold(h.keys[k])) !== -1) return h;
+    var best = null;
+    var bestPos = 9999;
+    INTENT_RULES.forEach(function (rule) {
+      rule.keys.forEach(function (key) {
+        if (!hasIntentKey(t, key)) return;
+        var pos = t.indexOf(fold(key));
+        if (pos !== -1 && pos <= bestPos) {
+          // Daha spesifik qaydalar (laptop vs computer) — daha uzun key üstün
+          if (pos < bestPos || (best && fold(key).length > 3)) {
+            bestPos = pos;
+            best = rule;
+          }
+        }
+      });
+    });
+    return best;
+  }
+
+  function productMatchesRule(p, rule) {
+    if (!rule) return true;
+    var blob = productBlob(p);
+    var cslug = fold(p.cat || p.category || "");
+    var cname = fold(p.category_name || "");
+
+    if (rule.excludeHints) {
+      for (var e = 0; e < rule.excludeHints.length; e++) {
+        if (blob.indexOf(fold(rule.excludeHints[e])) !== -1) return false;
       }
     }
-    return null;
+
+    var catOk = false;
+    (rule.cats || []).forEach(function (c) {
+      var cf = fold(c);
+      if (cslug.indexOf(cf) !== -1 || cname.indexOf(cf) !== -1 || cf.indexOf(cslug) !== -1) {
+        catOk = true;
+      }
+    });
+
+    var nameOk = false;
+    (rule.nameHints || []).forEach(function (h) {
+      if (blob.indexOf(fold(h)) !== -1) nameOk = true;
+    });
+
+    if (rule.mustMatch) return catOk || nameOk;
+    return true;
   }
 
   function parseIntent(message) {
+    var rule = detectIntentRule(message);
     return {
       raw: message,
       budget: parseBudget(message),
       specs: parseSpecs(message),
-      cat: detectCategory(message),
-      limit: /telefon|phone/.test(fold(message)) ? 3 : 5,
+      rule: rule,
+      limit: rule && rule.id === "phone" ? 3 : 5,
     };
   }
 
   function scoreProduct(p, intent) {
     var price = Number(p.price) || 0;
     if (price <= 0) return -1;
+
+    if (intent.rule && intent.rule.mustMatch && !productMatchesRule(p, intent.rule)) {
+      return -1;
+    }
+
     var blob = productBlob(p);
     var score = 0;
     var why = [];
 
     if (intent.budget != null) {
-      if (price > intent.budget * 1.05) return -1;
+      if (price > intent.budget * 1.08) return -1;
       var fill = price / intent.budget;
-      if (fill >= 0.45 && fill <= 1) score += 40 + fill * 20;
-      else if (fill >= 0.25) score += 25;
-      else score += 10;
-      why.push("büdcəyə uyğun (" + formatPrice(price) + ")");
+      if (fill >= 0.35 && fill <= 1) score += 40 + fill * 20;
+      else if (fill >= 0.15) score += 22;
+      else score += 8;
+      why.push("büdcəyə uyğun");
     } else {
-      score += 10;
+      score += 8;
     }
 
-    if (intent.cat) {
-      var catHit = false;
-      var cslug = fold(p.cat || p.category || "");
-      intent.cat.cats.forEach(function (c) {
-        if (cslug.indexOf(fold(c)) !== -1) catHit = true;
+    if (intent.rule) {
+      score += 50;
+      why.push(intent.rule.label || "kateqoriya");
+      (intent.rule.nameHints || []).forEach(function (h) {
+        if (blob.indexOf(fold(h)) !== -1) score += 6;
       });
-      intent.cat.boost.forEach(function (b) {
-        if (blob.indexOf(fold(b)) !== -1) {
-          catHit = true;
-          score += 8;
-        }
-      });
-      if (catHit) {
-        score += 35;
-        why.push("kateqoriya uyğundur");
-      } else {
-        score -= 15;
-      }
     }
 
     var sp = intent.specs || {};
@@ -219,54 +380,64 @@
       if (blob.indexOf(String(sp.ram) + "gb") !== -1 || blob.indexOf("ram " + sp.ram) !== -1) {
         score += 25;
         why.push(sp.ram + "GB RAM");
+      } else if (intent.rule && (intent.rule.id === "desktop" || intent.rule.id === "laptop")) {
+        score -= 8;
       }
     }
     if (sp.ssdGb) {
       var tb = sp.ssdGb >= 1000 ? Math.round(sp.ssdGb / 1024) + "tb" : null;
-      if ((tb && blob.indexOf(tb) !== -1) || blob.indexOf(String(sp.ssdGb) + "gb") !== -1 || blob.indexOf("ssd") !== -1) {
+      if (
+        (tb && blob.indexOf(tb) !== -1) ||
+        blob.indexOf(String(sp.ssdGb) + "gb") !== -1 ||
+        blob.indexOf("ssd") !== -1
+      ) {
         score += 18;
-        why.push("yaddaş uyğun");
+        why.push("yaddaş");
       }
     }
     if (sp.gpu) {
       if (blob.indexOf(sp.gpu) !== -1 || /rtx|gtx|rx|5060|4060|4070/.test(blob)) {
         score += 28;
         why.push("video kart");
-      } else if (sp.gaming) {
-        score -= 5;
       }
     }
-    if (sp.gaming) {
-      if (/gaming|oyun|rtx|gtx|rgb/.test(blob)) {
-        score += 20;
-        why.push("oyun üçün uyğun");
-      }
+    if (sp.gaming && /gaming|oyun|rtx|gtx|rgb/.test(blob)) {
+      score += 20;
+      why.push("oyun üçün");
     }
-    if (sp.daily) {
-      if (/telefon|phone|galaxy|iphone|redmi|pixel/.test(blob)) {
-        score += 12;
-        why.push("gündəlik istifadə");
-      }
+    if (sp.daily && intent.rule && intent.rule.id === "phone") {
+      score += 10;
+      why.push("gündəlik");
     }
 
-    var tokens = fold(intent.raw)
+    var stop = /^(ucun|olan|menim|budcem|azn|ve|ile|bir|bu|ne|hansi|isteyirem|almaq|tovsiye|ele|mene|buki)$/;
+    fold(intent.raw)
       .split(" ")
       .filter(function (w) {
-        return w.length > 2 && !/^(ucun|olan|menim|budcem|azn|ve|ile|bir|bu|ne|hansi)$/.test(w);
+        return w.length > 2 && !stop.test(w);
+      })
+      .forEach(function (tok) {
+        if (blob.indexOf(tok) !== -1) score += 4;
       });
-    tokens.forEach(function (tok) {
-      if (blob.indexOf(tok) !== -1) score += 3;
-    });
 
-    if (Number(p.popular) > 0) score += Math.min(10, Number(p.popular) / 10);
-    if (Number(p.discount_percent) > 0) score += 4;
+    if (Number(p.popular) > 0) score += Math.min(8, Number(p.popular) / 12);
+    if (Number(p.discount_percent) > 0) score += 3;
 
     return { score: score, why: why.slice(0, 3) };
   }
 
   function recommendLocal(message, products) {
     var intent = parseIntent(message);
-    var ranked = products
+    var pool = products || [];
+
+    if (intent.rule && intent.rule.mustMatch) {
+      var filtered = pool.filter(function (p) {
+        return productMatchesRule(p, intent.rule);
+      });
+      if (filtered.length) pool = filtered;
+    }
+
+    var ranked = pool
       .map(function (p) {
         var r = scoreProduct(p, intent);
         if (!r || r.score < 0) return null;
@@ -282,81 +453,146 @@
 
     var reply;
     if (!picks.length) {
+      if (intent.rule) {
+        reply =
+          "«" +
+          (intent.rule.label || "bu kateqoriya") +
+          "» üzrə uyğun məhsul tapa bilmədim. Başqa büdcə və ya model yazın.";
+      } else {
+        reply =
+          "Sorğunuzu dəqiqləşdirin — məsələn: paltar, telefon, noutbuk və büdcəniz.";
+      }
+    } else if (intent.rule && intent.budget != null) {
       reply =
-        intent.budget != null
-          ? "Bu büdcə və sorğuya uyğun məhsul tapa bilmədim. Büdcəni və ya kateqoriyanı dəyişib yenidən yaza bilərsiniz."
-          : "Sorğunuzu bir az dəqiqləşdirin — məsələn büdcə, kateqoriya (telefon, kompüter) və əsas tələblər.";
-    } else if (intent.budget != null && intent.cat) {
-      reply =
-        "Büdcəniz " +
+        (intent.rule.label || "Kateqoriya") +
+        " üçün büdcəniz " +
         formatPrice(intent.budget) +
-        " əsasında sizə ən uyğun " +
+        " daxilində " +
         picks.length +
-        " seçimi seçdim:";
+        " seçim:";
+    } else if (intent.rule) {
+      reply = (intent.rule.label || "Kateqoriya") + " üzrə " + picks.length + " uyğun məhsul:";
     } else if (intent.budget != null) {
-      reply = "Büdcəniz daxilində " + picks.length + " uyğun məhsul tapdım:";
+      reply = "Büdcəniz daxilində " + picks.length + " məhsul:";
     } else {
-      reply = "Kataloqdan sizə uyğun " + picks.length + " məhsul seçdim:";
+      reply = "Sizə " + picks.length + " məhsul seçdim:";
     }
 
-    return { reply: reply, products: picks, intent: intent };
+    return { reply: reply, products: picks, intent: intent, source: "local" };
   }
 
-  function recommendViaApi(message, products) {
-    var cfg = global.BizdevarSiteConfig;
-    var url = cfg && typeof cfg.resolveBukiUrl === "function" ? cfg.resolveBukiUrl() : "";
-    if (!url) return Promise.reject(new Error("no buki api"));
-
-    var slim = products.slice(0, 120).map(function (p) {
+  function slimCatalog(products) {
+    return (products || []).slice(0, 80).map(function (p) {
       return {
         id: p.id,
         name: p.name,
         price: p.price,
-        cat: p.cat || p.category,
-        specs: p.specs || null,
+        cat: p.cat || p.category || "",
+        category: p.category_name || p.cat || "",
       };
     });
+  }
+
+  function picksFromIds(ids, products, reasons) {
+    var byId = Object.create(null);
+    (products || []).forEach(function (p) {
+      byId[String(p.id)] = p;
+    });
+    reasons = reasons || {};
+    return (ids || [])
+      .map(function (id) {
+        var p = byId[String(id)];
+        if (!p) return null;
+        var why = reasons[String(id)] || reasons[id];
+        return {
+          product: p,
+          score: 100,
+          why: why ? [String(why)] : [],
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function fetchBukiJson(url, message, products) {
+    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = ctrl
+      ? setTimeout(function () {
+          try {
+            ctrl.abort();
+          } catch (e) {
+            /* ignore */
+          }
+        }, 12000)
+      : null;
 
     return fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: message, products: slim, lang: "az" }),
-    }).then(function (res) {
-      return res.json().then(function (data) {
-        if (!res.ok) throw new Error((data && data.error) || "Buki API xətası");
-        var ids = data.product_ids || data.ids || [];
-        var byId = Object.create(null);
-        products.forEach(function (p) {
-          byId[String(p.id)] = p;
+      body: JSON.stringify({
+        message: message,
+        products: slimCatalog(products),
+        lang: "az",
+      }),
+      signal: ctrl ? ctrl.signal : undefined,
+    })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok || (data && data.ok === false)) {
+            throw new Error((data && data.error) || "Buki AI xətası");
+          }
+          return data;
         });
-        var picks = ids
-          .map(function (id) {
-            var p = byId[String(id)];
-            return p ? { product: p, score: 100, why: [] } : null;
-          })
-          .filter(Boolean);
-        if (!picks.length && Array.isArray(data.products)) {
-          picks = data.products
-            .map(function (row) {
-              var p = byId[String(row.id)] || row;
-              return { product: p, score: 100, why: row.why ? [row.why] : [] };
-            })
-            .filter(function (x) {
-              return x.product && x.product.id;
-            });
-        }
-        if (!picks.length) throw new Error("empty buki result");
-        return {
-          reply: data.reply || data.message || "Sizə uyğun məhsullar:",
-          products: picks.slice(0, 6),
-        };
+      })
+      .finally(function () {
+        if (timer) clearTimeout(timer);
       });
+  }
+
+  function applyAiResult(data, message, products) {
+    var ids = data.product_ids || data.ids || [];
+    var picks = picksFromIds(ids, products, data.reasons || {});
+
+    var intent = parseIntent(message);
+    if (data.category) {
+      var mapped = detectIntentRule(String(data.category) + " " + message);
+      if (mapped) intent.rule = mapped;
+    }
+    if (intent.rule && intent.rule.mustMatch && picks.length) {
+      picks = picks.filter(function (item) {
+        return productMatchesRule(item.product, intent.rule);
+      });
+    }
+
+    if (!picks.length) {
+      return recommendLocal(message, products);
+    }
+
+    return {
+      reply: data.reply || data.message || "Sizə uyğun məhsullar:",
+      products: picks.slice(0, intent.limit || 5),
+      intent: intent,
+      source: "ai",
+    };
+  }
+
+  function recommendViaAi(message, products) {
+    var cfg = global.BizdevarSiteConfig;
+    var javaUrl = cfg && typeof cfg.resolveBukiUrl === "function" ? cfg.resolveBukiUrl() : "";
+    var phpUrl = rootPath() + "api/buki.php";
+
+    // Əvvəl lokal Gemini proxy, sonra Java API
+    return fetchBukiJson(phpUrl, message, products).catch(function () {
+      if (!javaUrl) throw new Error("no ai");
+      return fetchBukiJson(javaUrl, message, products);
+    }).then(function (data) {
+      return applyAiResult(data, message, products);
     });
   }
 
   function recommend(message) {
     return loadCatalog().then(function (products) {
-      return recommendViaApi(message, products).catch(function () {
+      // Əvvəl lokal kateqoriya aşkarla — AI gələnə qədər də doğru filtr
+      return recommendViaAi(message, products).catch(function () {
         return recommendLocal(message, products);
       });
     });
