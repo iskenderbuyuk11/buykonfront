@@ -36,7 +36,35 @@ body.dark-mode .theme-switch:hover .theme-switch__track {
 }
 
 body.dark-mode .theme-switch__thumb {
-    background: #e2e8f0;
+    background: #0f172a;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+body.dark-mode .lang-switch__btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-mode .lang-switch__btn:hover,
+body.dark-mode .lang-switch.is-open .lang-switch__btn {
+    background: #273548;
+    border-color: #f59e0b;
+}
+
+body.dark-mode .lang-switch__menu {
+    background: #0f172a;
+    border-color: #334155;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+body.dark-mode .lang-switch__option {
+    color: #e2e8f0;
+}
+
+body.dark-mode .lang-switch__option:hover,
+body.dark-mode .lang-switch__option.is-active {
+    background: rgba(245, 158, 11, 0.12);
 }
 
 body.dark-mode .header {

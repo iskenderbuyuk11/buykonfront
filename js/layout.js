@@ -44,17 +44,56 @@
     }
   }
 
-  window.BizdevarLayoutReady = Promise.all([
-    loadPartial("partials/header.html", getRoot()),
-    loadPartial("partials/footer.html", getRoot()),
-    loadPartial("partials/bottom-nav.html", getRoot()),
-  ])
+  function ensureI18n(root) {
+    if (window.BuykonI18n) return Promise.resolve();
+    if (document.querySelector('script[src*="i18n.js"]')) {
+      return new Promise(function (resolve) {
+        var tries = 0;
+        var timer = setInterval(function () {
+          tries += 1;
+          if (window.BuykonI18n || tries > 40) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, 50);
+      });
+    }
+    return new Promise(function (resolve) {
+      var s = document.createElement("script");
+      s.src = root + "js/i18n.js?v=1";
+      s.onload = function () {
+        resolve();
+      };
+      s.onerror = function () {
+        resolve();
+      };
+      document.head.appendChild(s);
+    });
+  }
+
+  window.BizdevarLayoutReady = ensureI18n(getRoot())
+    .then(function () {
+      return Promise.all([
+        loadPartial("partials/header.html", getRoot()),
+        loadPartial("partials/footer.html", getRoot()),
+        loadPartial("partials/bottom-nav.html", getRoot()),
+      ]);
+    })
     .then(function (parts) {
       ensureAzFont();
       var root = getRoot();
       injectHtml("site-header", applyRoot(parts[0], root));
       injectHtml("site-footer", applyRoot(parts[1], root));
       injectHtml("site-bottom-nav", applyRoot(parts[2], root));
+
+      if (window.BuykonI18n) {
+        BuykonI18n.mountDesktop(document.getElementById("lang-switch-desktop-host"));
+        BuykonI18n.mountMobileBar(document.getElementById("lang-switch-mobile-host"));
+        BuykonI18n.apply(document.getElementById("site-header"));
+        BuykonI18n.apply(document.getElementById("site-footer"));
+        BuykonI18n.apply(document.getElementById("site-bottom-nav"));
+      }
+
       document.dispatchEvent(new CustomEvent("BizdevarLayoutLoaded"));
       if (!window.__buykonTawkLoaded && !document.querySelector('script[src*="tawk.js"]')) {
         var s = document.createElement("script");
@@ -64,7 +103,7 @@
       }
       if (!window.BuykonOnboarding && !document.querySelector('script[src*="onboarding.js"]')) {
         var ob = document.createElement("script");
-        ob.src = root + "js/onboarding.js?v=2";
+        ob.src = root + "js/onboarding.js?v=3";
         ob.async = true;
         document.body.appendChild(ob);
       }

@@ -119,19 +119,43 @@
     return btn;
   }
 
+  function refreshObxTexts() {
+    if (!els.backdrop) return;
+    els.backdrop.setAttribute("aria-label", tt("obx.welcome"));
+    if (els.search) els.search.placeholder = tt("obx.search");
+    if (els.autoBtn) {
+      var nameEl = els.autoBtn.querySelector(".obx-item__name");
+      if (nameEl) {
+        var currentHint = els.autoHint ? els.autoHint.innerHTML : tt("obx.auto_hint");
+        nameEl.innerHTML =
+          tt("obx.auto") +
+          '<span class="obx-item__hint" id="obxAutoHint">' +
+          currentHint +
+          "</span>";
+        els.autoHint = els.autoBtn.querySelector("#obxAutoHint");
+      }
+    }
+    if (els.skip) els.skip.textContent = tt("obx.skip");
+    var maleLabel = els.backdrop.querySelector(".obx-gender--male > span:last-child");
+    var femaleLabel = els.backdrop.querySelector(".obx-gender--female > span:last-child");
+    if (maleLabel) maleLabel.textContent = tt("obx.male");
+    if (femaleLabel) femaleLabel.textContent = tt("obx.female");
+    goToStep(state.step);
+  }
+
   function buildModal() {
     var backdrop = document.createElement("div");
     backdrop.className = "obx-backdrop";
     backdrop.setAttribute("role", "dialog");
     backdrop.setAttribute("aria-modal", "true");
-    backdrop.setAttribute("aria-label", "Xoş gəlmisiniz");
+    backdrop.setAttribute("aria-label", tt("obx.welcome"));
 
     backdrop.innerHTML =
       '<div class="obx-card">' +
       '  <div class="obx-head">' +
       '    <div class="obx-head__badge" id="obxBadge">' + ICONS.globe + "</div>" +
-      '    <h2 class="obx-head__title" id="obxTitle">Ölkənizi seçin</h2>' +
-      '    <p class="obx-head__sub" id="obxSub">Sizə uyğun məhsul və çatdırılma üçün</p>' +
+      '    <h2 class="obx-head__title" id="obxTitle">' + tt("obx.country_title") + "</h2>" +
+      '    <p class="obx-head__sub" id="obxSub">' + tt("obx.country_sub") + "</p>" +
       '    <div class="obx-steps">' +
       '      <span class="obx-steps__dot is-active" data-step="1"></span>' +
       '      <span class="obx-steps__dot" data-step="2"></span>' +
@@ -141,7 +165,7 @@
       '    <div class="obx-step is-active" id="obxStep1">' +
       '      <div class="obx-search">' +
       ICONS.search +
-      '        <input type="text" id="obxSearch" placeholder="Ölkə axtar..." autocomplete="off" />' +
+      '        <input type="text" id="obxSearch" placeholder="' + tt("obx.search") + '" autocomplete="off" />' +
       "      </div>" +
       '      <div class="obx-list" id="obxList"></div>' +
       "    </div>" +
@@ -150,23 +174,23 @@
       '        <button type="button" class="obx-gender obx-gender--male" data-gender="male">' +
       '          <span class="obx-gender__check">' + ICONS.check + "</span>" +
       '          <span class="obx-gender__icon">' + ICONS.male + "</span>" +
-      "          <span>Kişi</span>" +
+      "          <span>" + tt("obx.male") + "</span>" +
       "        </button>" +
       '        <button type="button" class="obx-gender obx-gender--female" data-gender="female">' +
       '          <span class="obx-gender__check">' + ICONS.check + "</span>" +
       '          <span class="obx-gender__icon">' + ICONS.female + "</span>" +
-      "          <span>Qadın</span>" +
+      "          <span>" + tt("obx.female") + "</span>" +
       "        </button>" +
       "      </div>" +
       "    </div>" +
       "  </div>" +
       '  <div class="obx-foot">' +
       '    <button type="button" class="obx-btn obx-btn--ghost" id="obxBack" hidden>' +
-      ICONS.arrowLeft + " Geri</button>" +
+      ICONS.arrowLeft + " " + tt("obx.back") + "</button>" +
       '    <button type="button" class="obx-btn obx-btn--primary" id="obxNext" disabled>' +
-      "Davam et " + ICONS.arrowRight + "</button>" +
+      tt("obx.next") + " " + ICONS.arrowRight + "</button>" +
       "  </div>" +
-      '  <div class="obx-skip"><button type="button" id="obxSkip">İndi yox, sonra seçəcəm</button></div>' +
+      '  <div class="obx-skip"><button type="button" id="obxSkip">' + tt("obx.skip") + "</button></div>" +
       "</div>";
 
     // Ölkə siyahısı: əvvəldə "Avtomatik" seçimi
@@ -178,8 +202,8 @@
     autoBtn.id = "obxAuto";
     autoBtn.innerHTML =
       '<span class="obx-item__icon">' + ICONS.target + "</span>" +
-      '<span class="obx-item__name">Avtomatik təyin et' +
-      '<span class="obx-item__hint" id="obxAutoHint">Yerləşdiyiniz ölkə avtomatik tapılsın</span></span>' +
+      '<span class="obx-item__name">' + tt("obx.auto") +
+      '<span class="obx-item__hint" id="obxAutoHint">' + tt("obx.auto_hint") + "</span></span>" +
       '<span class="obx-item__check">' + ICONS.check + "</span>";
     autoBtn.addEventListener("click", detectCountry);
     list.appendChild(autoBtn);
@@ -252,6 +276,40 @@
 
   /* ---------- Məntiq ---------- */
 
+  function tt(key) {
+    if (window.BuykonI18n && typeof BuykonI18n.t === "function") {
+      return BuykonI18n.t(key);
+    }
+    var fallback = {
+      "obx.welcome": "Xoş gəlmisiniz",
+      "obx.country_title": "Ölkənizi seçin",
+      "obx.country_sub": "Sizə uyğun məhsul və çatdırılma üçün",
+      "obx.gender_title": "Cinsiyyətinizi seçin",
+      "obx.gender_sub": "Sizə uyğun təkliflər göstərək",
+      "obx.search": "Ölkə axtar...",
+      "obx.auto": "Avtomatik təyin et",
+      "obx.auto_hint": "Yerləşdiyiniz ölkə avtomatik tapılsın",
+      "obx.detecting": "Ölkəniz təyin edilir...",
+      "obx.detect_fail": "Təyin etmək mümkün olmadı, siyahıdan seçin",
+      "obx.found": "Tapıldı",
+      "obx.male": "Kişi",
+      "obx.female": "Qadın",
+      "obx.next": "Davam et",
+      "obx.finish": "Bitir",
+      "obx.back": "Geri",
+      "obx.skip": "İndi yox, sonra seçəcəm",
+    };
+    return fallback[key] || key;
+  }
+
+  function applyLangFromCountry(code) {
+    if (!window.BuykonI18n || !code) return;
+    var mapped = BuykonI18n.langFromCountry(code);
+    if (mapped && mapped !== BuykonI18n.getLang()) {
+      BuykonI18n.setLang(mapped, { fromCountry: true, silent: false });
+    }
+  }
+
   function selectCountry(country, btn) {
     state.country = country;
     var items = els.list.querySelectorAll(".obx-item");
@@ -259,13 +317,15 @@
       it.classList.toggle("is-selected", it === btn);
     });
     els.next.disabled = false;
+    if (country && country.code) applyLangFromCountry(country.code);
+    refreshObxTexts();
   }
 
   function detectCountry() {
     if (state.detecting) return;
     state.detecting = true;
     els.autoBtn.classList.add("is-loading");
-    els.autoHint.textContent = "Ölkəniz təyin edilir...";
+    els.autoHint.textContent = tt("obx.detecting");
 
     fetchGeo("https://ipapi.co/json/")
       .catch(function () {
@@ -275,7 +335,7 @@
         state.detecting = false;
         els.autoBtn.classList.remove("is-loading");
         if (!geo || !geo.code) {
-          els.autoHint.textContent = "Təyin etmək mümkün olmadı, siyahıdan seçin";
+          els.autoHint.textContent = tt("obx.detect_fail");
           return;
         }
         var known = COUNTRIES.filter(function (c) {
@@ -283,7 +343,7 @@
         })[0];
         var name = known ? known.name : geo.name;
         els.autoHint.innerHTML =
-          'Tapıldı: <img src="' + flagUrl(geo.code) +
+          tt("obx.found") + ': <img src="' + flagUrl(geo.code) +
           '" alt="" style="width:16px;height:12px;border-radius:2px;vertical-align:-1px;box-shadow:0 0 2px rgba(0,0,0,.3)" /> <strong>' +
           name + "</strong>";
         selectCountry({ code: geo.code, name: name, auto: true }, els.autoBtn);
@@ -291,7 +351,7 @@
       .catch(function () {
         state.detecting = false;
         els.autoBtn.classList.remove("is-loading");
-        els.autoHint.textContent = "Təyin etmək mümkün olmadı, siyahıdan seçin";
+        els.autoHint.textContent = tt("obx.detect_fail");
       });
   }
 
@@ -325,17 +385,19 @@
     els.back.hidden = step === 1;
 
     if (step === 1) {
-      els.title.textContent = "Ölkənizi seçin";
-      els.sub.textContent = "Sizə uyğun məhsul və çatdırılma üçün";
+      els.title.textContent = tt("obx.country_title");
+      els.sub.textContent = tt("obx.country_sub");
       els.badge.innerHTML = ICONS.globe;
-      els.next.innerHTML = "Davam et " + ICONS.arrowRight;
+      els.next.innerHTML = tt("obx.next") + " " + ICONS.arrowRight;
       els.next.disabled = !state.country;
+      els.back.innerHTML = ICONS.arrowLeft + " " + tt("obx.back");
     } else {
-      els.title.textContent = "Cinsiyyətinizi seçin";
-      els.sub.textContent = "Sizə uyğun təkliflər göstərək";
+      els.title.textContent = tt("obx.gender_title");
+      els.sub.textContent = tt("obx.gender_sub");
       els.badge.innerHTML = state.gender === "female" ? ICONS.female : ICONS.male;
-      els.next.innerHTML = ICONS.check + " Bitir";
+      els.next.innerHTML = ICONS.check + " " + tt("obx.finish");
       els.next.disabled = !state.gender;
+      els.back.innerHTML = ICONS.arrowLeft + " " + tt("obx.back");
     }
   }
 
@@ -378,6 +440,9 @@
 
   function init() {
     if (shouldSkipPage()) return;
+    document.addEventListener("BuykonLangChanged", function () {
+      if (els.backdrop) refreshObxTexts();
+    });
     var done = null;
     try {
       done = localStorage.getItem(DONE_KEY);

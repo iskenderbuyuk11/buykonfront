@@ -196,7 +196,7 @@
       toggle.setAttribute("aria-pressed", isDark ? "true" : "false");
       toggle.setAttribute(
         "aria-label",
-        isDark ? "İşıqlı rejimi aktiv et" : "Tünd rejimi aktiv et"
+        isDark ? tt("theme.light") : tt("theme.dark")
       );
     }
 
@@ -245,6 +245,13 @@
     return icons[type] || icons.info;
   }
 
+  function tt(key) {
+    if (window.BuykonI18n && typeof BuykonI18n.t === "function") {
+      return BuykonI18n.t(key);
+    }
+    return key;
+  }
+
   function buildMobileMenuHtml(root) {
     function item(href, icon, label, sub) {
       return (
@@ -271,14 +278,14 @@
     }
 
     return (
-      '<button type="button" class="header__sheet-backdrop" data-mobile-sheet-close aria-label="Menyunu bağla"></button>' +
-      '<aside class="header__sheet-panel mobile-menu" aria-label="Mobil menyu">' +
+      '<button type="button" class="header__sheet-backdrop" data-mobile-sheet-close aria-label="' + tt("menu.close_menu") + '"></button>' +
+      '<aside class="header__sheet-panel mobile-menu" aria-label="' + tt("nav.menu") + '">' +
       '<div class="mobile-menu__hero">' +
       '<div class="mobile-menu__brand">' +
       '<img src="' + root + 'images/logo.png" alt="BizdeVar" class="mobile-menu__logo" />' +
-      "<div><strong>BizdeVar</strong><span>Alış-veriş &amp; dəstək</span></div>" +
+      "<div><strong>BizdeVar</strong><span>" + tt("menu.shop_support") + "</span></div>" +
       "</div>" +
-      '<button type="button" class="mobile-menu__close" data-mobile-sheet-close aria-label="Bağla">' +
+      '<button type="button" class="mobile-menu__close" data-mobile-sheet-close aria-label="' + tt("menu.close") + '">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>' +
       "</button>" +
       "</div>" +
@@ -286,59 +293,60 @@
       '<div class="mobile-menu__auth" data-mobile-menu-guest>' +
       '<div class="mobile-menu__auth-card mobile-menu__auth-card--guest">' +
       '<span class="mobile-menu__auth-icon">' + mobileMenuSvg("user") + "</span>" +
-      "<div><strong>Hesabınıza daxil olun</strong><p>Sifarişlərinizi izləyin və sürətli alış-veriş edin.</p></div>" +
+      "<div><strong>" + tt("auth.login_title") + "</strong><p>" + tt("auth.login_hint") + "</p></div>" +
       '<div class="mobile-menu__auth-actions">' +
-      '<a href="' + root + 'pages/login/" class="mobile-menu__btn mobile-menu__btn--primary">' + mobileMenuSvg("login") + " Giriş</a>" +
-      '<a href="' + root + 'pages/register/" class="mobile-menu__btn mobile-menu__btn--ghost">Qeydiyyat</a>' +
+      '<a href="' + root + 'pages/login/" class="mobile-menu__btn mobile-menu__btn--primary">' + mobileMenuSvg("login") + " " + tt("auth.login") + "</a>" +
+      '<a href="' + root + 'pages/register/" class="mobile-menu__btn mobile-menu__btn--ghost">' + tt("auth.register") + "</a>" +
       "</div></div></div>" +
       '<div class="mobile-menu__auth" data-mobile-menu-auth hidden>' +
       '<a class="mobile-menu__auth-card mobile-menu__auth-card--user" href="' + root + 'pages/profile/">' +
       '<span class="mobile-menu__auth-avatar" data-mobile-menu-avatar></span>' +
-      "<div><strong data-mobile-menu-user-name></strong><small>Profil və sifarişlər</small></div>" +
+      "<div><strong data-mobile-menu-user-name></strong><small>" + tt("auth.profile_orders") + "</small></div>" +
       '<span class="mobile-menu__item-arrow" aria-hidden="true">›</span>' +
       "</a></div>" +
       '<div class="mobile-menu__quick-grid">' +
-      quick(root + "index.html", "home", "Ana səhifə") +
-      quick(root + "pages/sebet/", "cart", "Səbət") +
-      quick(root + "pages/sevimliler/", "heart", "Sevimlilər") +
-      quick("#", "search", "Axtarış", ' data-nav-search data-mobile-sheet-close') +
+      quick(root + "index.html", "home", tt("nav.home")) +
+      quick(root + "pages/sebet/", "cart", tt("nav.cart")) +
+      quick(root + "pages/sevimliler/", "heart", tt("nav.favorites")) +
+      quick("#", "search", tt("nav.search"), ' data-nav-search data-mobile-sheet-close') +
       "</div>" +
       '<div class="mobile-menu__section">' +
-      '<h4 class="mobile-menu__section-title">Alış-veriş</h4>' +
+      '<h4 class="mobile-menu__section-title">' + tt("menu.shop") + "</h4>" +
       '<nav class="mobile-menu__nav">' +
-      item(root + "index.html#catalog", "grid", "Məhsullar", "Bütün kataloq") +
-      item(root + "index.html#kateqoriyalar", "grid", "Kateqoriyalar", "Seçilmiş bölmələr") +
-      item(root + "buykonbusiness/register.html", "store", "Bizdə Sat", "Mağazanı aç") +
+      item(root + "index.html#catalog", "grid", tt("nav.products"), tt("menu.catalog_all")) +
+      item(root + "index.html#kateqoriyalar", "grid", tt("nav.categories"), tt("menu.catalog_sections")) +
+      item(root + "buykonbusiness/register.html", "store", tt("nav.sell"), tt("menu.open_store")) +
       "</nav></div>" +
       '<div class="mobile-menu__section">' +
-      '<h4 class="mobile-menu__section-title">Dəstək &amp; məlumat</h4>' +
+      '<h4 class="mobile-menu__section-title">' + tt("menu.support_info") + "</h4>" +
       '<nav class="mobile-menu__nav">' +
-      item(root + "pages/haqqimizda/", "info", "Haqqımızda", "Biz kimik") +
-      item(root + "pages/catdirilma/", "truck", "Çatdırılma", "Çatdırılma qaydaları") +
-      item(root + "pages/qaytarilma/", "return", "Qaytarılma", "Geri qaytarma") +
-      item(root + "pages/elaqe/", "chat", "Əlaqə", "Bizimlə yazın") +
-      item(root + "pages/istifade-sertleri/", "file", "İstifadə şərtləri", "Qaydalar") +
+      item(root + "pages/haqqimizda/", "info", tt("nav.about"), tt("menu.who_we")) +
+      item(root + "pages/catdirilma/", "truck", tt("nav.delivery"), tt("menu.delivery_rules")) +
+      item(root + "pages/qaytarilma/", "return", tt("nav.return"), tt("menu.return_rules")) +
+      item(root + "pages/elaqe/", "chat", tt("nav.contact"), tt("menu.write_us")) +
+      item(root + "pages/istifade-sertleri/", "file", tt("menu.terms"), tt("menu.rules")) +
       "</nav></div>" +
       '<div class="mobile-menu__support">' +
       '<div class="mobile-menu__support-head">' +
       '<span class="mobile-menu__support-badge">' + mobileMenuSvg("chat") + "</span>" +
-      "<div><strong>Müştəri dəstəyi</strong><span>7/24 sizinlə birlikdəyik</span></div>" +
+      "<div><strong>" + tt("menu.support") + "</strong><span>" + tt("menu.support_sub") + "</span></div>" +
       "</div>" +
       '<div class="mobile-menu__support-links">' +
       '<a href="tel:+994000000000" class="mobile-menu__support-link">' +
       '<span class="mobile-menu__support-icon">' + mobileMenuSvg("phone") + "</span>" +
-      "<span><small>Telefon</small><strong>+994 00 000 00 00</strong></span></a>" +
+      "<span><small>" + tt("menu.phone") + "</small><strong>+994 00 000 00 00</strong></span></a>" +
       '<a href="https://wa.me/994000000000" class="mobile-menu__support-link" target="_blank" rel="noopener">' +
       '<span class="mobile-menu__support-icon mobile-menu__support-icon--wa">' + mobileMenuSvg("chat") + "</span>" +
-      "<span><small>WhatsApp</small><strong>Dəstək xətti</strong></span></a>" +
+      "<span><small>WhatsApp</small><strong>" + tt("menu.wa_line") + "</strong></span></a>" +
       '<a href="mailto:info@bizdevar.shop" class="mobile-menu__support-link">' +
       '<span class="mobile-menu__support-icon mobile-menu__support-icon--mail">' + mobileMenuSvg("mail") + "</span>" +
-      "<span><small>E-poçt</small><strong>info@bizdevar.shop</strong></span></a>" +
+      "<span><small>" + tt("menu.email") + "</small><strong>info@bizdevar.shop</strong></span></a>" +
       "</div></div>" +
       '<div class="mobile-menu__footer">' +
+      '<div id="lang-switch-sheet-host"></div>' +
       '<button type="button" class="mobile-menu__theme" id="mobile-menu-theme">' +
       '<span class="mobile-menu__theme-icon">' + mobileMenuSvg("moon") + "</span>" +
-      "<span><strong>Tema rejimi</strong><small data-mobile-menu-theme-label>İşıqlı rejim</small></span>" +
+      "<span><strong>" + tt("theme.mode") + "</strong><small data-mobile-menu-theme-label>" + tt("theme.light_on") + "</small></span>" +
       "</button>" +
       "</div>" +
       "</div></aside>"
@@ -376,7 +384,7 @@
 
     function syncLabel() {
       var isDark = document.body.classList.contains("dark-mode");
-      if (label) label.textContent = isDark ? "Tünd rejim aktivdir" : "İşıqlı rejim aktivdir";
+      if (label) label.textContent = isDark ? tt("theme.dark_on") : tt("theme.light_on");
       btn.setAttribute("aria-pressed", isDark ? "true" : "false");
     }
 
@@ -440,6 +448,9 @@
       menuSheet.setAttribute("hidden", "");
       menuSheet.innerHTML = buildMobileMenuHtml(root);
       document.body.appendChild(menuSheet);
+      if (window.BuykonI18n) {
+        BuykonI18n.mountMobileMenu(document.getElementById("lang-switch-sheet-host"));
+      }
       initMobileMenuTheme();
     }
 
@@ -709,6 +720,38 @@
     refreshFavoritesBadge();
     document.addEventListener("BizdevarFavoritesChanged", refreshFavoritesBadge);
     document.addEventListener("BizdevarCartChanged", refreshCartBadge);
+    document.addEventListener("BuykonLangChanged", function () {
+      if (window.BuykonI18n) {
+        BuykonI18n.mountDesktop(document.getElementById("lang-switch-desktop-host"));
+        BuykonI18n.mountMobileBar(document.getElementById("lang-switch-mobile-host"));
+        BuykonI18n.apply(document.getElementById("site-header"));
+        BuykonI18n.apply(document.getElementById("site-footer"));
+        BuykonI18n.apply(document.getElementById("site-bottom-nav"));
+      }
+      var menuSheet = document.getElementById("mobile-menu-sheet");
+      if (menuSheet) {
+        var wasOpen = !menuSheet.hasAttribute("hidden");
+        menuSheet.innerHTML = buildMobileMenuHtml(getLayoutRoot());
+        menuSheet.dataset.bound = "";
+        if (window.BuykonI18n) {
+          BuykonI18n.mountMobileMenu(document.getElementById("lang-switch-sheet-host"));
+        }
+        var themeBtn = document.getElementById("mobile-menu-theme");
+        if (themeBtn) themeBtn.dataset.bound = "";
+        initMobileMenuTheme();
+        menuSheet.querySelectorAll("[data-mobile-sheet-close]").forEach(function (el) {
+          el.addEventListener("click", function () {
+            menuSheet.setAttribute("hidden", "");
+            var openBtn = document.getElementById("mobile-menu-open");
+            if (openBtn) openBtn.setAttribute("aria-expanded", "false");
+            document.body.style.overflow = "";
+          });
+        });
+        if (wasOpen) menuSheet.removeAttribute("hidden");
+        else menuSheet.setAttribute("hidden", "");
+      }
+      initThemeToggle();
+    });
   }
 
   function ensureSearchUiScript(done) {
