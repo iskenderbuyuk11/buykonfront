@@ -618,13 +618,12 @@
   }
 }
 
-html.dark .buki-panel,
-body.dark-mode .buki-panel,
-[data-theme="dark"] .buki-panel {
-  --buki-panel: #171a1f;
-  --buki-bubble: #22262d;
-  --buki-user: #2a2118;
-  --buki-ink: #f3f4f6;
-  --buki-muted: #a0a7b4;
-  --buki-line: #2d333c;
+@media (prefers-reduced-motion: reduce) {
+  .buki-btn__aura,
+  .buki-btn__shine,
+  .buki-btn__spark,
+  .buki-btn__core,
+  .buki-panel__avatar::after {
+    animation: none !important;
+  }
 }
