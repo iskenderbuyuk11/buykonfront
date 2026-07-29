@@ -45,29 +45,42 @@
   }
 
   function ensureI18n(root) {
-    if (window.BuykonI18n) return Promise.resolve();
-    if (document.querySelector('script[src*="i18n.js"]')) {
+    function loadScript(src) {
+      return new Promise(function (resolve) {
+        if (document.querySelector('script[src*="' + src.split("/").pop().split("?")[0] + '"]')) {
+          resolve();
+          return;
+        }
+        var s = document.createElement("script");
+        s.src = root + src;
+        s.onload = function () {
+          resolve();
+        };
+        s.onerror = function () {
+          resolve();
+        };
+        document.head.appendChild(s);
+      });
+    }
+
+    var chain = Promise.resolve();
+    if (!window.BuykonI18n) chain = chain.then(function () {
+      return loadScript("js/i18n.js?v=3");
+    });
+    if (!window.BuykonAITranslate) chain = chain.then(function () {
+      return loadScript("js/ai-translate.js?v=2");
+    });
+    return chain.then(function () {
       return new Promise(function (resolve) {
         var tries = 0;
         var timer = setInterval(function () {
           tries += 1;
-          if (window.BuykonI18n || tries > 40) {
+          if ((window.BuykonI18n && window.BuykonAITranslate) || tries > 40) {
             clearInterval(timer);
             resolve();
           }
-        }, 50);
+        }, 40);
       });
-    }
-    return new Promise(function (resolve) {
-      var s = document.createElement("script");
-    s.src = root + "js/i18n.js?v=2";
-      s.onload = function () {
-        resolve();
-      };
-      s.onerror = function () {
-        resolve();
-      };
-      document.head.appendChild(s);
     });
   }
 
@@ -92,6 +105,17 @@
         BuykonI18n.apply(document.getElementById("site-header"));
         BuykonI18n.apply(document.getElementById("site-footer"));
         BuykonI18n.apply(document.getElementById("site-bottom-nav"));
+        BuykonI18n.apply(document.body);
+      }
+      if (window.BuykonAITranslate && typeof BuykonAITranslate.translateLiveDom === "function") {
+        setTimeout(function () {
+          BuykonAITranslate.updateProductNameNodes(document);
+          var lang =
+            window.BuykonI18n && BuykonI18n.getLang ? BuykonI18n.getLang() : "az";
+          if (lang !== "az") {
+            BuykonAITranslate.translateLiveDom(document.body);
+          }
+        }, 80);
       }
 
       document.dispatchEvent(new CustomEvent("BizdevarLayoutLoaded"));

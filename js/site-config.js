@@ -116,6 +116,14 @@
     return resolveApiBase().replace(/\/+$/, "") + "/ai/try-on";
   }
 
+  function resolveTranslateUrl() {
+    var meta = document.querySelector('meta[name="buykon-translate-api"]');
+    if (meta && (meta.getAttribute("content") || "") === "1") {
+      return resolveApiBase().replace(/\/+$/, "") + "/ai/translate";
+    }
+    return "";
+  }
+
   global.BizdevarSiteConfig = {
     PROD_API: PROD_API,
     LOCAL_API: LOCAL_API,
@@ -128,6 +136,7 @@
     productPageUrl: productPageUrl,
     resolveVisualSearchUrl: resolveVisualSearchUrl,
     resolveTryOnUrl: resolveTryOnUrl,
+    resolveTranslateUrl: resolveTranslateUrl,
   };
 
   global.BIZDEVAR_API_BASE = resolveApiBase();

@@ -73,14 +73,22 @@
     return "/pages/product/?id=" + encodeURIComponent(p.id);
   }
 
+  function productDisplayName(p) {
+    if (window.BuykonAITranslate && typeof BuykonAITranslate.displayName === "function") {
+      return BuykonAITranslate.displayName(p);
+    }
+    return (p && p.name) || "";
+  }
+
   function renderProductCard(p) {
+    var displayName = productDisplayName(p);
     var imgSrc = productImage(p);
     var initial = esc(String(p.name || "?").charAt(0).toUpperCase());
     var media = imgSrc
       ? '<img class="store-card__photo" src="' +
         escAttr(imgSrc) +
         '" alt="' +
-        escAttr(p.name || "") +
+        escAttr(displayName || p.name || "") +
         '" loading="lazy" decoding="async" />'
       : '<span class="store-card__placeholder" aria-hidden="true">' + initial + "</span>";
     var category = catLabel(p.category);
@@ -96,8 +104,12 @@
         : "") +
       "</div>" +
       '<div class="store-card__body">' +
-      '<h3 class="store-card__title">' +
-      esc(p.name) +
+      '<h3 class="store-card__title" data-ai-product-name="' +
+      escAttr(p.name || "") +
+      '" data-ai-product-id="' +
+      escAttr(String(p.id || "")) +
+      '">' +
+      esc(displayName) +
       "</h3>" +
       '<p class="store-card__price">' +
       formatPrice(p.price) +
@@ -214,6 +226,8 @@
 
   var slug = readSlug();
   var page = document.getElementById("storePage");
+  var lastStoreData = null;
+
   if (!slug) {
     page.innerHTML =
       '<div class="store-error"><i class="fa-solid fa-store-slash"></i><h2>Mağaza tapılmadı</h2><p>Keçərli mağaza ünvanı daxil edin.</p><a class="store-error__link" href="/index.html">Ana səhifəyə qayıt</a></div>';
@@ -222,12 +236,46 @@
 
   document.title = slug + " | Buykon";
 
-  BuykonSellerAPI.publicStore(slug)
-    .then(function (data) {
-      page.innerHTML = renderStore(data);
-      bindImageFallbacks(page);
-      if (data.store && data.store.name) document.title = data.store.name + " | Buykon";
+  function paintStore(data) {
+    lastStoreData = data;
+    page.innerHTML = renderStore(data);
+    bindImageFallbacks(page);
+    if (data.store && data.store.name) document.title = data.store.name + " | Buykon";
+    var products = data.products || [];
+    if (window.BuykonAITranslate && typeof BuykonAITranslate.warmProducts === "function") {
+      BuykonAITranslate.warmProducts(products).then(function () {
+        if (lastStoreData !== data) return;
+        page.innerHTML = renderStore(data);
+        bindImageFallbacks(page);
+        if (typeof BuykonAITranslate.translateLiveDom === "function") {
+          BuykonAITranslate.translateLiveDom(page);
+        }
+      });
+    } else if (window.BuykonAITranslate && typeof BuykonAITranslate.translateLiveDom === "function") {
+      BuykonAITranslate.translateLiveDom(page);
+    }
+  }
+
+  function ensureAiTranslate() {
+    if (window.BuykonAITranslate) return Promise.resolve();
+    return new Promise(function (resolve) {
+      var s = document.createElement("script");
+      s.src = "/js/ai-translate.js?v=2";
+      s.onload = function () {
+        resolve();
+      };
+      s.onerror = function () {
+        resolve();
+      };
+      document.head.appendChild(s);
+    });
+  }
+
+  ensureAiTranslate()
+    .then(function () {
+      return BuykonSellerAPI.publicStore(slug);
     })
+    .then(paintStore)
     .catch(function (err) {
       var msg = err && err.message ? err.message : "Bu adla mağaza yoxdur.";
       page.innerHTML =
@@ -235,4 +283,10 @@
         esc(msg) +
         '</p><p class="store-error__hint">URL mağaza slug-u olmalıdır. Məs: <strong>buykon.com/store?eca</strong></p><a class="store-error__link" href="/index.html">Ana səhifəyə qayıt</a></div>';
     });
+
+  document.addEventListener("BuykonLangChanged", function () {
+    if (lastStoreData) setTimeout(function () {
+      paintStore(lastStoreData);
+    }, 40);
+  });
 })();

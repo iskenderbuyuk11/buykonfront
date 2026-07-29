@@ -93,6 +93,10 @@
   }
 
   function nameOf(item) {
+    if (window.BuykonAITranslate && typeof BuykonAITranslate.displayName === "function") {
+      var tr = BuykonAITranslate.displayName(item);
+      if (tr) return tr;
+    }
     return (item && item.name) || "Məhsul";
   }
 
@@ -132,6 +136,7 @@
 
   function itemHtml(item) {
     var id = idOf(item);
+    var originalName = (item && item.name) || "Məhsul";
     var name = esc(nameOf(item));
     var qty = qtyOf(item);
     var unit = unitPrice(item);
@@ -158,7 +163,13 @@
       '<li class="cart-item" data-id="' + id + '">' +
       '<div class="cart-item__media">' + media + "</div>" +
       '<div class="cart-item__content">' +
-      '<h3 class="cart-item__name">' + name + "</h3>" +
+      '<h3 class="cart-item__name" data-ai-product-name="' +
+      esc(originalName) +
+      '" data-ai-product-id="' +
+      esc(String(id || "")) +
+      '">' +
+      name +
+      "</h3>" +
       '<div class="cart-item__prices">' + pricesHtml + "</div>" +
       '<div class="cart-item__controls">' +
       '<div class="qty-stepper">' +
@@ -218,6 +229,13 @@
     if (emptyEl) emptyEl.setAttribute("hidden", "");
     if (groupsEl) {
       groupsEl.innerHTML = groupByVendor(currentItems).map(groupHtml).join("");
+    }
+    if (window.BuykonAITranslate && typeof BuykonAITranslate.warmProducts === "function") {
+      BuykonAITranslate.warmProducts(currentItems).then(function () {
+        if (groupsEl && currentItems.length) {
+          groupsEl.innerHTML = groupByVendor(currentItems).map(groupHtml).join("");
+        }
+      });
     }
   }
 
@@ -377,11 +395,21 @@
             var media = img
               ? '<img src="' + esc(img) + '" alt="" loading="lazy" />'
               : "";
+            var name =
+              window.BuykonAITranslate && BuykonAITranslate.displayName
+                ? BuykonAITranslate.displayName(p)
+                : p.name;
             return (
               '<div class="rec-card">' +
               '<div class="rec-card__media">' + media + "</div>" +
               '<div class="rec-card__body">' +
-              '<h3 class="rec-card__name">' + esc(p.name) + "</h3>" +
+              '<h3 class="rec-card__name" data-ai-product-name="' +
+              esc(p.name || "") +
+              '" data-ai-product-id="' +
+              esc(String(p.id || "")) +
+              '">' +
+              esc(name) +
+              "</h3>" +
               '<span class="rec-card__price">' + formatMoney(p.price) + "</span>" +
               recMetaHtml(p) +
               '<button type="button" class="rec-card__add" data-rec-id="' +
@@ -393,6 +421,13 @@
           })
           .join("");
         show(recWrap, true);
+        if (window.BuykonAITranslate && typeof BuykonAITranslate.warmProducts === "function") {
+          BuykonAITranslate.warmProducts(picks).then(function () {
+            if (typeof BuykonAITranslate.updateProductNameNodes === "function") {
+              BuykonAITranslate.updateProductNameNodes(recList);
+            }
+          });
+        }
 
         recList.querySelectorAll("[data-rec-id]").forEach(function (btn) {
           btn.addEventListener("click", function () {
@@ -525,4 +560,12 @@
   }
 
   loadCart();
+
+  document.addEventListener("BuykonLangChanged", function () {
+    setTimeout(function () {
+      renderItems(currentItems);
+      renderTotals(currentItems);
+      renderRecommended();
+    }, 40);
+  });
 })();

@@ -165,116 +165,128 @@
     return root + "pages/product/";
   }
 
+  function productDisplayName(p) {
+    if (window.BuykonAITranslate && typeof BuykonAITranslate.displayName === "function") {
+      return BuykonAITranslate.displayName(p);
+    }
+    return (p && p.name) || "";
+  }
+
   function renderProductCards(sorted, container) {
     if (!container) return;
     var Fav = window.BizdevarFavorites;
-    container.innerHTML = sorted
-      .map(function (p) {
-        var catLabel = esc(catLabels[p.cat] || p.cat);
-        var imgSrc = mediaUrl(p.image_url || p.image || "");
-        var media = imgSrc
-          ? '<img src="' + escAttr(imgSrc) + '" alt="" class="product-card__photo" loading="lazy" />'
-          : '<span class="product-card__initial">' + esc(p.initial || "") + "</span>";
-        var favOn = Fav && Fav.has(p.id);
-        var favClass = favOn ? "product-card__fav is-active" : "product-card__fav";
-        var discount = Math.round(Number(p.discount_percent) || 0);
-        var badge =
-          discount > 0
-            ? '<span class="product-card__badge">-' + discount + "%</span>"
-            : "";
-        var priceHtml =
-          discount > 0 && p.base_price != null
-            ? '<del class="product-card__old-price">' +
-              formatPrice(p.base_price) +
-              "</del><strong>" +
-              formatPrice(p.price) +
-              "</strong>"
-            : "<strong>" + formatPrice(p.price) + "</strong>";
-        return (
-          '<article class="product-card" data-id="' +
-          esc(String(p.id)) +
-          '" data-href="' +
-          escAttr(productHref(p)) +
-          '">' +
-          '<div class="product-card__media product-card__media--' +
-          esc(p.cat) +
-          '">' +
-          badge +
-          '<button type="button" class="' +
-          favClass +
-          '" data-product-id="' +
-          esc(String(p.id)) +
-          '" aria-pressed="' +
-          (favOn ? "true" : "false") +
-          '" aria-label="' +
-          (favOn ? "Sevimlilərdən çıxar" : "Sevimlilərə əlavə et") +
-          '">' +
-          '<svg class="product-card__fav-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' +
-          "</button>" +
-          media +
-          SHIP_HTML +
-          "</div>" +
-          '<div class="product-card__body">' +
-          '<span class="product-card__cat">' +
-          catLabel +
-          "</span>" +
-          '<h3 class="product-card__title">' +
-          esc(p.name) +
-          "</h3>" +
-          productMetaHtml(p) +
-          '<div class="product-card__foot">' +
-          '<p class="product-card__price">' +
-          priceHtml +
-          "</p>" +
-          '<button type="button" class="product-card__btn" data-product-id="' +
-          esc(String(p.id)) +
-          '" aria-label="Səbətə əlavə et" title="Səbətə əlavə et">' +
-          CART_ICON +
-          "</button>" +
-          "</div>" +
-          "</div></article>"
-        );
-      })
-      .join("");
 
-    bindFavoriteButtons(container);
+    function paint(list) {
+      container.innerHTML = list
+        .map(function (p) {
+          var catLabel = esc(catLabels[p.cat] || p.cat);
+          var name = productDisplayName(p);
+          var imgSrc = mediaUrl(p.image_url || p.image || "");
+          var media = imgSrc
+            ? '<img src="' + escAttr(imgSrc) + '" alt="" class="product-card__photo" loading="lazy" />'
+            : '<span class="product-card__initial">' + esc(p.initial || "") + "</span>";
+          var favOn = Fav && Fav.has(p.id);
+          var favClass = favOn ? "product-card__fav is-active" : "product-card__fav";
+          var discount = Math.round(Number(p.discount_percent) || 0);
+          var badge =
+            discount > 0
+              ? '<span class="product-card__badge">-' + discount + "%</span>"
+              : "";
+          var priceHtml =
+            discount > 0 && p.base_price != null
+              ? '<del class="product-card__old-price">' +
+                formatPrice(p.base_price) +
+                "</del><strong>" +
+                formatPrice(p.price) +
+                "</strong>"
+              : "<strong>" + formatPrice(p.price) + "</strong>";
+          return (
+            '<article class="product-card" data-id="' +
+            esc(String(p.id)) +
+            '" data-href="' +
+            escAttr(productHref(p)) +
+            '">' +
+            '<div class="product-card__media product-card__media--' +
+            esc(p.cat) +
+            '">' +
+            badge +
+            '<button type="button" class="' +
+            favClass +
+            '" data-product-id="' +
+            esc(String(p.id)) +
+            '" aria-pressed="' +
+            (favOn ? "true" : "false") +
+            '" aria-label="' +
+            (favOn ? "Sevimlilərdən çıxar" : "Sevimlilərə əlavə et") +
+            '">' +
+            '<svg class="product-card__fav-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' +
+            "</button>" +
+            media +
+            SHIP_HTML +
+            "</div>" +
+            '<div class="product-card__body">' +
+            '<span class="product-card__cat">' +
+            catLabel +
+            "</span>" +
+            '<h3 class="product-card__title" data-ai-product-name="' +
+            escAttr(p.name || "") +
+            '" data-ai-product-id="' +
+            escAttr(String(p.id || "")) +
+            '">' +
+            esc(name) +
+            "</h3>" +
+            productMetaHtml(p) +
+            '<div class="product-card__foot">' +
+            '<p class="product-card__price">' +
+            priceHtml +
+            "</p>" +
+            '<button type="button" class="product-card__btn" data-product-id="' +
+            esc(String(p.id)) +
+            '" aria-label="Səbətə əlavə et" title="Səbətə əlavə et">' +
+            CART_ICON +
+            "</button>" +
+            "</div>" +
+            "</div></article>"
+          );
+        })
+        .join("");
 
-    container.querySelectorAll(".product-card").forEach(function (card) {
-      card.addEventListener("click", function (e) {
-        if (
-          e.target.closest(".product-card__btn") ||
-          e.target.closest(".product-card__fav")
-        ) {
-          return;
-        }
-        var href = card.getAttribute("data-href");
-        if (href) {
-          window.location.href = href;
-          return;
-        }
-        var id = card.getAttribute("data-id");
-        if (!id) return;
-        window.location.href = getRoot() + "pages/product/?id=" + encodeURIComponent(id);
+      bindFavoriteButtons(container);
+
+      container.querySelectorAll(".product-card").forEach(function (card) {
+        card.addEventListener("click", function (e) {
+          if (
+            e.target.closest(".product-card__btn") ||
+            e.target.closest(".product-card__fav")
+          ) {
+            return;
+          }
+          var href = card.getAttribute("data-href");
+          if (href) window.location.href = href;
+        });
       });
-    });
 
-    container.querySelectorAll(".product-card__btn").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var id = parseInt(btn.getAttribute("data-product-id"), 10);
-        if (!id) return;
-        btn.disabled = true;
-        API.cartAdd(id, 1)
-          .then(function (d) {
-            if (window.BizdevarHeader) BizdevarHeader.setCartBadge(d.total_qty);
-          })
-          .catch(function (e) {
-            alert(e.message || "Səbətə əlavə olunmadı");
-          })
-          .finally(function () {
-            btn.disabled = false;
+      container.querySelectorAll(".product-card__btn").forEach(function (btn) {
+        btn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          var id = btn.getAttribute("data-product-id");
+          var item = list.find(function (p) {
+            return String(p.id) === String(id);
           });
+          if (item && window.BizdevarCart && BizdevarCart.add) {
+            BizdevarCart.add(item);
+          }
+        });
       });
-    });
+    }
+
+    paint(sorted);
+
+    if (window.BuykonAITranslate && typeof BuykonAITranslate.warmProducts === "function") {
+      BuykonAITranslate.warmProducts(sorted).then(function () {
+        paint(sorted);
+      });
+    }
   }
 
   function render() {
@@ -526,4 +538,11 @@
   });
 
   loadProducts();
+
+  document.addEventListener("BuykonLangChanged", function () {
+    setTimeout(render, 40);
+  });
+  document.addEventListener("BuykonAITranslateReady", function () {
+    setTimeout(render, 40);
+  });
 })();

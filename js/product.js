@@ -1,5 +1,7 @@
 (function () {
   var API = window.BizdevarAPI || null;
+  var currentProduct = null;
+  var currentAllProducts = [];
 
   function $(id) {
     return document.getElementById(id);
@@ -397,11 +399,19 @@
   var CARD_CART_ICON =
     '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>';
 
+  function productDisplayName(p) {
+    if (window.BuykonAITranslate && typeof BuykonAITranslate.displayName === "function") {
+      return BuykonAITranslate.displayName(p);
+    }
+    return (p && p.name) || "";
+  }
+
   function cardHtml(p, catLabel) {
+    var displayName = productDisplayName(p);
     var imgSrc = resolveAssetPath(p.image_url || "");
     var media = imgSrc
       ? '<img src="' + escAttr(imgSrc) + '" alt="" class="product-card__photo" loading="lazy" />'
-      : '<span class="product-card__initial">' + esc(p.name.charAt(0)) + "</span>";
+      : '<span class="product-card__initial">' + esc((p.name || "?").charAt(0)) + "</span>";
     var Fav = window.BizdevarFavorites;
     var favOn = Fav && Fav.has ? Fav.has(p.id) : false;
     var favClass = favOn ? "product-card__fav is-active" : "product-card__fav";
@@ -449,8 +459,12 @@
       '<span class="product-card__cat">' +
       cat +
       "</span>" +
-      '<h3 class="product-card__title">' +
-      esc(p.name) +
+      '<h3 class="product-card__title" data-ai-product-name="' +
+      escAttr(p.name || "") +
+      '" data-ai-product-id="' +
+      escAttr(String(p.id || "")) +
+      '">' +
+      esc(displayName) +
       "</h3>" +
       productMetaHtml(p) +
       '<div class="product-card__foot">' +
@@ -1546,9 +1560,14 @@
   }
 
   function applyHeader(product) {
+    var name = productDisplayName(product);
     var bc = $("pd-bc-title");
-    if (bc) bc.textContent = product.name;
-    document.title = product.name + " | Buykon.com";
+    if (bc) {
+      bc.setAttribute("data-ai-product-name", product.name || "");
+      bc.setAttribute("data-ai-product-id", String(product.id || ""));
+      bc.textContent = name;
+    }
+    document.title = name + " | Buykon.com";
   }
 
   function renderPrice(product) {
@@ -1817,10 +1836,16 @@
   }
 
   function renderAll(product, allProducts) {
+    currentProduct = product;
+    currentAllProducts = allProducts || [];
     applyHeader(product);
     replaceProductUrl(product);
     var titleEl = $("pd-title");
-    if (titleEl) titleEl.textContent = product.name;
+    if (titleEl) {
+      titleEl.setAttribute("data-ai-product-name", product.name || "");
+      titleEl.setAttribute("data-ai-product-id", String(product.id || ""));
+      titleEl.textContent = productDisplayName(product);
+    }
     renderCategoryChip(product);
     renderPrice(product);
     renderRating(product);
@@ -1842,6 +1867,18 @@
     renderProductCarousels(product, allProducts);
     if (typeof window.initProductTryOn === "function") {
       window.initProductTryOn(product);
+    }
+    if (window.BuykonAITranslate && typeof BuykonAITranslate.warmProducts === "function") {
+      var warmList = [product].concat(allProducts || []).slice(0, 40);
+      BuykonAITranslate.warmProducts(warmList).then(function () {
+        if (!currentProduct || currentProduct.id !== product.id) return;
+        applyHeader(product);
+        if (titleEl) titleEl.textContent = productDisplayName(product);
+        renderProductCarousels(product, allProducts);
+        if (typeof BuykonAITranslate.updateProductNameNodes === "function") {
+          BuykonAITranslate.updateProductNameNodes(document);
+        }
+      });
     }
   }
 
@@ -1888,5 +1925,12 @@
   } else {
     load();
   }
+
+  document.addEventListener("BuykonLangChanged", function () {
+    if (!currentProduct) return;
+    setTimeout(function () {
+      renderAll(currentProduct, currentAllProducts);
+    }, 40);
+  });
 })();
 

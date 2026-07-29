@@ -823,6 +823,13 @@
       "</div></div>";
   }
 
+  function productDisplayName(p) {
+    if (window.BuykonAITranslate && typeof BuykonAITranslate.displayName === "function") {
+      return BuykonAITranslate.displayName(p);
+    }
+    return (p && p.name) || "";
+  }
+
   function renderMatchList(matches, badgeFn) {
     return (
       '<ul class="search-popup__result-list">' +
@@ -831,6 +838,7 @@
           var p = m.product;
           var img = productImage(p);
           var badge = badgeFn ? badgeFn(m) : "";
+          var name = productDisplayName(p);
           return (
             '<li><button type="button" class="search-popup__result" data-search-product-id="' +
             escAttr(String(p.id)) +
@@ -845,8 +853,12 @@
             esc(p.cat) +
             badge +
             "</span>" +
-            '<span class="search-popup__result-name">' +
-            esc(p.name) +
+            '<span class="search-popup__result-name" data-ai-product-name="' +
+            escAttr(p.name || "") +
+            '" data-ai-product-id="' +
+            escAttr(String(p.id || "")) +
+            '">' +
+            esc(name) +
             "</span>" +
             '<span class="search-popup__result-price">' +
             esc(formatPrice(p.price)) +
@@ -2146,6 +2158,7 @@
           limited
             .map(function (p) {
               var img = productImage(p);
+              var name = productDisplayName(p);
               return (
                 '<li><button type="button" class="search-popup__result" data-search-result="' +
                 escAttr(p.name) +
@@ -2159,8 +2172,12 @@
                 '<span class="search-popup__result-cat">' +
                 esc(p.cat) +
                 "</span>" +
-                '<span class="search-popup__result-name">' +
-                esc(p.name) +
+                '<span class="search-popup__result-name" data-ai-product-name="' +
+                escAttr(p.name || "") +
+                '" data-ai-product-id="' +
+                escAttr(String(p.id || "")) +
+                '">' +
+                esc(name) +
                 "</span>" +
                 '<span class="search-popup__result-price">' +
                 esc(formatPrice(p.price)) +
@@ -2177,6 +2194,13 @@
       body.innerHTML =
         '<div class="search-popup__results">' + suggestHtml + productsHtml + "</div>";
 
+      if (window.BuykonAITranslate && typeof BuykonAITranslate.warmProducts === "function" && found.length) {
+        BuykonAITranslate.warmProducts(found.slice(0, 12)).then(function () {
+          if (typeof BuykonAITranslate.updateProductNameNodes === "function") {
+            BuykonAITranslate.updateProductNameNodes(body);
+          }
+        });
+      }
       if (foot) {
         if (found.length) foot.removeAttribute("hidden");
         else foot.setAttribute("hidden", "");
