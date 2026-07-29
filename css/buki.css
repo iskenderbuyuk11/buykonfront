@@ -1,0 +1,630 @@
+/* Buki — AI alış-veriş köməkçisi */
+
+:root {
+  --buki-orange: #ff9100;
+  --buki-amber: #ffb020;
+  --buki-deep: #e56e00;
+  --buki-teal: #0a8fad;
+  --buki-ink: #1a1d21;
+  --buki-muted: #5c6370;
+  --buki-line: #e8eaed;
+  --buki-panel: #fffaf3;
+  --buki-bubble: #fff;
+  --buki-user: #fff4e5;
+}
+
+.buki-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 46px;
+  height: 46px;
+  padding: 0 12px 0 10px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(135deg, #ffb020 0%, #ff9100 45%, #ff7300 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 145, 0, 0.35),
+    0 8px 20px rgba(255, 115, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 1;
+  isolation: isolate;
+}
+
+.buki-btn--mobile {
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 12px;
+}
+
+.buki-btn:hover,
+.buki-btn:focus-visible {
+  transform: translateY(-1px) scale(1.03);
+  box-shadow:
+    0 0 0 1px rgba(255, 145, 0, 0.5),
+    0 12px 28px rgba(255, 115, 0, 0.4),
+    0 0 24px rgba(255, 176, 32, 0.45);
+  outline: none;
+}
+
+.buki-btn:active {
+  transform: scale(0.97);
+}
+
+.buki-btn__aura {
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.35) 12%,
+    transparent 28%,
+    rgba(10, 143, 173, 0.35) 48%,
+    transparent 62%,
+    rgba(255, 255, 255, 0.28) 78%,
+    transparent 100%
+  );
+  animation: buki-spin 4.5s linear infinite;
+  opacity: 0.7;
+  z-index: -2;
+}
+
+.buki-btn__ring {
+  position: absolute;
+  inset: 2px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #ffb84a, #ff8a00 55%, #ff6a00);
+  z-index: -1;
+}
+
+.buki-btn__shine {
+  position: absolute;
+  top: -40%;
+  left: -60%;
+  width: 50%;
+  height: 180%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.55),
+    transparent
+  );
+  transform: rotate(18deg);
+  animation: buki-shine 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.buki-btn__spark {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px #fff, 0 0 14px var(--buki-amber);
+  animation: buki-spark 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.buki-btn__spark--1 {
+  top: 6px;
+  right: 8px;
+  animation-delay: 0s;
+}
+
+.buki-btn__spark--2 {
+  bottom: 8px;
+  left: 10px;
+  width: 4px;
+  height: 4px;
+  animation-delay: 0.45s;
+}
+
+.buki-btn__spark--3 {
+  top: 12px;
+  left: 14px;
+  width: 3px;
+  height: 3px;
+  animation-delay: 0.9s;
+}
+
+.buki-btn__core {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  animation: buki-pulse 2.2s ease-in-out infinite;
+}
+
+.buki-btn__ico {
+  display: block;
+  color: #fff;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
+}
+
+.buki-btn__label {
+  position: relative;
+  font-family: "Nunito Sans", "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+}
+
+.buki-btn--mobile .buki-btn__label {
+  display: none;
+}
+
+@keyframes buki-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes buki-shine {
+  0%,
+  35% {
+    left: -60%;
+    opacity: 0;
+  }
+  45% {
+    opacity: 1;
+  }
+  70%,
+  100% {
+    left: 120%;
+    opacity: 0;
+  }
+}
+
+@keyframes buki-spark {
+  0%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+}
+
+@keyframes buki-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+/* Panel */
+.buki-root[hidden] {
+  display: none !important;
+}
+
+.buki-root {
+  position: fixed;
+  inset: 0;
+  z-index: 500000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.buki-root__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(18, 22, 28, 0.42);
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+  animation: buki-fade 0.25s ease;
+}
+
+.buki-panel {
+  position: relative;
+  width: min(420px, calc(100vw - 24px));
+  height: min(680px, calc(100vh - 32px));
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  overflow: hidden;
+  pointer-events: auto;
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(255, 176, 32, 0.18), transparent 50%),
+    radial-gradient(90% 60% at 100% 0%, rgba(10, 143, 173, 0.12), transparent 45%),
+    var(--buki-panel);
+  border: 1px solid rgba(255, 145, 0, 0.22);
+  box-shadow:
+    0 24px 60px rgba(26, 29, 33, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+  animation: buki-rise 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.buki-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px 12px;
+  background: linear-gradient(135deg, #ffb020, #ff9100 55%, #ff7300);
+  color: #fff;
+}
+
+.buki-panel__avatar {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  flex-shrink: 0;
+}
+
+.buki-panel__avatar::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  animation: buki-pulse 2s ease-in-out infinite;
+}
+
+.buki-panel__meta {
+  min-width: 0;
+  flex: 1;
+}
+
+.buki-panel__name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.buki-panel__sub {
+  margin: 2px 0 0;
+  font-size: 12px;
+  opacity: 0.92;
+}
+
+.buki-panel__close {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.buki-panel__close:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.buki-panel__body {
+  flex: 1;
+  overflow: auto;
+  padding: 14px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+
+.buki-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 100%;
+  animation: buki-msg-in 0.28s ease;
+}
+
+.buki-msg--user {
+  align-items: flex-end;
+}
+
+.buki-msg--bot {
+  align-items: flex-start;
+}
+
+.buki-msg__bubble {
+  max-width: 92%;
+  padding: 10px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--buki-ink);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.buki-msg--bot .buki-msg__bubble {
+  background: var(--buki-bubble);
+  border: 1px solid var(--buki-line);
+  border-bottom-left-radius: 6px;
+  box-shadow: 0 4px 14px rgba(26, 29, 33, 0.05);
+}
+
+.buki-msg--user .buki-msg__bubble {
+  background: var(--buki-user);
+  border: 1px solid rgba(255, 145, 0, 0.25);
+  border-bottom-right-radius: 6px;
+}
+
+.buki-msg__typing {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 12px 14px;
+}
+
+.buki-msg__typing i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--buki-orange);
+  opacity: 0.45;
+  animation: buki-dot 1s ease-in-out infinite;
+}
+
+.buki-msg__typing i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.buki-msg__typing i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.buki-products {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.buki-card {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid var(--buki-line);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.buki-card:hover {
+  border-color: rgba(255, 145, 0, 0.45);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(255, 145, 0, 0.12);
+}
+
+.buki-card__media {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f3f4f6;
+  display: grid;
+  place-items: center;
+}
+
+.buki-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.buki-card__ph {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--buki-orange);
+}
+
+.buki-card__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.buki-card__cat {
+  font-size: 11px;
+  color: var(--buki-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.buki-card__name {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.buki-card__price {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--buki-deep);
+}
+
+.buki-card__why {
+  font-size: 11.5px;
+  color: var(--buki-muted);
+  line-height: 1.35;
+}
+
+.buki-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 14px 10px;
+}
+
+.buki-chip {
+  border: 1px solid rgba(255, 145, 0, 0.28);
+  background: #fff;
+  color: var(--buki-ink);
+  border-radius: 999px;
+  padding: 7px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.buki-chip:hover {
+  background: #fff4e5;
+  border-color: var(--buki-orange);
+}
+
+.buki-panel__foot {
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--buki-line);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.buki-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.buki-form textarea {
+  width: 100%;
+  min-height: 44px;
+  max-height: 110px;
+  resize: none;
+  border: 1px solid var(--buki-line);
+  border-radius: 14px;
+  padding: 11px 12px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  background: #fff;
+  color: var(--buki-ink);
+}
+
+.buki-form textarea:focus {
+  outline: none;
+  border-color: rgba(255, 145, 0, 0.55);
+  box-shadow: 0 0 0 3px rgba(255, 145, 0, 0.15);
+}
+
+.buki-form__send {
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #ffb020, #ff9100 50%, #ff7300);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 16px rgba(255, 115, 0, 0.25);
+}
+
+.buki-form__send:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.buki-panel__hint {
+  margin: 6px 2px 0;
+  font-size: 11px;
+  color: var(--buki-muted);
+}
+
+@keyframes buki-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes buki-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes buki-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes buki-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+@media (max-width: 640px) {
+  .buki-root {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .buki-panel {
+    width: 100%;
+    height: min(92vh, 100%);
+    border-radius: 20px 20px 0 0;
+    margin-top: auto;
+  }
+}
+
+html.dark .buki-panel,
+body.dark-mode .buki-panel,
+[data-theme="dark"] .buki-panel {
+  --buki-panel: #171a1f;
+  --buki-bubble: #22262d;
+  --buki-user: #2a2118;
+  --buki-ink: #f3f4f6;
+  --buki-muted: #a0a7b4;
+  --buki-line: #2d333c;
+}

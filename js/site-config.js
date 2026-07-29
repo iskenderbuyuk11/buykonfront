@@ -124,6 +124,10 @@
     return "";
   }
 
+  function resolveBukiUrl() {
+    return resolveApiBase().replace(/\/+$/, "") + "/ai/buki";
+  }
+
   global.BizdevarSiteConfig = {
     PROD_API: PROD_API,
     LOCAL_API: LOCAL_API,
@@ -137,6 +141,7 @@
     resolveVisualSearchUrl: resolveVisualSearchUrl,
     resolveTryOnUrl: resolveTryOnUrl,
     resolveTranslateUrl: resolveTranslateUrl,
+    resolveBukiUrl: resolveBukiUrl,
   };
 
   global.BIZDEVAR_API_BASE = resolveApiBase();
