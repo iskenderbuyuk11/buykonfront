@@ -226,9 +226,7 @@
 
     paint(items);
     if (window.BuykonAITranslate && typeof BuykonAITranslate.warmProducts === "function") {
-      BuykonAITranslate.warmProducts(items).then(function () {
-        paint(items);
-      });
+      BuykonAITranslate.warmProducts(items);
     }
   }
 

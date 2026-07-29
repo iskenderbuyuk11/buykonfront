@@ -68,7 +68,7 @@
       return loadScript("js/i18n.js?v=3");
     });
     if (!window.BuykonAITranslate) chain = chain.then(function () {
-      return loadScript("js/ai-translate.js?v=2");
+      return loadScript("js/ai-translate.js?v=3");
     });
     return chain.then(function () {
       return new Promise(function (resolve) {

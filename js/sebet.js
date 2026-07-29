@@ -231,11 +231,7 @@
       groupsEl.innerHTML = groupByVendor(currentItems).map(groupHtml).join("");
     }
     if (window.BuykonAITranslate && typeof BuykonAITranslate.warmProducts === "function") {
-      BuykonAITranslate.warmProducts(currentItems).then(function () {
-        if (groupsEl && currentItems.length) {
-          groupsEl.innerHTML = groupByVendor(currentItems).map(groupHtml).join("");
-        }
-      });
+      BuykonAITranslate.warmProducts(currentItems);
     }
   }
 

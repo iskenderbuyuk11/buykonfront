@@ -1,13 +1,15 @@
 /**
- * Buykon AI Translate — neural tərcümə (məhsul adları + səhifə mətnləri)
- * Cache: localStorage
+ * Buykon AI Translate — sürətli batch tərcümə (məhsul adları + səhifə)
+ * Cache: localStorage (debounce)
  */
 (function (global) {
   "use strict";
 
   var CACHE_KEY = "buykon_ai_tr_v2";
-  var MAX_CACHE = 2500;
-  var CONCURRENCY = 4;
+  var MAX_CACHE = 3000;
+  var BATCH_SIZE = 25;
+  var CONCURRENCY = 6;
+  var SEP = "\n⟦⟧\n";
   var LANG_MAP = {
     az: "az",
     tr: "tr",
@@ -24,6 +26,9 @@
   var queue = [];
   var active = 0;
   var productNameCache = Object.create(null);
+  var saveTimer = null;
+  var liveDomTimer = null;
+  var liveDomToken = 0;
 
   function loadCache() {
     try {
@@ -34,7 +39,8 @@
     }
   }
 
-  function saveCache() {
+  function flushCache() {
+    saveTimer = null;
     try {
       var keys = Object.keys(cache);
       if (keys.length > MAX_CACHE) {
@@ -46,6 +52,11 @@
     } catch (e) {
       /* ignore quota */
     }
+  }
+
+  function scheduleSave() {
+    if (saveTimer) return;
+    saveTimer = setTimeout(flushCache, 400);
   }
 
   function currentLang() {
@@ -70,32 +81,19 @@
   }
 
   function getCached(text, to, from) {
-    var k = cacheKey(text, to, from);
-    return cache[k] || null;
+    return cache[cacheKey(text, to, from)] || null;
   }
 
   function setCached(text, to, from, translated) {
-    var k = cacheKey(text, to, from);
-    cache[k] = translated;
-    saveCache();
+    cache[cacheKey(text, to, from)] = translated;
+    scheduleSave();
   }
 
-  function translateUrl(text, to, from) {
-    var cfg = global.BizdevarSiteConfig;
-    if (cfg && typeof cfg.resolveTranslateUrl === "function") {
-      var api = cfg.resolveTranslateUrl();
-      if (api) return { type: "api", url: api };
-    }
-    return {
-      type: "gtx",
-      url:
-        "https://translate.googleapis.com/translate_a/single?client=gtx&sl=" +
-        encodeURIComponent(from) +
-        "&tl=" +
-        encodeURIComponent(to) +
-        "&dt=t&q=" +
-        encodeURIComponent(text),
-    };
+  function setCachedMany(pairs, to, from) {
+    pairs.forEach(function (p) {
+      cache[cacheKey(p.text, to, from)] = p.out;
+    });
+    scheduleSave();
   }
 
   function parseGtx(data) {
@@ -107,14 +105,14 @@
       .join("");
   }
 
-  function fetchGtx(text, to, from) {
+  function fetchGtxJoined(joined, to, from) {
     var url =
       "https://translate.googleapis.com/translate_a/single?client=gtx&sl=" +
       encodeURIComponent(from) +
       "&tl=" +
       encodeURIComponent(to) +
       "&dt=t&q=" +
-      encodeURIComponent(text);
+      encodeURIComponent(joined);
     return fetch(url)
       .then(function (res) {
         if (!res.ok) throw new Error("translate http " + res.status);
@@ -123,52 +121,141 @@
       .then(parseGtx);
   }
 
-  function fetchOne(text, to, from) {
-    var endpoint = translateUrl(text, to, from);
-    if (endpoint.type === "api" && endpoint.url) {
-      return fetch(endpoint.url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: text, from: from, to: to, texts: [text], target: to, source: from }),
-      })
-        .then(function (res) {
-          return res.json().then(function (data) {
-            if (!res.ok) throw new Error((data && data.error) || "AI translate failed");
-            var out =
-              (data && (data.translation || data.translated || (data.translations && data.translations[0]))) ||
-              "";
-            if (!norm(out)) throw new Error("empty api translation");
-            return out;
-          });
-        })
-        .catch(function () {
-          return fetchGtx(text, to, from);
-        });
+  function fetchApiBatch(texts, to, from) {
+    var cfg = global.BizdevarSiteConfig;
+    var api =
+      cfg && typeof cfg.resolveTranslateUrl === "function" ? cfg.resolveTranslateUrl() : "";
+    if (!api) return Promise.reject(new Error("no api"));
+    return fetch(api, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ texts: texts, text: texts.join("\n"), from: from, to: to, source: from, target: to }),
+    }).then(function (res) {
+      return res.json().then(function (data) {
+        if (!res.ok) throw new Error((data && data.error) || "AI translate failed");
+        if (Array.isArray(data.translations) && data.translations.length === texts.length) {
+          return data.translations;
+        }
+        if (Array.isArray(data.translated) && data.translated.length === texts.length) {
+          return data.translated;
+        }
+        var one = data.translation || data.translated || "";
+        if (typeof one === "string" && one) {
+          var parts = one.split(SEP);
+          if (parts.length === texts.length) return parts;
+        }
+        throw new Error("bad api batch");
+      });
+    });
+  }
+
+  function translateBatch(texts, to, from) {
+    if (!texts.length) return Promise.resolve([]);
+    if (texts.length === 1) {
+      return fetchGtxJoined(texts[0], to, from).then(function (out) {
+        return [norm(out) || texts[0]];
+      });
     }
 
-    return fetchGtx(text, to, from);
+    return fetchApiBatch(texts, to, from)
+      .catch(function () {
+        var joined = texts.join(SEP);
+        return fetchGtxJoined(joined, to, from).then(function (out) {
+          var raw = String(out || "");
+          var parts = raw.split(SEP);
+          if (parts.length !== texts.length) {
+            // Fallback: parallel single (small batches only)
+            return Promise.all(
+              texts.map(function (t) {
+                return fetchGtxJoined(t, to, from).then(function (x) {
+                  return norm(x) || t;
+                });
+              })
+            );
+          }
+          return parts.map(function (p, i) {
+            return norm(p) || texts[i];
+          });
+        });
+      })
+      .then(function (outs) {
+        return (outs || []).map(function (o, i) {
+          return norm(o) || texts[i];
+        });
+      });
   }
 
   function runQueue() {
     while (active < CONCURRENCY && queue.length) {
       var job = queue.shift();
       active += 1;
-      fetchOne(job.text, job.to, job.from)
-        .then(function (translated) {
-          var out = norm(translated) || job.text;
-          setCached(job.text, job.to, job.from, out);
-          delete inflight[job.key];
+      translateBatch(job.texts, job.to, job.from)
+        .then(function (outs) {
+          var pairs = [];
+          job.texts.forEach(function (t, i) {
+            var out = outs[i] || t;
+            pairs.push({ text: t, out: out });
+            var key = cacheKey(t, job.to, job.from);
+            delete inflight[key];
+            if (job.resolvers[key]) {
+              job.resolvers[key].forEach(function (resolve) {
+                resolve(out);
+              });
+            }
+          });
+          setCachedMany(pairs, job.to, job.from);
           active -= 1;
-          job.resolve(out);
           runQueue();
         })
         .catch(function () {
-          delete inflight[job.key];
+          job.texts.forEach(function (t) {
+            var key = cacheKey(t, job.to, job.from);
+            delete inflight[key];
+            if (job.resolvers[key]) {
+              job.resolvers[key].forEach(function (resolve) {
+                resolve(t);
+              });
+            }
+          });
           active -= 1;
-          job.resolve(job.text);
           runQueue();
         });
     }
+  }
+
+  function enqueueBatch(pending, to, from) {
+    // pending: [{text, resolve}]
+    var i = 0;
+    while (i < pending.length) {
+      var chunk = pending.slice(i, i + BATCH_SIZE);
+      i += BATCH_SIZE;
+      var texts = [];
+      var resolvers = Object.create(null);
+      var seenText = Object.create(null);
+      chunk.forEach(function (item) {
+        var key = cacheKey(item.text, to, from);
+        if (!resolvers[key]) resolvers[key] = [];
+        resolvers[key].push(item.resolve);
+        if (!seenText[key]) {
+          seenText[key] = true;
+          texts.push(item.text);
+        }
+      });
+      queue.push({ texts: texts, to: to, from: from, resolvers: resolvers });
+    }
+    runQueue();
+  }
+
+  function flushTranslateBuffer() {
+    if (translate._bufFlush) {
+      clearTimeout(translate._bufFlush);
+      translate._bufFlush = null;
+    }
+    var items = translate._buf || [];
+    var to = translate._bufTo;
+    var from = translate._bufFrom;
+    translate._buf = null;
+    if (items.length) enqueueBatch(items, to, from);
   }
 
   function translate(text, toLang, fromLang) {
@@ -182,17 +269,40 @@
     if (hit) return Promise.resolve(hit);
 
     var key = cacheKey(raw, to, from);
-    if (inflight[key]) return inflight[key];
+    if (inflight[key] && typeof inflight[key].then === "function") return inflight[key];
 
+    var resolveOuter;
     var p = new Promise(function (resolve) {
-      queue.push({ text: raw, to: to, from: from, key: key, resolve: resolve });
-      runQueue();
+      resolveOuter = resolve;
     });
     inflight[key] = p;
+
+    if (!translate._buf) {
+      translate._buf = [];
+      translate._bufTo = to;
+      translate._bufFrom = from;
+      translate._bufFlush = setTimeout(flushTranslateBuffer, 8);
+    } else if (translate._bufTo !== to || translate._bufFrom !== from) {
+      flushTranslateBuffer();
+      translate._buf = [];
+      translate._bufTo = to;
+      translate._bufFrom = from;
+      translate._bufFlush = setTimeout(flushTranslateBuffer, 8);
+    }
+
+    translate._buf.push({
+      text: raw,
+      resolve: function (out) {
+        resolveOuter(out);
+      },
+    });
+
     return p;
   }
 
-  function translateMany(texts, toLang, fromLang) {
+  function translateMany(texts, toLang, fromLang, onChunk) {
+    var to = mapLang(toLang || currentLang());
+    var from = mapLang(fromLang || "az");
     var list = (texts || []).map(norm).filter(Boolean);
     var uniq = [];
     var seen = Object.create(null);
@@ -203,18 +313,60 @@
         uniq.push(t);
       }
     });
-    return Promise.all(
-      uniq.map(function (t) {
-        return translate(t, toLang, fromLang);
+
+    var map = Object.create(null);
+    var missing = [];
+
+    uniq.forEach(function (t) {
+      if (to === from) {
+        map[t] = t;
+        map[t.toLowerCase()] = t;
+        return;
+      }
+      var hit = getCached(t, to, from);
+      if (hit) {
+        map[t] = hit;
+        map[t.toLowerCase()] = hit;
+      } else {
+        missing.push(t);
+      }
+    });
+
+    if (typeof onChunk === "function" && Object.keys(map).length) {
+      try {
+        onChunk(map);
+      } catch (e) {
+        /* ignore */
+      }
+    }
+
+    if (!missing.length) return Promise.resolve(map);
+
+    var pending = Promise.all(
+      missing.map(function (t) {
+        return translate(t, to, from).then(function (tr) {
+          map[t] = tr;
+          map[t.toLowerCase()] = tr;
+          if (typeof onChunk === "function") {
+            var partial = Object.create(null);
+            partial[t] = tr;
+            partial[t.toLowerCase()] = tr;
+            try {
+              onChunk(partial);
+            } catch (e) {
+              /* ignore */
+            }
+          }
+          return tr;
+        });
       })
-    ).then(function (translated) {
-      var map = Object.create(null);
-      uniq.forEach(function (t, i) {
-        map[t] = translated[i];
-        map[t.toLowerCase()] = translated[i];
-      });
+    ).then(function () {
       return map;
     });
+
+    // Buffer-dakı bütün mətnləri dərhal göndər (gözləmə)
+    flushTranslateBuffer();
+    return pending;
   }
 
   function displayName(product) {
@@ -234,7 +386,17 @@
     return original;
   }
 
-  function warmProducts(products, toLang) {
+  function rememberProductName(product, translated, lang) {
+    if (!product) return;
+    var original = norm(product.name || product.title || "");
+    if (!original) return;
+    var id = product.id != null ? String(product.id) : "";
+    productNameCache[lang + ":" + (id || original.toLowerCase())] = translated;
+    product._name_az = product._name_az || original;
+    product._name_i18n = translated;
+  }
+
+  function warmProducts(products, toLang, onChunk) {
     var lang = toLang || currentLang();
     if (lang === "az") return Promise.resolve(products || []);
     var list = products || [];
@@ -243,17 +405,41 @@
         return norm(p && (p.name || p.title));
       })
       .filter(Boolean);
-    return translateMany(names, lang, "az").then(function (map) {
+
+    var paintScheduled = false;
+    function schedulePaint() {
+      if (paintScheduled) return;
+      paintScheduled = true;
+      var raf = global.requestAnimationFrame || function (cb) {
+        setTimeout(cb, 16);
+      };
+      raf(function () {
+        paintScheduled = false;
+        updateProductNameNodes(document);
+        if (typeof onChunk === "function") {
+          try {
+            onChunk(list);
+          } catch (e) {
+            /* ignore */
+          }
+        }
+      });
+    }
+
+    function applyMap(map) {
       list.forEach(function (p) {
         if (!p) return;
         var original = norm(p.name || p.title);
         if (!original) return;
-        var tr = map[original] || map[original.toLowerCase()] || original;
-        var id = p.id != null ? String(p.id) : "";
-        productNameCache[lang + ":" + (id || original.toLowerCase())] = tr;
-        p._name_az = p._name_az || original;
-        p._name_i18n = tr;
+        var tr = map[original] || map[original.toLowerCase()];
+        if (!tr) return;
+        rememberProductName(p, tr, lang);
       });
+      schedulePaint();
+    }
+
+    return translateMany(names, lang, "az", applyMap).then(function (map) {
+      applyMap(map);
       return list;
     });
   }
@@ -261,35 +447,47 @@
   function updateProductNameNodes(root) {
     var scope = root || document;
     var lang = currentLang();
+    var missing = [];
     scope.querySelectorAll("[data-ai-product-name]").forEach(function (el) {
-      var original = el.getAttribute("data-ai-product-name") || el.textContent;
-      original = norm(original);
+      var original = norm(el.getAttribute("data-ai-product-name") || el.textContent);
       if (!original) return;
       if (lang === "az") {
-        el.textContent = original;
+        if (el.textContent !== original) el.textContent = original;
         return;
       }
       var id = el.getAttribute("data-ai-product-id") || "";
       var key = lang + ":" + (id || original.toLowerCase());
-      if (productNameCache[key]) {
-        el.textContent = productNameCache[key];
+      var hit = productNameCache[key] || getCached(original, mapLang(lang), "az");
+      if (hit) {
+        productNameCache[key] = hit;
+        if (el.textContent !== hit) el.textContent = hit;
         return;
       }
-      translate(original, lang, "az").then(function (tr) {
-        if (currentLang() !== lang) return;
-        productNameCache[key] = tr;
-        el.textContent = tr;
+      missing.push({ el: el, original: original, key: key });
+    });
+
+    if (!missing.length || lang === "az") return;
+
+    var texts = missing.map(function (m) {
+      return m.original;
+    });
+    translateMany(texts, lang, "az", function (partial) {
+      if (currentLang() !== lang) return;
+      missing.forEach(function (m) {
+        var tr = partial[m.original] || partial[m.original.toLowerCase()];
+        if (!tr) return;
+        productNameCache[m.key] = tr;
+        if (m.el.textContent !== tr) m.el.textContent = tr;
       });
     });
   }
 
   function looksTranslatable(text) {
     var s = norm(text);
-    if (s.length < 3 || s.length > 220) return false;
+    if (s.length < 3 || s.length > 160) return false;
     if (/^https?:\/\//i.test(s)) return false;
     if (/^[\d\s.,:%₼$€+\-]+$/.test(s)) return false;
     if (/^[A-Z0-9_\-./]+$/.test(s) && s.length < 12) return false;
-    // Skip pure brand codes already latin short
     return true;
   }
 
@@ -299,6 +497,7 @@
     var scope = root || document.body;
     if (!scope) return Promise.resolve();
 
+    var token = ++liveDomToken;
     var texts = [];
     var nodes = [];
     var walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
@@ -316,64 +515,75 @@
         ) {
           return NodeFilter.FILTER_REJECT;
         }
-        if (parent.closest("[data-lang-switch], .lang-switch, [data-ai-skip]")) {
+        if (parent.closest("[data-lang-switch], .lang-switch, [data-ai-skip], [data-ai-product-name]")) {
           return NodeFilter.FILTER_REJECT;
         }
         if (parent.getAttribute("data-i18n")) return NodeFilter.FILTER_REJECT;
+        if (parent.closest(".product-card__title, .store-card__title, .cart-item__name, .rec-card__name, .search-popup__result-name")) {
+          return NodeFilter.FILTER_REJECT;
+        }
         if (!looksTranslatable(node.nodeValue)) return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       },
     });
 
-    while (walker.nextNode()) {
+    var limit = 80;
+    while (walker.nextNode() && nodes.length < limit) {
       var n = walker.currentNode;
-      var t = norm(n.nodeValue);
-      // Prefer Azerbaijani-looking or already known source texts
       nodes.push(n);
-      texts.push(t);
+      texts.push(norm(n.nodeValue));
     }
 
-    if (!texts.length) {
-      updateProductNameNodes(scope);
-      return Promise.resolve();
-    }
+    if (!texts.length) return Promise.resolve();
 
-    return translateMany(texts, lang, "az").then(function (map) {
-      if (currentLang() !== lang) return;
+    return translateMany(texts, lang, "az", function (partial) {
+      if (token !== liveDomToken || currentLang() !== lang) return;
       nodes.forEach(function (node) {
+        if (!node || !node.parentElement) return;
         var raw = node.nodeValue;
         var trimmed = norm(raw);
-        var tr = map[trimmed] || map[trimmed.toLowerCase()];
+        var tr = partial[trimmed] || partial[trimmed.toLowerCase()];
         if (!tr || tr === trimmed) return;
         var lead = raw.match(/^\s*/)[0] || "";
         var trail = raw.match(/\s*$/)[0] || "";
         node.nodeValue = lead + tr + trail;
       });
-      updateProductNameNodes(scope);
     });
   }
 
+  function scheduleLiveDom(root) {
+    if (liveDomTimer) clearTimeout(liveDomTimer);
+    liveDomTimer = setTimeout(function () {
+      liveDomTimer = null;
+      translateLiveDom(root || document.body);
+    }, 120);
+  }
+
   function onLangChanged() {
-    productNameCache = Object.create(null);
+    // Cache saxlanılır — eyni dilə qayıdanda ani olur
     updateProductNameNodes(document);
-    translateLiveDom(document.body);
-    document.dispatchEvent(new CustomEvent("BuykonAITranslateReady", { detail: { lang: currentLang() } }));
+    scheduleLiveDom(document.body);
+    document.dispatchEvent(
+      new CustomEvent("BuykonAITranslateReady", { detail: { lang: currentLang() } })
+    );
   }
 
   function init() {
     document.addEventListener("BuykonLangChanged", function () {
-      setTimeout(onLangChanged, 30);
+      // Məhsul adları əvvəl — DOM tərcüməsi sonra
+      setTimeout(onLangChanged, 0);
     });
     document.addEventListener("BizdevarLayoutLoaded", function () {
       setTimeout(function () {
         updateProductNameNodes(document);
-        if (currentLang() !== "az") translateLiveDom(document.body);
-      }, 50);
+        if (currentLang() !== "az") scheduleLiveDom(document.body);
+      }, 20);
     });
     if (currentLang() !== "az") {
       setTimeout(function () {
-        translateLiveDom(document.body);
-      }, 200);
+        updateProductNameNodes(document);
+        scheduleLiveDom(document.body);
+      }, 60);
     }
   }
 

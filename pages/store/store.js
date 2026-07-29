@@ -243,14 +243,7 @@
     if (data.store && data.store.name) document.title = data.store.name + " | Buykon";
     var products = data.products || [];
     if (window.BuykonAITranslate && typeof BuykonAITranslate.warmProducts === "function") {
-      BuykonAITranslate.warmProducts(products).then(function () {
-        if (lastStoreData !== data) return;
-        page.innerHTML = renderStore(data);
-        bindImageFallbacks(page);
-        if (typeof BuykonAITranslate.translateLiveDom === "function") {
-          BuykonAITranslate.translateLiveDom(page);
-        }
-      });
+      BuykonAITranslate.warmProducts(products);
     } else if (window.BuykonAITranslate && typeof BuykonAITranslate.translateLiveDom === "function") {
       BuykonAITranslate.translateLiveDom(page);
     }
@@ -260,7 +253,7 @@
     if (window.BuykonAITranslate) return Promise.resolve();
     return new Promise(function (resolve) {
       var s = document.createElement("script");
-      s.src = "/js/ai-translate.js?v=2";
+      s.src = "/js/ai-translate.js?v=3";
       s.onload = function () {
         resolve();
       };

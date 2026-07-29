@@ -283,9 +283,8 @@
     paint(sorted);
 
     if (window.BuykonAITranslate && typeof BuykonAITranslate.warmProducts === "function") {
-      BuykonAITranslate.warmProducts(sorted).then(function () {
-        paint(sorted);
-      });
+      // Tam yenidən paint yox — adlar batch gəldikcə DOM-da yenilənir
+      BuykonAITranslate.warmProducts(sorted);
     }
   }
 
@@ -540,9 +539,6 @@
   loadProducts();
 
   document.addEventListener("BuykonLangChanged", function () {
-    setTimeout(render, 40);
-  });
-  document.addEventListener("BuykonAITranslateReady", function () {
-    setTimeout(render, 40);
+    setTimeout(render, 0);
   });
 })();

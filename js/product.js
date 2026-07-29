@@ -1874,7 +1874,6 @@
         if (!currentProduct || currentProduct.id !== product.id) return;
         applyHeader(product);
         if (titleEl) titleEl.textContent = productDisplayName(product);
-        renderProductCarousels(product, allProducts);
         if (typeof BuykonAITranslate.updateProductNameNodes === "function") {
           BuykonAITranslate.updateProductNameNodes(document);
         }
