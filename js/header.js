@@ -789,7 +789,7 @@
       return;
     }
     var s = document.createElement("script");
-    s.src = getLayoutRoot() + "js/buki.js?v=2";
+    s.src = getLayoutRoot() + "js/buki.js?v=3";
     s.onload = function () {
       if (window.BuykonBuki && BuykonBuki.bindTriggers) BuykonBuki.bindTriggers();
       if (done) done();

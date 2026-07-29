@@ -1,212 +1,234 @@
 /* Buki — AI alış-veriş köməkçisi */
 
 :root {
-  --buki-orange: #ff9100;
-  --buki-amber: #ffb020;
-  --buki-deep: #e56e00;
-  --buki-teal: #0a8fad;
+  --buki-purple: #7b5cff;
+  --buki-violet: #9b4dff;
+  --buki-blue: #3d7bff;
+  --buki-cyan: #4ecbff;
   --buki-ink: #1a1d21;
   --buki-muted: #5c6370;
   --buki-line: #e8eaed;
-  --buki-panel: #fffaf3;
+  --buki-panel: #f7f5ff;
   --buki-bubble: #fff;
-  --buki-user: #fff4e5;
+  --buki-user: #f0ebff;
+  --buki-glow: rgba(91, 80, 255, 0.55);
 }
 
+/* —— Header CTA button (design kit) —— */
 .buki-btn {
+  --buki-btn-h: 48px;
   position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 46px;
-  height: 46px;
-  padding: 0 12px 0 10px;
-  border: none;
-  border-radius: 14px;
+  gap: 10px;
+  height: var(--buki-btn-h);
+  padding: 4px 14px 4px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
   cursor: pointer;
-  overflow: hidden;
+  overflow: visible;
   color: #fff;
-  background: linear-gradient(135deg, #ffb020 0%, #ff9100 45%, #ff7300 100%);
+  background: linear-gradient(105deg, #6a5cff 0%, #7b5cff 28%, #5b6bff 62%, #3d8bff 100%);
   box-shadow:
-    0 0 0 1px rgba(255, 145, 0, 0.35),
-    0 8px 20px rgba(255, 115, 0, 0.28),
+    0 0 0 1px rgba(120, 100, 255, 0.25),
+    0 8px 22px rgba(70, 60, 220, 0.35),
+    0 0 28px rgba(90, 80, 255, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
   z-index: 1;
   isolation: isolate;
+  font-family: "Nunito Sans", "Segoe UI", sans-serif;
 }
 
-.buki-btn--mobile {
-  min-width: 40px;
+.buki-btn__glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(120deg, #a78bff, #6ea8ff, #7c5cff);
+  opacity: 0.55;
+  filter: blur(10px);
+  z-index: -1;
+  animation: buki-glow-pulse 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.buki-avatar {
+  position: relative;
+  flex-shrink: 0;
   width: 40px;
   height: 40px;
-  padding: 0;
-  border-radius: 12px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #edf2ff 55%, #d9e4ff 100%);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.55),
+    0 4px 12px rgba(40, 50, 120, 0.25),
+    inset 0 -2px 6px rgba(90, 120, 255, 0.15);
+}
+
+.buki-avatar__online {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid #fff;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+  z-index: 2;
+}
+
+.buki-avatar__face {
+  width: 30px;
+  height: 30px;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(50, 80, 180, 0.2));
+}
+
+.buki-btn__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-width: 0;
+  padding-right: 2px;
+  text-align: left;
+}
+
+.buki-btn__title {
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(30, 20, 80, 0.25);
+}
+
+.buki-btn__sub {
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  opacity: 0.88;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.buki-btn__chev {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-left: 2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  flex-shrink: 0;
 }
 
 .buki-btn:hover,
 .buki-btn:focus-visible {
-  transform: translateY(-1px) scale(1.03);
+  transform: translateY(-1px) scale(1.02);
   box-shadow:
-    0 0 0 1px rgba(255, 145, 0, 0.5),
-    0 12px 28px rgba(255, 115, 0, 0.4),
-    0 0 24px rgba(255, 176, 32, 0.45);
+    0 0 0 1px rgba(160, 140, 255, 0.45),
+    0 12px 28px rgba(70, 60, 220, 0.42),
+    0 0 36px rgba(110, 100, 255, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
   outline: none;
+  filter: brightness(1.05);
+}
+
+.buki-btn:hover .buki-btn__glow,
+.buki-btn:focus-visible .buki-btn__glow {
+  opacity: 0.85;
+  filter: blur(14px);
 }
 
 .buki-btn:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
+  filter: brightness(1.08);
+  box-shadow:
+    0 0 0 1px rgba(180, 160, 255, 0.5),
+    0 6px 18px rgba(70, 60, 220, 0.4),
+    0 0 40px rgba(90, 140, 255, 0.75);
 }
 
-.buki-btn__aura {
-  position: absolute;
-  inset: -40%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.35) 12%,
-    transparent 28%,
-    rgba(10, 143, 173, 0.35) 48%,
-    transparent 62%,
-    rgba(255, 255, 255, 0.28) 78%,
-    transparent 100%
-  );
-  animation: buki-spin 4.5s linear infinite;
-  opacity: 0.7;
-  z-index: -2;
-}
-
-.buki-btn__ring {
-  position: absolute;
-  inset: 2px;
-  border-radius: 12px;
-  background: linear-gradient(145deg, #ffb84a, #ff8a00 55%, #ff6a00);
-  z-index: -1;
-}
-
-.buki-btn__shine {
-  position: absolute;
-  top: -40%;
-  left: -60%;
-  width: 50%;
-  height: 180%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.55),
-    transparent
-  );
-  transform: rotate(18deg);
-  animation: buki-shine 2.8s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.buki-btn__spark {
-  position: absolute;
-  width: 5px;
-  height: 5px;
+/* Compact circular (mobile) */
+.buki-btn--icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0;
+  justify-content: center;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 8px #fff, 0 0 14px var(--buki-amber);
-  animation: buki-spark 1.8s ease-in-out infinite;
-  pointer-events: none;
+  background: linear-gradient(145deg, #7b5cff 0%, #5b6bff 50%, #3d8bff 100%);
 }
 
-.buki-btn__spark--1 {
-  top: 6px;
-  right: 8px;
-  animation-delay: 0s;
-}
-
-.buki-btn__spark--2 {
-  bottom: 8px;
-  left: 10px;
-  width: 4px;
-  height: 4px;
-  animation-delay: 0.45s;
-}
-
-.buki-btn__spark--3 {
-  top: 12px;
-  left: 14px;
-  width: 3px;
-  height: 3px;
-  animation-delay: 0.9s;
-}
-
-.buki-btn__core {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
-  animation: buki-pulse 2.2s ease-in-out infinite;
-}
-
-.buki-btn__ico {
-  display: block;
-  color: #fff;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
-}
-
-.buki-btn__label {
-  position: relative;
-  font-family: "Nunito Sans", "Segoe UI", sans-serif;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
-}
-
-.buki-btn--mobile .buki-btn__label {
+.buki-btn--icon .buki-btn__copy,
+.buki-btn--icon .buki-btn__chev {
   display: none;
 }
 
-@keyframes buki-spin {
-  to {
-    transform: rotate(360deg);
-  }
+.buki-btn--icon .buki-avatar {
+  width: 36px;
+  height: 36px;
 }
 
-@keyframes buki-shine {
-  0%,
-  35% {
-    left: -60%;
-    opacity: 0;
-  }
-  45% {
-    opacity: 1;
-  }
-  70%,
-  100% {
-    left: 120%;
-    opacity: 0;
-  }
+.buki-btn--icon .buki-avatar__face {
+  width: 28px;
+  height: 28px;
 }
 
-@keyframes buki-spark {
+@keyframes buki-glow-pulse {
   0%,
   100% {
-    transform: scale(0.6);
-    opacity: 0.35;
-  }
-  50% {
-    transform: scale(1.25);
-    opacity: 1;
-  }
-}
-
-@keyframes buki-pulse {
-  0%,
-  100% {
+    opacity: 0.45;
     transform: scale(1);
   }
   50% {
-    transform: scale(1.08);
+    opacity: 0.75;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes buki-eye-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.15);
+  }
+}
+
+.buki-avatar__face rect[fill*="bukiEye"],
+.buki-avatar__face rect:nth-of-type(2),
+.buki-avatar__face rect:nth-of-type(3) {
+  transform-origin: center;
+  animation: buki-eye-blink 4.5s ease-in-out infinite;
+}
+
+@media (max-width: 1100px) {
+  .header__toolbar .buki-btn:not(.buki-btn--icon) .buki-btn__sub {
+    display: none;
+  }
+  .header__toolbar .buki-btn:not(.buki-btn--icon) {
+    padding-right: 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .header__toolbar .buki-btn:not(.buki-btn--icon) .buki-btn__title {
+    font-size: 12.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .buki-btn__glow,
+  .buki-avatar__face rect {
+    animation: none !important;
   }
 }
 
@@ -245,12 +267,12 @@
   overflow: hidden;
   pointer-events: auto;
   background:
-    radial-gradient(120% 80% at 0% 0%, rgba(255, 176, 32, 0.18), transparent 50%),
-    radial-gradient(90% 60% at 100% 0%, rgba(10, 143, 173, 0.12), transparent 45%),
+    radial-gradient(120% 80% at 0% 0%, rgba(123, 92, 255, 0.16), transparent 50%),
+    radial-gradient(90% 60% at 100% 0%, rgba(61, 139, 255, 0.12), transparent 45%),
     var(--buki-panel);
-  border: 1px solid rgba(255, 145, 0, 0.22);
+  border: 1px solid rgba(123, 92, 255, 0.22);
   box-shadow:
-    0 24px 60px rgba(26, 29, 33, 0.28),
+    0 24px 60px rgba(40, 30, 90, 0.28),
     0 0 0 1px rgba(255, 255, 255, 0.4) inset;
   animation: buki-rise 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -260,29 +282,39 @@
   align-items: center;
   gap: 12px;
   padding: 14px 14px 12px;
-  background: linear-gradient(135deg, #ffb020, #ff9100 55%, #ff7300);
+  background: linear-gradient(105deg, #6a5cff 0%, #7b5cff 40%, #3d8bff 100%);
   color: #fff;
 }
 
 .buki-panel__avatar {
   position: relative;
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  background: radial-gradient(circle at 35% 30%, #fff 0%, #edf2ff 100%);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.buki-panel__avatar .buki-avatar__face {
+  width: 34px;
+  height: 34px;
 }
 
 .buki-panel__avatar::after {
   content: "";
   position: absolute;
-  inset: -3px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  animation: buki-pulse 2s ease-in-out infinite;
+  top: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 2px solid #fff;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.75);
 }
 
 .buki-panel__meta {
@@ -365,7 +397,7 @@
 
 .buki-msg--user .buki-msg__bubble {
   background: var(--buki-user);
-  border: 1px solid rgba(255, 145, 0, 0.25);
+  border: 1px solid rgba(123, 92, 255, 0.25);
   border-bottom-right-radius: 6px;
 }
 
@@ -380,7 +412,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--buki-orange);
+  background: var(--buki-purple);
   opacity: 0.45;
   animation: buki-dot 1s ease-in-out infinite;
 }
@@ -414,9 +446,9 @@
 }
 
 .buki-card:hover {
-  border-color: rgba(255, 145, 0, 0.45);
+  border-color: rgba(123, 92, 255, 0.45);
   transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(255, 145, 0, 0.12);
+  box-shadow: 0 8px 18px rgba(91, 80, 255, 0.14);
 }
 
 .buki-card__media {
@@ -438,7 +470,7 @@
 .buki-card__ph {
   font-size: 22px;
   font-weight: 800;
-  color: var(--buki-orange);
+  color: var(--buki-purple);
 }
 
 .buki-card__body {
@@ -469,7 +501,7 @@
 .buki-card__price {
   font-size: 14px;
   font-weight: 800;
-  color: var(--buki-deep);
+  color: var(--buki-violet);
 }
 
 .buki-card__why {
@@ -486,7 +518,7 @@
 }
 
 .buki-chip {
-  border: 1px solid rgba(255, 145, 0, 0.28);
+  border: 1px solid rgba(123, 92, 255, 0.28);
   background: #fff;
   color: var(--buki-ink);
   border-radius: 999px;
@@ -498,8 +530,8 @@
 }
 
 .buki-chip:hover {
-  background: #fff4e5;
-  border-color: var(--buki-orange);
+  background: #f0ebff;
+  border-color: var(--buki-purple);
 }
 
 .buki-panel__foot {
@@ -533,8 +565,8 @@
 
 .buki-form textarea:focus {
   outline: none;
-  border-color: rgba(255, 145, 0, 0.55);
-  box-shadow: 0 0 0 3px rgba(255, 145, 0, 0.15);
+  border-color: rgba(123, 92, 255, 0.55);
+  box-shadow: 0 0 0 3px rgba(123, 92, 255, 0.15);
 }
 
 .buki-form__send {
@@ -544,10 +576,10 @@
   border-radius: 14px;
   cursor: pointer;
   color: #fff;
-  background: linear-gradient(135deg, #ffb020, #ff9100 50%, #ff7300);
+  background: linear-gradient(135deg, #7b5cff, #5b6bff 50%, #3d8bff);
   display: grid;
   place-items: center;
-  box-shadow: 0 8px 16px rgba(255, 115, 0, 0.25);
+  box-shadow: 0 8px 16px rgba(91, 80, 255, 0.28);
 }
 
 .buki-form__send:disabled {
@@ -619,11 +651,19 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .buki-btn__aura,
-  .buki-btn__shine,
-  .buki-btn__spark,
-  .buki-btn__core,
-  .buki-panel__avatar::after {
+  .buki-btn__glow,
+  .buki-avatar__face rect {
     animation: none !important;
   }
+}
+
+html.dark .buki-panel,
+body.dark-mode .buki-panel,
+[data-theme="dark"] .buki-panel {
+  --buki-panel: #16141f;
+  --buki-bubble: #221f2e;
+  --buki-user: #2a2440;
+  --buki-ink: #f3f4f6;
+  --buki-muted: #a0a7b4;
+  --buki-line: #2f2a3d;
 }

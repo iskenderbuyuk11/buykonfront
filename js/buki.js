@@ -151,7 +151,7 @@
     if (document.querySelector('link[data-buki-css]')) return;
     var link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = rootPath() + "css/buki.css?v=1";
+    link.href = rootPath() + "css/buki.css?v=2";
     link.setAttribute("data-buki-css", "1");
     document.head.appendChild(link);
   }
@@ -645,11 +645,19 @@
       '<section class="buki-panel" role="dialog" aria-modal="true" aria-label="Buki AI köməkçi">' +
       '<header class="buki-panel__head">' +
       '<div class="buki-panel__avatar" aria-hidden="true">' +
-      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.2 3.6L17 8l-3.8 1.4L12 13l-1.2-3.6L7 8l3.8-1.4L12 3z" fill="#fff"/><path d="M18.5 13.5l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7.7-2.1z" fill="#fff"/></svg>' +
-      "</div>" +
+      '<svg class="buki-avatar__face" viewBox="0 0 64 64" fill="none">' +
+      '<defs><linearGradient id="bukiFaceGradP" x1="12" y1="8" x2="52" y2="58" gradientUnits="userSpaceOnUse">' +
+      '<stop stop-color="#ffffff"/><stop offset="1" stop-color="#e8eeff"/></linearGradient>' +
+      '<linearGradient id="bukiEyeGradP" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop stop-color="#5ad0ff"/><stop offset="1" stop-color="#3b7cff"/></linearGradient></defs>' +
+      '<rect x="10" y="12" width="44" height="40" rx="16" fill="url(#bukiFaceGradP)"/>' +
+      '<rect x="18" y="26" width="10" height="14" rx="5" fill="url(#bukiEyeGradP)"/>' +
+      '<rect x="36" y="26" width="10" height="14" rx="5" fill="url(#bukiEyeGradP)"/>' +
+      '<path d="M24 44c2.8 3.2 6.2 4.8 8 4.8s5.2-1.6 8-4.8" stroke="#4ea8ff" stroke-width="2.6" stroke-linecap="round"/>' +
+      "</svg></div>" +
       '<div class="buki-panel__meta">' +
       '<p class="buki-panel__name">Buki</p>' +
-      '<p class="buki-panel__sub">AI alış-veriş köməkçiniz</p>' +
+      '<p class="buki-panel__sub">Süni intellekt köməkçiniz</p>' +
       "</div>" +
       '<button type="button" class="buki-panel__close" data-buki-close aria-label="Bağla">' +
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
