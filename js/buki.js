@@ -208,7 +208,7 @@
     if (document.querySelector('link[data-buki-css]')) return;
     var link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = rootPath() + "css/buki.css?v=3";
+    link.href = rootPath() + "css/buki.css?v=4";
     link.setAttribute("data-buki-css", "1");
     document.head.appendChild(link);
   }

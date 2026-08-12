@@ -50,6 +50,10 @@
   animation: buki-invite 12s ease-in-out infinite;
 }
 
+.header__toolbar > .buki-btn:not(:hover):not(:focus-visible) .buki-btn__copy {
+  animation: buki-copy-invite 12s ease-in-out infinite;
+}
+
 .buki-btn__glow {
   position: absolute;
   inset: -2px;
@@ -141,6 +145,21 @@
 
 .buki-btn__pitch span { display: none; }
 .buki-btn__pitch span:first-child { display: block; }
+
+.header__toolbar > .buki-btn:not(:hover):not(:focus-visible) .buki-btn__pitch {
+  display: block;
+}
+
+.header__toolbar > .buki-btn:not(:hover):not(:focus-visible) .buki-btn__sub {
+  animation: buki-sub-invite 12s steps(1, end) infinite;
+}
+
+.header__toolbar > .buki-btn:not(:hover):not(:focus-visible) .buki-btn__pitch span {
+  animation: buki-pitch-invite 12s steps(1, end) infinite;
+}
+
+.header__toolbar > .buki-btn:not(:hover):not(:focus-visible) .buki-btn__pitch span:nth-child(2) { animation-delay: -2s; }
+.header__toolbar > .buki-btn:not(:hover):not(:focus-visible) .buki-btn__pitch span:nth-child(3) { animation-delay: -4s; }
 
 .buki-btn:hover,
 .buki-btn:focus-visible,
@@ -251,6 +270,21 @@
 @keyframes buki-invite {
   0%, 72%, 100% { width: 54px; padding-right: 3px; }
   78%, 94% { width: 188px; padding-right: 12px; }
+}
+
+@keyframes buki-copy-invite {
+  0%, 72%, 100% { width: 0; opacity: 0; transform: translateX(-5px); }
+  78%, 94% { width: 104px; opacity: 1; transform: translateX(0); }
+}
+
+@keyframes buki-sub-invite {
+  0%, 77%, 95%, 100% { display: block; }
+  78%, 94% { display: none; }
+}
+
+@keyframes buki-pitch-invite {
+  0%, 77%, 95%, 100% { display: none; }
+  78%, 94% { display: block; }
 }
 
 @keyframes buki-word-cycle {
