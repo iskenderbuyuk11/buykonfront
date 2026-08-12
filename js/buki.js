@@ -208,7 +208,7 @@
     if (document.querySelector('link[data-buki-css]')) return;
     var link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = rootPath() + "css/buki.css?v=4";
+    link.href = rootPath() + "css/buki.css?v=5";
     link.setAttribute("data-buki-css", "1");
     document.head.appendChild(link);
   }
@@ -915,10 +915,73 @@
     });
   }
 
+  function initHeaderCta() {
+    var phrases = ["Buki ilə danış", "Məhsul tap", "Büdcəni yaz"];
+    document.querySelectorAll(".header__toolbar .buki-btn:not(.buki-btn--icon)").forEach(function (btn) {
+      if (btn.dataset.bukiCtaBound) return;
+      btn.dataset.bukiCtaBound = "1";
+      var title = btn.querySelector(".buki-btn__title");
+      var sub = btn.querySelector(".buki-btn__sub");
+      var phraseIndex = 0;
+      var closeTimer = null;
+      var cycleTimer = null;
+      var interval = null;
+      var heldOpen = false;
+
+      function canAnimate() {
+        return !window.matchMedia("(max-width: 980px)").matches &&
+          !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      }
+      function setPhrase() {
+        var phrase = phrases[phraseIndex++ % phrases.length];
+        if (title) title.textContent = phrase;
+        if (sub) sub.textContent = phrase === "Büdcəni yaz" ? "Uyğun məhsulları seçək" : "Süni intellekt köməkçiniz";
+        btn.setAttribute("aria-label", phrase);
+      }
+      function stopCycle() {
+        if (cycleTimer) window.clearInterval(cycleTimer);
+        cycleTimer = null;
+      }
+      function collapse() {
+        if (heldOpen) return;
+        btn.classList.remove("is-buki-expanded");
+        stopCycle();
+        if (title) title.textContent = "Buki";
+        if (sub) sub.textContent = "AI köməkçi";
+        btn.setAttribute("aria-label", "Buki ilə danış");
+      }
+      function expand() {
+        if (!canAnimate()) return;
+        if (closeTimer) window.clearTimeout(closeTimer);
+        btn.classList.add("is-buki-expanded");
+        setPhrase();
+        stopCycle();
+        cycleTimer = window.setInterval(setPhrase, 1600);
+        if (!heldOpen) closeTimer = window.setTimeout(collapse, 5200);
+      }
+      function schedule() {
+        if (!canAnimate()) return;
+        window.setTimeout(expand, 900);
+        interval = window.setInterval(expand, 10500);
+      }
+
+      btn.addEventListener("mouseenter", function () { heldOpen = true; expand(); });
+      btn.addEventListener("mouseleave", function () { heldOpen = false; collapse(); });
+      btn.addEventListener("focusin", function () { heldOpen = true; expand(); });
+      btn.addEventListener("focusout", function () { heldOpen = false; collapse(); });
+      window.addEventListener("resize", function () {
+        if (!canAnimate()) collapse();
+      }, { passive: true });
+      schedule();
+    });
+  }
+
   function init() {
     ensureCss();
     bindTriggers();
+    initHeaderCta();
     document.addEventListener("BizdevarLayoutLoaded", bindTriggers);
+    document.addEventListener("BizdevarLayoutLoaded", initHeaderCta);
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && open) closePanel();
     });

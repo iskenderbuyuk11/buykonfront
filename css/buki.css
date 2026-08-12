@@ -340,6 +340,32 @@
   }
 }
 
+/* JavaScript idarə etdiyi dəvət animasiyası — hover etmədən də açılır. */
+@media (min-width: 981px) {
+  .header__toolbar > .buki-btn.is-buki-expanded:not(.buki-btn--icon) {
+    width: 188px;
+    padding-right: 12px;
+    animation: none;
+  }
+
+  .header__toolbar > .buki-btn.is-buki-expanded:not(.buki-btn--icon) .buki-btn__copy {
+    display: flex;
+    width: 104px;
+    opacity: 1;
+    transform: translateX(0);
+    animation: none;
+  }
+
+  .header__toolbar > .buki-btn.is-buki-expanded:not(.buki-btn--icon) .buki-btn__sub {
+    display: block;
+    animation: none;
+  }
+
+  .header__toolbar > .buki-btn.is-buki-expanded:not(.buki-btn--icon) .buki-btn__pitch {
+    display: none;
+  }
+}
+
 /* Panel */
 .buki-root[hidden] {
   display: none !important;
