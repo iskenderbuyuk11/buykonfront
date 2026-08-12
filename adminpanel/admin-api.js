@@ -55,6 +55,13 @@
       }).then(assertAdminSession);
     },
 
+    setupPassword: function (email, password, passwordConfirm) {
+      return request("/auth/admin/setup-password", {
+        method: "POST",
+        body: { email: email, password: password, password_confirm: passwordConfirm },
+      }).then(assertAdminSession);
+    },
+
     checkEmail: function (email) {
       return request("/auth/admin/check-email", { method: "POST", body: { email: email } });
     },
