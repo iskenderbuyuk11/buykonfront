@@ -1295,10 +1295,9 @@
     var phpUrl = getVisualSearchPhpUrl();
     var javaUrl = getVisualSearchJavaUrl();
 
-    // Əvvəl lokal Gemini (.env), sonra Java API
+    // Əvvəl hostingdəki PHP endpointi, açar yoxdursa Java API ehtiyat yolu.
     return postVisualSearch(phpUrl, base64, mime, catalog).catch(function (err) {
       var msg = (err && err.message) || "";
-      if (msg === "NO_GEMINI_KEY") throw err;
       return postVisualSearch(javaUrl, base64, mime, catalog).catch(function (err2) {
         var m2 = (err2 && err2.message) || msg || "";
         if (
