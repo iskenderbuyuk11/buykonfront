@@ -4,6 +4,7 @@ BUYKON — FRONTEND (HOSTING) + BACKEND (SERVER) BİRLƏŞDİRMƏ
 Arxitektura:
   Frontend (hosting):  https://buykon.com
   Backend (server):    https://api.buykon.com  →  JAR port 8080
+  Backend server IP:   185.47.174.152  (root)
 
 ═══════════════════════════════════════════════════════════
 A) HOSTİNGƏ YÜKLƏNƏCƏK FAYLLAR (frontend)

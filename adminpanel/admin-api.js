@@ -48,6 +48,13 @@
   window.BizdeAdminAPI = {
     baseUrl: API_BASE,
 
+    login: function (email, password) {
+      return request("/auth/admin/login", {
+        method: "POST",
+        body: { email: email, password: password },
+      }).then(assertAdminSession);
+    },
+
     checkEmail: function (email) {
       return request("/auth/admin/check-email", { method: "POST", body: { email: email } });
     },

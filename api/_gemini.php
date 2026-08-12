@@ -14,7 +14,13 @@ function buykon_load_env($root = null) {
   $root = $root ?: buykon_project_root();
   $path = rtrim($root, "/\\") . DIRECTORY_SEPARATOR . ".env";
   if (!is_file($path)) return $cache;
-  $lines = @file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+  $raw = @file_get_contents($path);
+  if ($raw === false || $raw === "") return $cache;
+  // UTF-8 BOM
+  if (substr($raw, 0, 3) === "\xEF\xBB\xBF") {
+    $raw = substr($raw, 3);
+  }
+  $lines = preg_split('/\r\n|\r|\n/', $raw);
   if (!$lines) return $cache;
   foreach ($lines as $line) {
     $line = trim($line);
