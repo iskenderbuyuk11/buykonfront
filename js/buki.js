@@ -674,8 +674,6 @@
     // Gemini (.env) əsas yol — Java yalnız ehtiyat
     return fetchBukiJson(phpUrl, message, products)
       .catch(function (err) {
-        var msg = (err && err.message) || "";
-        if (msg === "NO_GEMINI_KEY") throw err;
         if (!javaUrl) throw err || new Error("no ai");
         return fetchBukiJson(javaUrl, message, products);
       })
