@@ -16,13 +16,14 @@
 
 /* —— Header CTA button (design kit) —— */
 .buki-btn {
-  --buki-btn-h: 48px;
+  --buki-btn-h: 46px;
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   height: var(--buki-btn-h);
-  padding: 4px 14px 4px 4px;
+  width: 54px;
+  padding: 3px;
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 999px;
   cursor: pointer;
@@ -34,10 +35,19 @@
     0 8px 22px rgba(70, 60, 220, 0.35),
     0 0 28px rgba(90, 80, 255, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  transition: width 0.42s cubic-bezier(0.22, 1, 0.36, 1), transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
   z-index: 1;
   isolation: isolate;
   font-family: "Nunito Sans", "Segoe UI", sans-serif;
+}
+
+/* Buki profil düyməsinin solunda olur və arabir danışığa dəvət edir. */
+.header__toolbar > .buki-btn {
+  order: -1;
+}
+
+.header__toolbar > .buki-btn:not(:hover):not(:focus-visible) {
+  animation: buki-invite 12s ease-in-out infinite;
 }
 
 .buki-btn__glow {
@@ -55,8 +65,8 @@
 .buki-avatar {
   position: relative;
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -92,7 +102,12 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 1px;
+  width: 0;
   min-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-5px);
+  transition: width 0.36s ease, opacity 0.22s ease, transform 0.36s ease;
   padding-right: 2px;
   text-align: left;
 }
@@ -114,6 +129,45 @@
   white-space: nowrap;
   color: rgba(255, 255, 255, 0.92);
 }
+
+.buki-btn__pitch {
+  display: none;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: rgba(255, 255, 255, 0.82);
+  white-space: nowrap;
+}
+
+.buki-btn__pitch span { display: none; }
+.buki-btn__pitch span:first-child { display: block; }
+
+.buki-btn:hover,
+.buki-btn:focus-visible,
+.buki-btn:has(.buki-btn__pitch:hover) {
+  width: 188px;
+  padding-right: 12px;
+}
+
+.buki-btn:hover .buki-btn__copy,
+.buki-btn:focus-visible .buki-btn__copy {
+  width: 104px;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.buki-btn:hover .buki-btn__sub,
+.buki-btn:focus-visible .buki-btn__sub { display: none; }
+.buki-btn:hover .buki-btn__pitch,
+.buki-btn:focus-visible .buki-btn__pitch { display: block; }
+.buki-btn:hover .buki-btn__pitch span,
+.buki-btn:focus-visible .buki-btn__pitch span { animation: buki-word-cycle 6s steps(1, end) infinite; }
+.buki-btn:hover .buki-btn__pitch span:nth-child(1),
+.buki-btn:focus-visible .buki-btn__pitch span:nth-child(1) { animation-delay: 0s; }
+.buki-btn:hover .buki-btn__pitch span:nth-child(2),
+.buki-btn:focus-visible .buki-btn__pitch span:nth-child(2) { animation-delay: -2s; }
+.buki-btn:hover .buki-btn__pitch span:nth-child(3),
+.buki-btn:focus-visible .buki-btn__pitch span:nth-child(3) { animation-delay: -4s; }
 
 .buki-btn__chev {
   display: grid;
@@ -165,6 +219,8 @@
   background: linear-gradient(145deg, #7b5cff 0%, #5b6bff 50%, #3d8bff 100%);
 }
 
+.buki-btn--icon { width: 44px; }
+
 .buki-btn--icon .buki-btn__copy,
 .buki-btn--icon .buki-btn__chev {
   display: none;
@@ -190,6 +246,16 @@
     opacity: 0.75;
     transform: scale(1.03);
   }
+}
+
+@keyframes buki-invite {
+  0%, 72%, 100% { width: 54px; padding-right: 3px; }
+  78%, 94% { width: 188px; padding-right: 12px; }
+}
+
+@keyframes buki-word-cycle {
+  0%, 33% { display: block; opacity: 1; transform: translateY(0); }
+  34%, 100% { display: none; opacity: 0; transform: translateY(4px); }
 }
 
 @keyframes buki-eye-blink {
@@ -219,6 +285,13 @@
   }
 }
 
+@media (max-width: 1180px) {
+  .header__toolbar > .buki-btn:not(.buki-btn--icon) { width: 54px; padding-right: 3px; animation: none; }
+  .header__toolbar > .buki-btn:not(.buki-btn--icon) .buki-btn__copy { display: none; }
+  .header__toolbar > .buki-btn:not(.buki-btn--icon):hover,
+  .header__toolbar > .buki-btn:not(.buki-btn--icon):focus-visible { width: 54px; }
+}
+
 @media (max-width: 900px) {
   .header__toolbar .buki-btn:not(.buki-btn--icon) .buki-btn__title {
     font-size: 12.5px;
@@ -227,7 +300,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .buki-btn__glow,
-  .buki-avatar__face rect {
+  .buki-avatar__face rect,
+  .header__toolbar > .buki-btn {
     animation: none !important;
   }
 }
