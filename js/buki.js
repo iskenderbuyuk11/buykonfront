@@ -208,7 +208,7 @@
     if (document.querySelector('link[data-buki-css]')) return;
     var link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = rootPath() + "css/buki.css?v=5";
+    link.href = rootPath() + "css/buki.css?v=6";
     link.setAttribute("data-buki-css", "1");
     document.head.appendChild(link);
   }
@@ -934,7 +934,12 @@
       }
       function setPhrase() {
         var phrase = phrases[phraseIndex++ % phrases.length];
-        if (title) title.textContent = phrase;
+        if (title) {
+          title.classList.remove("is-buki-text-changing");
+          void title.offsetWidth;
+          title.textContent = phrase;
+          title.classList.add("is-buki-text-changing");
+        }
         if (sub) sub.textContent = phrase === "Büdcəni yaz" ? "Uyğun məhsulları seçək" : "Süni intellekt köməkçiniz";
         btn.setAttribute("aria-label", phrase);
       }
@@ -943,7 +948,8 @@
         cycleTimer = null;
       }
       function collapse() {
-        if (heldOpen) return;
+        // Header CTA normalda açıq qalır; yalnız kiçik ekranda bağlanır.
+        if (heldOpen || canAnimate()) return;
         btn.classList.remove("is-buki-expanded");
         stopCycle();
         if (title) title.textContent = "Buki";
